@@ -106,11 +106,19 @@ No IDEB foi acrescentado:
 
 - `_etapa_origem`.
 
-No SAEB será acrescentado:
+No SAEB foi acrescentado:
 
 - `_granularidade_origem`.
 
-O campo `_granularidade_origem` registra se o arquivo selecionado para a edição foi publicado no nível de `UF` ou `ESCOLA`. Ele não harmoniza a granularidade; apenas torna explícita a granularidade efetivamente preservada na Bronze.
+Na PND 2025 também será utilizado:
+
+- `_granularidade_origem`.
+
+No SAEB, esse campo registra se o arquivo selecionado para a edição foi publicado no nível de `UF` ou `ESCOLA`.
+
+Na PND, `_granularidade_origem = REGISTRO_INDIVIDUAL` registra que o arquivo principal preserva registros individuais da prova.
+
+O campo não harmoniza a granularidade; apenas torna explícita a granularidade efetivamente preservada na Bronze.
 
 Esses campos não substituem variáveis originais da fonte.
 
@@ -703,7 +711,89 @@ Ela será aplicada somente na Silver, conforme `docs/definicao_rede_publica.md`.
 
 ### 7.5 PND 2025
 
-O arquivo principal da PND 2025 possui mais de um milhão de registros e exige leitura eficiente.
+A PND 2025 está representada no RAW por três arquivos:
+
+- `Dicionário_arquivos_variáveis_PND_2025.xlsx`;
+- `microdados2025_parametros_itens.xlsx`;
+- `microdados2025_pnd_arq1.txt`.
+
+#### Seleção da fonte principal
+
+O arquivo `microdados2025_pnd_arq1.txt` é a tabela principal de registros individuais utilizada para a ingestão Bronze.
+
+Os dois arquivos XLSX permanecem no RAW como fontes auxiliares de documentação e parâmetros:
+
+- o dicionário apoia a interpretação das variáveis;
+- a planilha de parâmetros de itens preserva informações técnicas de calibração e itens.
+
+Eles não serão convertidos, nesta etapa, em tabelas factuais da Bronze porque a ingestão analítica principal da PND utiliza o arquivo individual. Permanecem preservados integralmente no RAW e poderão ser utilizados em etapas posteriores se alguma transformação exigir essas informações.
+
+Essa decisão evita criar tabelas Bronze sem uso definido apenas por existirem no pacote de microdados, sem perder a rastreabilidade ou a disponibilidade dos arquivos originais.
+
+#### Estrutura técnica confirmada do TXT
+
+A verificação técnica do arquivo `microdados2025_pnd_arq1.txt` confirmou:
+
+- tamanho: `371.539.465 bytes`;
+- codificação: `utf-8`;
+- delimitador: `;`;
+- 26 colunas;
+- 1.087.360 linhas físicas;
+- 1.087.359 registros de dados, descontada a linha de cabeçalho;
+- SHA-256: `b15968a19e309bca6b63c6f6d7af094efdc13d900645dc7385872a6a50dd7baf`.
+
+O cabeçalho possui, na ordem original:
+
+`NU_ANO;CO_GRUPO;CO_MUNICIPIO_PROVA;SG_UF_MUNICIPIO_PROVA;TP_INSCRICAO_PND;IN_REAPLICACAO;CO_CADERNO;DS_VT_GAB_OBJ;DS_VT_ESC_OBJ;DS_VT_ACE_OBJ;TP_PRES;TP_SIT_DISC;PROFICIENCIA;NT_OBJ;NT_DIS;NT_GER;QT_ACERTOS;CO_RS_I1;CO_RS_I2;CO_RS_I3;CO_RS_I4;CO_RS_I5;CO_RS_I6;CO_RS_I7;CO_RS_I8;CO_RS_I9`
+
+#### Preservação do cabeçalho
+
+Para manter a mesma lógica de rastreabilidade adotada nas demais fontes Bronze, o TXT será lido com `header=None`.
+
+Assim, a linha física do cabeçalho será preservada como a primeira linha da Bronze:
+
+- `_indice_cabecalho_origem = 0`;
+- `_linha_origem = 1`.
+
+Consequentemente:
+
+- registros substantivos de dados: `1.087.359`;
+- linhas Bronze esperadas, incluindo o cabeçalho preservado: `1.087.360`.
+
+Essa diferença de uma linha não representa criação de um participante adicional. Ela decorre exclusivamente da preservação da linha física de cabeçalho como parte da rastreabilidade da fonte.
+
+#### Tipagem e valores especiais
+
+As 26 colunas da fonte serão armazenadas como texto técnico na Bronze, utilizando `col_001` a `col_026`.
+
+O uso de texto evita interpretar semanticamente, nesta camada:
+
+- números com vírgula decimal;
+- códigos;
+- vetores de respostas;
+- indicadores de presença;
+- notas;
+- proficiência.
+
+O literal `NA` será preservado como texto quando estiver presente na fonte.
+
+Somente campos realmente vazios serão representados como valores ausentes.
+
+A conversão de `PROFICIENCIA`, `NT_OBJ`, `NT_DIS`, `NT_GER`, `QT_ACERTOS` e demais variáveis para tipos analíticos ocorrerá na Silver.
+
+#### Leitura em blocos
+
+Como o TXT possui aproximadamente 371,5 MB e mais de um milhão de registros, a ingestão será realizada em blocos (`chunks`), e não por carregamento integral do arquivo em memória.
+
+Essa é uma decisão de eficiência operacional e não altera a informação substantiva.
+
+Cada bloco será convertido para o mesmo esquema Bronze e escrito sequencialmente em um único arquivo Parquet com compressão Snappy.
+
+Como o `pandas.read_csv(..., chunksize=...)` preserva no índice interno de cada bloco a posição acumulada do arquivo, cada chunk será submetido a `reset_index(drop=True)` antes da criação dos metadados técnicos. Além disso, as `Series` utilizadas na inserção dos metadados serão criadas com o mesmo índice do chunk.
+
+Essa regra evita o alinhamento automático por índice do pandas, que poderia produzir valores ausentes nos metadados a partir do segundo bloco mesmo quando os valores atribuídos estivessem corretos. Trata-se exclusivamente de uma correção técnica de escrita por blocos; não altera nenhuma variável substantiva da PND.
+
+#### População preservada
 
 Na Bronze serão preservados todos os registros do arquivo principal.
 
@@ -1197,7 +1287,94 @@ Status:
 
 ---
 
-## 18. Situação atual da camada Bronze
+## 18. Resultado da ingestão — PND 2025
+
+A ingestão Bronze da PND 2025 foi executada por meio de:
+
+`src/bronze/ingest_pnd.py`
+
+A validação independente foi executada por meio de:
+
+`src/bronze/validar_bronze_pnd.py`
+
+### Fonte principal
+
+Foi utilizada como tabela factual da Bronze:
+
+`microdados2025_pnd_arq1.txt`
+
+Os arquivos auxiliares:
+
+- `Dicionário_arquivos_variáveis_PND_2025.xlsx`;
+- `microdados2025_parametros_itens.xlsx`;
+
+permanecem preservados no RAW como documentação e parâmetros técnicos.
+
+### Resultado da ingestão
+
+A execução confirmou:
+
+- codificação: `utf-8`;
+- delimitador: `;`;
+- 26 colunas na fonte;
+- 1.087.359 registros de dados;
+- 1.087.360 linhas Bronze, incluindo a linha física do cabeçalho preservada;
+- granularidade: `REGISTRO_INDIVIDUAL`;
+- SHA-256 do RAW: `b15968a19e309bca6b63c6f6d7af094efdc13d900645dc7385872a6a50dd7baf`.
+
+A ingestão foi processada em 11 chunks:
+
+- 10 chunks de 100.000 linhas;
+- 1 chunk final de 87.360 linhas.
+
+O arquivo produzido foi:
+
+`data/bronze/pnd/pnd_2025.parquet`
+
+### Validação independente
+
+A validação confirmou:
+
+- correspondência do SHA-256 com o arquivo RAW;
+- presença das 26 colunas esperadas;
+- preservação do cabeçalho físico;
+- sequência contígua de `_linha_origem`;
+- consistência dos metadados de rastreabilidade;
+- granularidade `REGISTRO_INDIVIDUAL`;
+- total de 1.087.360 linhas na Bronze.
+
+O resultado final foi:
+
+`BRONZE DA PND 2025: OK`
+
+### Correção técnica durante a implementação
+
+Na primeira execução da validação foi detectada inconsistência em `_fonte` a partir dos chunks posteriores ao primeiro.
+
+A causa foi o alinhamento automático por índice do pandas durante a inserção das `Series` de metadados técnicos.
+
+A correção aplicada foi:
+
+- `reset_index(drop=True)` em cada chunk antes da criação dos metadados;
+- criação das `Series` técnicas com `index=chunk.index`.
+
+Após a correção, a ingestão foi refeita integralmente e a validação independente passou em todos os controles.
+
+Essa correção não alterou nenhuma variável substantiva da PND; afetava exclusivamente o preenchimento técnico dos metadados da Bronze.
+
+### Conclusão
+
+A camada Bronze da PND 2025 foi considerada válida.
+
+Todos os registros do arquivo principal foram preservados, sem aplicação da população analítica de 759.140 participantes e sem exclusão de registros por condição de presença ou completude dos resultados.
+
+Status:
+
+`PND 2025 — BRONZE ✅`
+
+---
+
+## 19. Situação atual da camada Bronze
 
 Até esta atualização:
 
@@ -1207,13 +1384,13 @@ Até esta atualização:
 | TDI | ✅ concluída | ✅ concluída |
 | IDEB | ✅ concluída | ✅ concluída |
 | SAEB | ✅ concluída | ✅ concluída |
-| PND 2025 | ⏳ pendente | ⏳ pendente |
+| PND 2025 | ✅ concluída | ✅ concluída |
 
 As decisões metodológicas documentadas nas auditorias e em `docs/definicao_rede_publica.md` serão aplicadas posteriormente na Silver. Na Bronze permanecem apenas as transformações técnicas e os metadados de rastreabilidade.
 
 ---
 
-## 19. Conclusão
+## 20. Conclusão
 
 A camada Bronze funciona como fronteira entre os arquivos heterogêneos publicados pelas fontes e o pipeline analítico.
 
@@ -1228,9 +1405,13 @@ A Bronze não é a camada em que as diferentes fontes se tornam semanticamente i
 
 Seu papel é produzir representações estruturadas, verificáveis e reconstruíveis a partir dos arquivos RAW.
 
+Com a conclusão e validação independente de Rendimento Escolar, TDI, IDEB, SAEB e PND 2025, a camada Bronze do projeto encontra-se integralmente concluída.
+
+A próxima etapa do pipeline é a camada Silver, na qual serão realizadas as harmonizações semânticas, recortes analíticos, normalizações de rede, etapa, indicadores e granularidade já definidas metodologicamente.
+
 ---
 
-## 20. Histórico de atualização
+## 21. Histórico de atualização
 
 | Data | Alteração |
 |---|---|
@@ -1247,3 +1428,7 @@ Seu papel é produzir representações estruturadas, verificáveis e reconstruí
 | 18/08/2026 | Confirmados delimitador e codificação dos CSV selecionados do SAEB: UTF-8/`;` em 2011 e CP1252/`;` em 2023 |
 | 18/08/2026 | Corrigida a referência estrutural do cabeçalho SAEB 2015 para índice 2 (linha de origem 3), conforme diferença auditada em relação a 2013 |
 | 18/08/2026 | Concluída e validada independentemente a ingestão Bronze do SAEB (2007–2023), com 9 edições e 83.247 linhas |
+| 18/08/2026 | Confirmada a estrutura técnica da PND 2025 e definida a ingestão Bronze em blocos do TXT principal: UTF-8, `;`, 26 colunas, 1.087.359 registros e preservação da linha física de cabeçalho |
+| 18/08/2026 | Corrigida a escrita em chunks da PND para resetar o índice de cada bloco e impedir alinhamento automático do pandas nos metadados técnicos |
+| 18/08/2026 | Concluída e validada independentemente a ingestão Bronze da PND 2025, com 1.087.359 registros de dados e 1.087.360 linhas Bronze incluindo o cabeçalho preservado |
+| 18/08/2026 | Camada Bronze concluída integralmente para Rendimento Escolar, TDI, IDEB, SAEB e PND 2025 |
