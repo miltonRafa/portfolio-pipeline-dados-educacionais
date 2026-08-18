@@ -285,29 +285,301 @@ Essa ordem permite iniciar pelas estruturas históricas mais diretamente compar�
 
 ---
 
-## 13. Rendimento Escolar — etapa atual
+## 13. Rendimento Escolar
 
 A Bronze do Rendimento Escolar está concluída e validada para 2007–2023.
 
-Antes de implementar a transformação Silver, será executada auditoria diretamente sobre os Parquets Bronze para confirmar:
+A auditoria para a Silver foi executada diretamente sobre os 17 Parquets Bronze por meio de:
 
-- posição e profundidade dos cabeçalhos;
-- colunas que representam UF;
-- categorias de rede;
-- categorias de localização;
-- etapas;
-- indicadores de aprovação, reprovação e abandono;
-- diferenças estruturais entre os períodos;
-- marcadores de ausência;
-- estrutura efetiva dos registros.
+`src/silver/rendimento/auditar_silver_rendimento.py`
 
-O script utilizado será:
+A auditoria não alterou dados.
 
-`src/silver/auditar_silver_rendimento.py`
+### 13.1 População analítica
 
-Essa auditoria não altera dados.
+A Silver utilizará, para cada Unidade Federativa e ano:
 
-Somente após sua leitura serão fixadas no código as regras de transformação de cada período.
+- `Localização = Total`;
+- agregado oficial da rede pública;
+- Ensino Fundamental — Anos Iniciais;
+- Ensino Fundamental — Anos Finais;
+- taxas de aprovação, reprovação e abandono.
+
+Não serão calculadas médias entre Federal, Estadual e Municipal.
+
+O agregado público já publicado pela fonte será utilizado diretamente.
+
+A rede privada não será utilizada.
+
+A categoria canônica será:
+
+`REDE = PUBLICA`
+
+A categoria textual efetivamente encontrada na fonte será mantida em:
+
+`REDE_ORIGEM`
+
+A localização original será mantida em:
+
+`LOCALIZACAO_ORIGEM`
+
+### 13.2 Mudanças estruturais da série
+
+A auditoria confirmou cinco configurações relevantes.
+
+#### 2007
+
+O arquivo possui uma coluna adicional de região.
+
+Campos de identificação:
+
+- ano: `col_001`;
+- região: `col_002`;
+- UF: `col_003`;
+- localização: `col_004`;
+- rede: `col_005`.
+
+Colunas analíticas:
+
+| Indicador | Anos Iniciais | Anos Finais |
+|---|---|---|
+| Aprovação | `col_015` | `col_016` |
+| Reprovação | `col_033` | `col_034` |
+| Abandono | `col_051` | `col_052` |
+
+O agregado público aparece como `Publico`.
+
+#### 2008–2010
+
+Campos de identificação:
+
+- ano: `col_001`;
+- UF: `col_002`;
+- localização: `col_003`;
+- rede: `col_004`.
+
+Colunas analíticas:
+
+| Indicador | Anos Iniciais | Anos Finais |
+|---|---|---|
+| Aprovação | `col_014` | `col_015` |
+| Reprovação | `col_032` | `col_033` |
+| Abandono | `col_050` | `col_051` |
+
+O agregado público aparece como `Publico`.
+
+#### 2011–2014
+
+A estrutura passa a publicar diretamente colunas denominadas Anos Iniciais e Anos Finais.
+
+Campos de identificação:
+
+- ano: `col_001`;
+- UF: `col_002`;
+- localização: `col_003`;
+- rede: `col_004`.
+
+Colunas analíticas:
+
+| Indicador | Anos Iniciais | Anos Finais |
+|---|---|---|
+| Aprovação | `col_006` | `col_007` |
+| Reprovação | `col_024` | `col_025` |
+| Abandono | `col_042` | `col_043` |
+
+O agregado público aparece como `Publico`.
+
+#### 2015
+
+A disposição das métricas permanece equivalente a 2011–2014, mas a identificação da Unidade Federativa passa a aparecer pelo nome e a categoria pública aparece como `Pública`.
+
+Colunas analíticas:
+
+| Indicador | Anos Iniciais | Anos Finais |
+|---|---|---|
+| Aprovação | `col_006` | `col_007` |
+| Reprovação | `col_024` | `col_025` |
+| Abandono | `col_042` | `col_043` |
+
+#### 2016
+
+A estrutura volta a possuir coluna de região e desloca os campos analíticos em uma posição.
+
+Campos de identificação:
+
+- ano: `col_001`;
+- região: `col_002`;
+- UF: `col_003`;
+- localização: `col_004`;
+- dependência administrativa: `col_005`.
+
+Colunas analíticas:
+
+| Indicador | Anos Iniciais | Anos Finais |
+|---|---|---|
+| Aprovação | `col_007` | `col_008` |
+| Reprovação | `col_025` | `col_026` |
+| Abandono | `col_043` | `col_044` |
+
+O agregado oficial utilizado é `Pública`.
+
+#### 2017–2023
+
+A fonte passa a incluir Brasil, regiões geográficas e Unidades da Federação na mesma coluna `Unidade Geográfica`.
+
+Campos de identificação:
+
+- ano: `col_001`;
+- unidade geográfica: `col_002`;
+- localização: `col_003`;
+- dependência administrativa: `col_004`.
+
+Colunas analíticas:
+
+| Indicador | Anos Iniciais | Anos Finais |
+|---|---|---|
+| Aprovação | `col_006` | `col_007` |
+| Reprovação | `col_024` | `col_025` |
+| Abandono | `col_042` | `col_043` |
+
+A transformação manterá apenas as 27 Unidades Federativas.
+
+Brasil e regiões geográficas serão excluídos por não pertencerem ao grão analítico definido.
+
+O agregado oficial utilizado é `Pública`.
+
+### 13.3 Harmonização da UF
+
+Nas edições que utilizam siglas, elas serão preservadas.
+
+Nas edições que utilizam nomes completos das Unidades Federativas, será aplicado um mapeamento explícito para as 27 siglas oficiais.
+
+Não haverá inferência aproximada de nomes.
+
+O processo deverá falhar se alguma UF esperada não for reconhecida ou se houver duplicidade de uma UF na seleção pública-total.
+
+### 13.4 Marcadores de ausência
+
+O marcador `--` será convertido para valor ausente na Silver.
+
+Essa conversão é semântica e ocorre somente agora porque, na Bronze, o marcador foi preservado como parte da fonte.
+
+O valor `0` permanecerá como zero substantivo e nunca será interpretado como ausência.
+
+Não haverá imputação de valores ausentes.
+
+### 13.5 Conversão numérica e precisão
+
+As taxas serão convertidas para tipo numérico.
+
+Algumas planilhas antigas expõem resíduos de representação binária, por exemplo valores equivalentes a `84.39999999999999`.
+
+Na Silver, as taxas serão normalizadas para uma casa decimal.
+
+A normalização não cria nova medida: ela remove apenas resíduos técnicos de representação do número e mantém a precisão utilizada pelas taxas publicadas.
+
+Os valores deverão permanecer no domínio de 0 a 100.
+
+### 13.6 Formato Silver
+
+Será produzido um único arquivo harmonizado:
+
+`data/silver/rendimento/rendimento_2007_2023.parquet`
+
+Grão:
+
+`ANO + UF + ETAPA + REDE + INDICADOR`
+
+Estrutura:
+
+- `ANO`;
+- `UF`;
+- `ETAPA`;
+- `REDE`;
+- `INDICADOR`;
+- `VALOR`;
+- `REDE_ORIGEM`;
+- `LOCALIZACAO_ORIGEM`;
+- `ARQUIVO_ORIGEM`;
+- `LINHA_ORIGEM_BRONZE`;
+- `COLUNA_ORIGEM`.
+
+As duas últimas colunas permitem validar cada valor da Silver diretamente contra a linha e a coluna da Bronze que o originaram.
+
+### 13.7 Cardinalidade esperada
+
+São esperados:
+
+- 17 anos;
+- 27 UFs;
+- 2 etapas;
+- 3 indicadores;
+- 1 rede canônica.
+
+Assim:
+
+`17 × 27 × 2 × 3 = 2.754 registros`
+
+A presença de valor ausente não remove o registro do grão. O registro permanece e `VALOR` fica ausente.
+
+### 13.8 Validação independente
+
+A validação deverá confirmar:
+
+- 2.754 registros;
+- 162 registros por ano;
+- 27 UFs em cada ano;
+- ausência de duplicidade no grão;
+- somente `REDE = PUBLICA`;
+- somente Anos Iniciais e Anos Finais;
+- somente aprovação, reprovação e abandono;
+- taxas numéricas entre 0 e 100;
+- preservação de zeros;
+- conversão de `--` para ausência;
+- correspondência de cada registro Silver com a linha, coluna e arquivo da Bronze;
+- coerência das combinações completas de aprovação, reprovação e abandono com total aproximado de 100%, considerando arredondamento de publicação.
+
+Scripts:
+
+`src/silver/rendimento/transformar_rendimento.py`
+
+`src/silver/rendimento/validar_silver_rendimento.py`
+
+### 13.9 Resultado da execução e validação
+
+Em 18/08/2026, a transformação Silver do Rendimento Escolar foi executada com sucesso.
+
+Resultado produzido:
+
+`data/silver/rendimento/rendimento_2007_2023.parquet`
+
+A execução confirmou:
+
+- 2.754 registros;
+- 17 anos completos, de 2007 a 2023;
+- 27 UFs em cada ano;
+- 162 registros por ano;
+- 2 etapas: `ANOS_INICIAIS` e `ANOS_FINAIS`;
+- 3 indicadores: `APROVACAO`, `REPROVACAO` e `ABANDONO`;
+- rede canônica única: `PUBLICA`;
+- nenhum valor ausente na população analítica selecionada.
+
+A ausência de valores nulos no resultado não altera a regra metodológica definida para o marcador `--`. A conversão de `--` para ausência permanece implementada; porém, nas linhas selecionadas para o agregado público, localização Total e etapas Anos Iniciais/Anos Finais, não houve ocorrência desse marcador nos valores finais.
+
+A validação independente confirmou:
+
+- grão analítico único;
+- domínio das taxas entre 0 e 100;
+- 2.754 registros comparados diretamente com a Bronze;
+- rastreabilidade por arquivo, linha e coluna de origem;
+- 918 combinações completas de ano, UF e etapa com aprovação, reprovação e abandono submetidas ao teste de soma;
+- coerência das somas dentro da tolerância definida para arredondamento de publicação.
+
+Status final:
+
+`SILVER DO RENDIMENTO ESCOLAR: OK`
+
+Com isso, o Rendimento Escolar passa a ser considerado concluído na camada Silver.
 
 ---
 
@@ -315,7 +587,7 @@ Somente após sua leitura serão fixadas no código as regras de transformação
 
 | Fonte | Bronze | Silver |
 |---|---|---|
-| Rendimento Escolar | ✅ | 🔎 auditoria em preparação |
+| Rendimento Escolar | ✅ | ✅ concluída e validada |
 | TDI | ✅ | ⏳ |
 | IDEB | ✅ | ⏳ |
 | SAEB | ✅ | ⏳ |
@@ -330,3 +602,9 @@ Somente após sua leitura serão fixadas no código as regras de transformação
 | 18/08/2026 | Iniciada a camada Silver após conclusão integral da Bronze |
 | 18/08/2026 | Definido que cada fonte será auditada diretamente a partir dos Parquets Bronze antes da implementação semântica |
 | 18/08/2026 | Rendimento Escolar escolhido como primeira fonte da Silver |
+| 18/08/2026 | Concluída a auditoria Silver do Rendimento Escolar e documentadas cinco configurações estruturais da série 2007–2023 |
+| 18/08/2026 | Definido o grão Silver do Rendimento como ANO + UF + ETAPA + REDE + INDICADOR, com 2.754 registros esperados |
+| 18/08/2026 | Definido o uso do agregado público oficial da fonte, localização Total, conversão de `--` para ausência e normalização das taxas para uma casa decimal |
+| 18/08/2026 | Executada com sucesso a transformação Silver do Rendimento Escolar, gerando 2.754 registros para 2007–2023 |
+| 18/08/2026 | Validados os 2.754 registros Silver diretamente contra a Bronze por arquivo, linha e coluna de origem |
+| 18/08/2026 | Rendimento Escolar marcado como concluído na camada Silver após validação final com status OK |
