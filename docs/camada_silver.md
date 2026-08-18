@@ -588,7 +588,7 @@ Com isso, o Rendimento Escolar passa a ser considerado concluído na camada Silv
 | Fonte | Bronze | Silver |
 |---|---|---|
 | Rendimento Escolar | ✅ | ✅ concluída e validada |
-| TDI | ✅ | ⏳ |
+| TDI | ✅ | ✅ concluída e validada |
 | IDEB | ✅ | ⏳ |
 | SAEB | ✅ | ⏳ |
 | PND 2025 | ✅ | ⏳ |
@@ -608,3 +608,260 @@ Com isso, o Rendimento Escolar passa a ser considerado concluído na camada Silv
 | 18/08/2026 | Executada com sucesso a transformação Silver do Rendimento Escolar, gerando 2.754 registros para 2007–2023 |
 | 18/08/2026 | Validados os 2.754 registros Silver diretamente contra a Bronze por arquivo, linha e coluna de origem |
 | 18/08/2026 | Rendimento Escolar marcado como concluído na camada Silver após validação final com status OK |
+
+## 14. TDI — Distorção Idade-Série
+
+A auditoria da Bronze da TDI foi executada diretamente sobre os 17 Parquets de 2007–2023 por meio de:
+
+`src/silver/tdi/auditar_silver_tdi.py`
+
+Como a primeira inspeção textual não exibiu a categoria `Pública` nos anos mais recentes, foi executada uma verificação focada adicional:
+
+`src/silver/tdi/verificar_rede_publica_tdi.py`
+
+Essa segunda verificação normaliza acentuação antes de comparar categorias e confirmou que **todos os anos de 2007 a 2023 possuem agregado público explícito**.
+
+A primeira ausência aparente foi, portanto, um efeito do mecanismo de busca textual da auditoria: o termo sem acento `public` não localizava corretamente `Pública`. Essa limitação da inspeção foi identificada e corrigida antes da transformação.
+
+Nenhum arquivo Bronze ou Silver foi alterado por qualquer uma das duas auditorias.
+
+### 14.1 População analítica
+
+A Silver utilizará, para cada Unidade Federativa e ano:
+
+- `Localização = Total`;
+- agregado oficial `Publico` ou `Pública` publicado pela fonte;
+- Ensino Fundamental — Anos Iniciais;
+- Ensino Fundamental — Anos Finais.
+
+Não será calculada média entre Federal, Estadual e Municipal.
+
+A categoria `Total` da dependência administrativa não será usada como substituta da rede pública, porque inclui universo distinto do agregado público.
+
+A rede privada não será utilizada.
+
+A categoria canônica será:
+
+`REDE = PUBLICA`
+
+A categoria efetivamente encontrada na fonte será preservada em:
+
+`REDE_ORIGEM`
+
+### 14.2 Confirmação do agregado público
+
+A verificação focada confirmou:
+
+- 2007–2014: `Publico`;
+- 2015–2023: `Pública`.
+
+Para 2007–2016 existem 27 linhas `Público/Pública + Localização Total`, uma por UF.
+
+Para 2017–2023 existem 33 linhas `Pública + Localização Total`, porque a fonte reúne Brasil, cinco regiões geográficas e 27 UFs.
+
+Na Silver, Brasil e regiões serão excluídos e somente as 27 UFs serão mantidas.
+
+### 14.3 Mudanças estruturais da série
+
+#### 2007–2010
+
+Campos de identificação:
+
+- ano: `col_001`;
+- região: `col_002`;
+- UF: `col_003`;
+- localização: `col_004`;
+- rede: `col_005`.
+
+TDI:
+
+- Anos Iniciais: `col_015`;
+- Anos Finais: `col_016`.
+
+#### 2011–2014
+
+Campos de identificação:
+
+- ano: `col_001`;
+- região: `col_002`;
+- UF: `col_003`;
+- localização: `col_004`;
+- rede: `col_005`.
+
+TDI:
+
+- Anos Iniciais: `col_007`;
+- Anos Finais: `col_008`.
+
+#### 2015
+
+A fonte inclui código e sigla da UF em colunas separadas.
+
+Campos de identificação:
+
+- ano: `col_001`;
+- região: `col_002`;
+- código da UF: `col_003`;
+- sigla da UF: `col_004`;
+- localização: `col_005`;
+- rede: `col_006`.
+
+TDI:
+
+- Anos Iniciais: `col_008`;
+- Anos Finais: `col_009`.
+
+#### 2016
+
+A UF passa a ser representada por nome completo.
+
+Campos de identificação:
+
+- ano: `col_001`;
+- região: `col_002`;
+- UF: `col_003`;
+- localização: `col_004`;
+- dependência administrativa: `col_005`.
+
+TDI:
+
+- Anos Iniciais: `col_007`;
+- Anos Finais: `col_008`.
+
+#### 2017–2023
+
+A fonte passa a reunir Brasil, regiões geográficas e UFs em `Unidade Geográfica`.
+
+Campos de identificação:
+
+- ano: `col_001`;
+- unidade geográfica: `col_002`;
+- localização: `col_003`;
+- dependência administrativa: `col_004`.
+
+TDI:
+
+- Anos Iniciais: `col_006`;
+- Anos Finais: `col_007`.
+
+### 14.4 Harmonização da UF
+
+Siglas serão preservadas quando já existentes.
+
+Nomes completos serão convertidos para siglas por mapeamento explícito das 27 UFs.
+
+Em 2017–2023, Brasil e regiões geográficas não serão reconhecidos como UF e serão excluídos da população analítica.
+
+A transformação falhará se alguma UF esperada estiver ausente ou duplicada.
+
+### 14.5 Marcadores de ausência e precisão
+
+O marcador `--` será convertido para ausência somente na Silver.
+
+Zero permanecerá zero substantivo.
+
+Não haverá imputação.
+
+Resíduos binários de representação numérica, como `21.400000000000002`, serão normalizados para uma casa decimal, preservando a precisão publicada pela fonte.
+
+A TDI deverá permanecer no intervalo de 0 a 100.
+
+### 14.6 Formato Silver
+
+Será produzido:
+
+`data/silver/tdi/tdi_2007_2023.parquet`
+
+Grão:
+
+`ANO + UF + ETAPA + REDE`
+
+Estrutura:
+
+- `ANO`;
+- `UF`;
+- `ETAPA`;
+- `REDE`;
+- `TDI`;
+- `REDE_ORIGEM`;
+- `LOCALIZACAO_ORIGEM`;
+- `ARQUIVO_ORIGEM`;
+- `LINHA_ORIGEM_BRONZE`;
+- `COLUNA_ORIGEM`.
+
+### 14.7 Cardinalidade esperada
+
+São esperados:
+
+- 17 anos;
+- 27 UFs;
+- 2 etapas;
+- 1 rede canônica.
+
+Assim:
+
+`17 × 27 × 2 = 918 registros`
+
+A presença de valor ausente não remove o registro do grão.
+
+### 14.8 Validação independente
+
+A validação deverá confirmar:
+
+- 918 registros;
+- 54 registros por ano;
+- 27 UFs em cada ano;
+- ausência de duplicidade no grão;
+- somente `REDE = PUBLICA`;
+- somente Anos Iniciais e Anos Finais;
+- TDI numérica entre 0 e 100;
+- preservação de zeros;
+- conversão de `--` para ausência;
+- correspondência de cada registro Silver com arquivo, linha e coluna da Bronze.
+
+Scripts:
+
+`src/silver/tdi/transformar_tdi.py`
+
+`src/silver/tdi/validar_silver_tdi.py`
+
+### 14.9 Resultado da execução e validação
+
+Em 18/08/2026, a transformação Silver da TDI foi executada com sucesso.
+
+Resultado produzido:
+
+`data/silver/tdi/tdi_2007_2023.parquet`
+
+A execução confirmou:
+
+- 918 registros;
+- 17 anos completos, de 2007 a 2023;
+- 27 UFs em cada ano;
+- 54 registros por ano;
+- 2 etapas: `ANOS_INICIAIS` e `ANOS_FINAIS`;
+- rede canônica única: `PUBLICA`;
+- nenhum valor ausente na população analítica selecionada.
+
+A ausência de valores nulos no resultado não altera a regra metodológica definida para o marcador `--`. A conversão de `--` para ausência permanece implementada; porém, nas linhas selecionadas para o agregado público, localização Total e etapas Anos Iniciais/Anos Finais, não houve ocorrência desse marcador nos valores finais.
+
+A validação independente confirmou:
+
+- grão analítico único;
+- domínio da TDI entre 0 e 100;
+- 918 registros comparados diretamente com a Bronze;
+- rastreabilidade por arquivo, linha e coluna de origem;
+- correspondência integral entre os valores Silver e suas células de origem na Bronze.
+
+Status final:
+
+`SILVER DA TDI: OK`
+
+Com isso, a TDI passa a ser considerada concluída na camada Silver.
+| 18/08/2026 | Concluída a auditoria Silver da TDI para 2007–2023 |
+| 18/08/2026 | Verificação focada confirmou agregado público explícito em todos os anos: `Publico` em 2007–2014 e `Pública` em 2015–2023 |
+| 18/08/2026 | Corrigida a interpretação inicial da auditoria da TDI: a ausência aparente de `Pública` decorreu de busca textual sem normalização de acentuação |
+| 18/08/2026 | Definido o grão Silver da TDI como ANO + UF + ETAPA + REDE, com 918 registros esperados |
+| 18/08/2026 | Executada com sucesso a transformação Silver da TDI, gerando 918 registros para 2007–2023 |
+| 18/08/2026 | Validados os 918 registros Silver da TDI diretamente contra a Bronze por arquivo, linha e coluna de origem |
+| 18/08/2026 | TDI marcada como concluída na camada Silver após validação final com status OK |
