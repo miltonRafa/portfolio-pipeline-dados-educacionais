@@ -393,6 +393,141 @@ dado analítico
 
 ---
 
+## Resultado da ingestão — Rendimento Escolar
+
+A ingestão Bronze do Rendimento Escolar foi executada para as 17 edições
+compreendidas entre 2007 e 2023.
+
+Após a geração dos arquivos Parquet, foi realizada uma validação independente
+por meio de `src/bronze/validar_bronze_rendimento.py`.
+
+### Resultado
+
+- arquivos RAW esperados: 17;
+- arquivos Parquet encontrados: 17;
+- período: 2007–2023;
+- total de linhas armazenadas na Bronze: 9.012;
+- arquivos vazios: nenhum;
+- divergências de ano de referência: nenhuma;
+- divergências no arquivo de origem: nenhuma;
+- ausência de colunas técnicas obrigatórias: nenhuma;
+- duplicidades em `_linha_origem`: nenhuma;
+- divergências entre o SHA-256 armazenado na Bronze e o arquivo RAW: nenhuma.
+
+Todos os arquivos foram aprovados na validação.
+
+### Quantidade de linhas por edição
+
+| Ano | Linhas | Colunas da fonte |
+|---:|---:|---:|
+| 2007 | 480 | 59 |
+| 2008 | 480 | 58 |
+| 2009 | 483 | 58 |
+| 2010 | 483 | 58 |
+| 2011 | 486 | 58 |
+| 2012 | 486 | 58 |
+| 2013 | 486 | 58 |
+| 2014 | 486 | 58 |
+| 2015 | 489 | 58 |
+| 2016 | 487 | 59 |
+| 2017 | 595 | 58 |
+| 2018 | 595 | 58 |
+| 2019 | 595 | 58 |
+| 2020 | 595 | 58 |
+| 2021 | 595 | 58 |
+| 2022 | 595 | 58 |
+| 2023 | 596 | 58 |
+
+### Conclusão
+
+A camada Bronze do Rendimento Escolar foi considerada válida.
+
+Os resultados confirmam que os arquivos originais foram convertidos para
+Parquet sem aplicação de filtros analíticos ou harmonizações semânticas,
+mantendo rastreabilidade por arquivo, aba, ano, linha de origem e hash
+SHA-256.
+
+Status:
+
+`RENDIMENTO ESCOLAR — BRONZE ✅`
+
+---
+
+## Resultado da ingestão — TDI
+
+A ingestão Bronze da Taxa de Distorção Idade-Série foi executada para as 17 edições compreendidas entre 2007 e 2023.
+
+Após a geração dos arquivos Parquet, foi realizada uma validação independente por meio de `src/bronze/validar_bronze_tdi.py`.
+
+### Resultado
+
+- arquivos RAW esperados: 17;
+- arquivos Parquet encontrados: 17;
+- período: 2007–2023;
+- total de linhas armazenadas na Bronze: 8.989;
+- arquivos vazios: nenhum;
+- divergências de ano de referência: nenhuma;
+- divergências no arquivo de origem: nenhuma;
+- ausência de colunas técnicas obrigatórias: nenhuma;
+- duplicidades em `_linha_origem`: nenhuma;
+- divergências na sequência das colunas técnicas: nenhuma;
+- divergências entre o SHA-256 armazenado na Bronze e o arquivo RAW: nenhuma.
+
+Todos os arquivos foram aprovados na validação independente.
+
+### Quantidade de linhas por edição
+
+| Ano | Linhas | Colunas da fonte |
+|---:|---:|---:|
+| 2007 | 478 | 22 |
+| 2008 | 480 | 22 |
+| 2009 | 482 | 22 |
+| 2010 | 482 | 22 |
+| 2011 | 486 | 22 |
+| 2012 | 484 | 22 |
+| 2013 | 486 | 22 |
+| 2014 | 485 | 22 |
+| 2015 | 486 | 23 |
+| 2016 | 484 | 22 |
+| 2017 | 593 | 21 |
+| 2018 | 592 | 21 |
+| 2019 | 594 | 21 |
+| 2020 | 594 | 21 |
+| 2021 | 594 | 21 |
+| 2022 | 594 | 21 |
+| 2023 | 595 | 21 |
+
+### Particularidades estruturais confirmadas
+
+Os nomes de abas utilizados na ingestão foram:
+
+- 2007: `POR UF`;
+- 2008: `TDI UF 2008`;
+- 2009: `TDI por UF`;
+- 2010 a 2014: `TDI UFS`;
+- 2015 e 2016: `UF`;
+- 2017 a 2023: `BRASIL_REGIÕES_UFS`.
+
+A mudança de estrutura entre os períodos não foi normalizada na Bronze. Cada edição foi lida de acordo com a estrutura explicitamente identificada na auditoria.
+
+Durante a leitura dos arquivos XLSX de 2015 a 2023, o `openpyxl` emitiu o aviso `Cannot parse header or footer so it will be ignored`.
+
+O aviso refere-se ao cabeçalho ou rodapé de impressão existente no workbook e não impediu a leitura das células utilizadas na ingestão. Os arquivos resultantes foram posteriormente aprovados pela validação independente, inclusive quanto à rastreabilidade e ao SHA-256 do arquivo RAW.
+
+### Conclusão
+
+A camada Bronze da TDI foi considerada válida.
+
+Os arquivos originais foram convertidos para Parquet sem aplicação do filtro analítico de rede pública, seleção de localização, harmonização das etapas ou alteração dos valores publicados.
+
+A rastreabilidade foi preservada por arquivo, aba, ano, linha de origem e hash SHA-256.
+
+Status:
+
+`TDI — BRONZE ✅`
+
+---
+
 ## 14. Conclusão
 
 A camada Bronze será utilizada como fronteira entre os arquivos heterogêneos publicados pelas fontes e o pipeline analítico.
@@ -403,6 +538,8 @@ Seu principal compromisso é com:
 - rastreabilidade;
 - reprodutibilidade;
 - mínima transformação semântica.
+
+Até esta atualização, as camadas Bronze do Rendimento Escolar e da TDI foram ingeridas e validadas independentemente para o período de 2007 a 2023.
 
 As decisões metodológicas já documentadas nas auditorias e em `definicao_rede_publica.md` serão aplicadas posteriormente na camada Silver.
 
@@ -415,3 +552,7 @@ As decisões metodológicas já documentadas nas auditorias e em `definicao_rede
 | 18/08/2026 | Definição inicial da arquitetura da camada Bronze |
 | 18/08/2026 | Definidos limites entre Raw, Bronze, Silver e Gold |
 | 18/08/2026 | Definida adoção de Parquet e metadados de rastreabilidade |
+| 18/08/2026 | Documentada a tipagem técnica das células na Bronze |
+| 18/08/2026 | Documentadas irregularidades nos nomes de abas do Rendimento Escolar |
+| 18/08/2026 | Concluída e validada independentemente a ingestão Bronze do Rendimento Escolar (2007–2023) |
+| 18/08/2026 | Concluída e validada independentemente a ingestão Bronze da TDI (2007–2023) |
