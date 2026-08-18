@@ -1,5 +1,5 @@
 import pandas as pd
-from config import SAEB
+from config_auditoria_saeb import SAEB
 
 configuracao = {
     2013: {

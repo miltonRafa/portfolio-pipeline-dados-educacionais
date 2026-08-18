@@ -1,7 +1,7 @@
 from pathlib import Path
 import pandas as pd
 
-from config import SAEB
+from config_auditoria_saeb import SAEB
 
 
 def ler_csv(caminho):
