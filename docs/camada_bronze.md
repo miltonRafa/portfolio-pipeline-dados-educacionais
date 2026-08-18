@@ -177,9 +177,69 @@ rastreabilidade até a posição original da informação na planilha.
 
 ### IDEB
 
-Os arquivos possuem múltiplas abas e estrutura própria.
+O arquivo de origem do IDEB possui múltiplas abas, correspondentes às etapas
+de ensino:
 
-A Bronze deverá preservar a informação das abas necessárias sem ainda padronizar rede, etapa ou indicador.
+- `UF e Regiões (AI)`;
+- `UF e Regiões (AF)`;
+- `UF e Regiões (EM)`.
+
+Diferentemente das bases anuais de Rendimento Escolar e TDI, o arquivo do
+IDEB concentra em uma mesma estrutura a série histórica de diferentes
+edições do indicador.
+
+As planilhas contêm informações anteriores ao recorte analítico do projeto,
+incluindo dados de 2005.
+
+#### Decisão de ingestão
+
+A camada Bronze preservará integralmente as três abas do arquivo de origem,
+inclusive os dados referentes a 2005.
+
+Não serão aplicados na Bronze:
+
+- filtro do período 2007–2023;
+- exclusão do Ensino Médio;
+- seleção apenas dos Anos Iniciais e Anos Finais;
+- filtro da rede pública;
+- normalização de categorias como `Pública (4)`;
+- seleção exclusiva das colunas do IDEB;
+- remoção das colunas de aprovação, SAEB ou metas existentes no workbook.
+
+A justificativa é que essas operações modificariam semanticamente o conteúdo
+publicado e pertencem às etapas posteriores do pipeline.
+
+A Silver será responsável por aplicar o recorte analítico do projeto,
+selecionando o período de 2007 a 2023, os Anos Iniciais e os Anos Finais e
+a definição metodológica de rede pública estabelecida em
+`docs/definicao_rede_publica.md`.
+
+Na Bronze, cada aba será persistida separadamente em Parquet, preservando sua
+estrutura e sua identificação de origem.
+
+#### Cabeçalho hierárquico do IDEB
+
+As planilhas do IDEB não possuem um cabeçalho simples em uma única linha.
+
+A estrutura auditada utiliza:
+
+- índice 6: identificação dos grandes blocos de indicadores;
+- índice 7: subdivisões das notas do SAEB;
+- índice 8: séries ou anos escolares e demais subdivisões;
+- índice 9: nomes técnicos das variáveis disponibilizados pelo Inep.
+
+A camada Bronze preservará todas essas linhas.
+
+Para fins de rastreabilidade técnica, o campo
+`_indice_cabecalho_origem` registrará o valor `9`, correspondente à linha
+que contém os nomes técnicos das variáveis.
+
+Esse registro não significa que as linhas 6 a 8 sejam descartadas ou
+consideradas irrelevantes. Elas fazem parte do cabeçalho hierárquico
+publicado e serão preservadas integralmente na Bronze.
+
+A interpretação e reconstrução semântica desse cabeçalho serão realizadas
+somente na camada Silver.
 
 ### SAEB
 
@@ -525,6 +585,119 @@ A rastreabilidade foi preservada por arquivo, aba, ano, linha de origem e hash S
 Status:
 
 `TDI — BRONZE ✅`
+
+---
+
+## Resultado da ingestão — IDEB
+
+A ingestão Bronze do Índice de Desenvolvimento da Educação Básica (IDEB) foi realizada a partir do arquivo:
+
+`divulgacao_regioes_ufs_ideb_2023.xlsx`
+
+Diferentemente das bases anuais de Rendimento Escolar e TDI, o arquivo de divulgação do IDEB reúne em um único workbook a série histórica do indicador e informações complementares relacionadas ao rendimento e ao SAEB.
+
+Foram preservadas integralmente as três abas existentes no arquivo:
+
+- `UF e Regiões (AI)`;
+- `UF e Regiões (AF)`;
+- `UF e Regiões (EM)`.
+
+Cada aba foi persistida separadamente em formato Parquet.
+
+Após a ingestão, foi realizada validação independente por meio de:
+
+`src/bronze/validar_bronze_ideb.py`
+
+### Resultado
+
+| Etapa de origem | Aba | Linhas Bronze | Colunas da fonte |
+|---|---|---:|---:|
+| AI | `UF e Regiões (AI)` | 150 | 120 |
+| AF | `UF e Regiões (AF)` | 149 | 110 |
+| EM | `UF e Regiões (EM)` | 117 | 110 |
+
+Foram encontrados os três arquivos Parquet esperados:
+
+- `ideb_ai.parquet`;
+- `ideb_af.parquet`;
+- `ideb_em.parquet`.
+
+Nenhum dos arquivos estava vazio.
+
+A validação confirmou:
+
+- identificação correta da fonte;
+- arquivo de origem correto;
+- aba de origem correta;
+- etapa de origem correta;
+- presença dos metadados técnicos;
+- consistência de `_linha_origem`;
+- quantidade esperada de colunas da fonte;
+- sequência das colunas técnicas `col_001`, `col_002`, etc.;
+- presença dos marcadores técnicos esperados na linha de cabeçalho;
+- correspondência entre o SHA-256 armazenado na Bronze e o arquivo RAW.
+
+O SHA-256 confirmado para o arquivo de origem foi:
+
+`e7cdb12afa3c0d2e4435aa914316d84e5ac1e31865fa56ad238ad48f778b1bd5`
+
+### Preservação da estrutura histórica
+
+O workbook contém informações anteriores ao período analítico definido para o projeto, incluindo dados de 2005.
+
+Essas informações foram mantidas na Bronze.
+
+Também foi preservada a aba correspondente ao Ensino Médio, embora o recorte analítico posterior utilize apenas Anos Iniciais e Anos Finais do Ensino Fundamental.
+
+Essa decisão decorre da separação de responsabilidades entre as camadas:
+
+- a Bronze preserva estruturalmente o conteúdo publicado;
+- a Silver aplicará o recorte de período, etapa e rede;
+- a Gold organizará os dados destinados à análise.
+
+Portanto, não foram aplicados na Bronze:
+
+- filtro de 2007–2023;
+- exclusão de 2005;
+- exclusão do Ensino Médio;
+- filtro da rede pública;
+- normalização de `Pública (4)` para `PUBLICA`;
+- remoção de informações de aprovação, SAEB ou metas;
+- transformação da estrutura histórica em formato analítico.
+
+### Cabeçalho hierárquico
+
+As planilhas apresentam cabeçalho composto por múltiplas linhas.
+
+A linha de índice técnico `9` contém os nomes técnicos das variáveis utilizados como referência estrutural pela ingestão.
+
+Esse índice corresponde à linha de origem `10`, pois a numeração interna do DataFrame inicia em zero enquanto `_linha_origem` utiliza numeração iniciada em um.
+
+As demais linhas do cabeçalho hierárquico foram preservadas e não foram descartadas.
+
+A reconstrução semântica do cabeçalho será realizada somente na camada Silver.
+
+### Ano de referência técnico
+
+O campo:
+
+`_ano_referencia = 2023`
+
+representa a edição do arquivo de divulgação utilizada na ingestão.
+
+Ele não significa que todas as observações armazenadas sejam referentes a 2023.
+
+Os anos substantivos da série histórica permanecem preservados no conteúdo da fonte e serão convertidos em dimensão temporal analítica na camada Silver.
+
+### Conclusão
+
+A camada Bronze do IDEB foi considerada válida.
+
+A estrutura original do workbook foi preservada em três arquivos Parquet rastreáveis até o arquivo, a aba e a linha de origem.
+
+Status:
+
+`IDEB — BRONZE ✅`
 
 ---
 
