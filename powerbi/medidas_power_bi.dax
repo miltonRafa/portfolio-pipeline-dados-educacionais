@@ -1,0 +1,282 @@
+// ============================================================
+// MEDIDAS POWER BI — MODELO GOLD
+// Projeto: portfolio-pipeline-dados-educacionais
+// ============================================================
+
+// RENDIMENTO ESCOLAR
+
+Taxa de Aprovação =
+CALCULATE(
+    AVERAGE(FATO_RENDIMENTO[VALOR]),
+    FATO_RENDIMENTO[INDICADOR] = "APROVACAO"
+)
+
+Taxa de Reprovação =
+CALCULATE(
+    AVERAGE(FATO_RENDIMENTO[VALOR]),
+    FATO_RENDIMENTO[INDICADOR] = "REPROVACAO"
+)
+
+Taxa de Abandono =
+CALCULATE(
+    AVERAGE(FATO_RENDIMENTO[VALOR]),
+    FATO_RENDIMENTO[INDICADOR] = "ABANDONO"
+)
+
+// TDI
+
+TDI Média =
+AVERAGE(FATO_TDI[TDI])
+
+// IDEB
+
+IDEB Médio =
+AVERAGE(FATO_IDEB[IDEB])
+
+// SAEB
+
+Proficiência Média SAEB =
+AVERAGE(FATO_SAEB[PROFICIENCIA])
+
+Proficiência Média LP =
+CALCULATE(
+    AVERAGE(FATO_SAEB[PROFICIENCIA]),
+    FATO_SAEB[DISCIPLINA] = "LP"
+)
+
+Proficiência Média MT =
+CALCULATE(
+    AVERAGE(FATO_SAEB[PROFICIENCIA]),
+    FATO_SAEB[DISCIPLINA] = "MT"
+)
+
+// PND 2025
+
+Participantes PND =
+COUNTROWS(FATO_PND)
+
+Nota Objetiva Média =
+AVERAGE(FATO_PND[NT_OBJ])
+
+Nota Discursiva Média =
+AVERAGE(FATO_PND[NT_DIS])
+
+Nota Geral Média =
+AVERAGE(FATO_PND[NT_GER])
+
+Média de Acertos =
+AVERAGE(FATO_PND[QT_ACERTOS])
+
+Não Proficientes =
+CALCULATE(
+    COUNTROWS(FATO_PND),
+    FATO_PND[PADRAO_DESEMPENHO] = "NAO_PROFICIENTE"
+)
+
+Padrão 1 =
+CALCULATE(
+    COUNTROWS(FATO_PND),
+    FATO_PND[PADRAO_DESEMPENHO] = "PADRAO_1"
+)
+
+Padrão 2 =
+CALCULATE(
+    COUNTROWS(FATO_PND),
+    FATO_PND[PADRAO_DESEMPENHO] = "PADRAO_2"
+)
+
+Proficientes =
+[Padrão 1] + [Padrão 2]
+
+% Proficientes =
+DIVIDE(
+    [Proficientes],
+    [Participantes PND]
+)
+
+% Não Proficientes =
+DIVIDE(
+    [Não Proficientes],
+    [Participantes PND]
+)
+
+% Padrão 1 =
+DIVIDE(
+    [Padrão 1],
+    [Participantes PND]
+)
+
+% Padrão 2 =
+DIVIDE(
+    [Padrão 2],
+    [Participantes PND]
+)
+
+// APOIO PARA PÁGINAS QUE COMPARAM IDEB E SAEB
+
+Ano de Avaliação Disponível =
+VAR TemIDEB =
+    NOT ISBLANK([IDEB Médio])
+VAR TemSAEB =
+    NOT ISBLANK([Proficiência Média SAEB])
+RETURN
+    IF(TemIDEB && TemSAEB, 1, 0)
+
+// VARIAÇÕES TEMPORAIS
+// diferença absoluta entre o último e o primeiro ano com dado
+// dentro do intervalo selecionado
+
+Variação Aprovação =
+VAR AnosComDados =
+    FILTER(
+        ALLSELECTED(DIM_TEMPO[ANO]),
+        NOT ISBLANK(CALCULATE([Taxa de Aprovação]))
+    )
+VAR PrimeiroAno =
+    MINX(AnosComDados, DIM_TEMPO[ANO])
+VAR UltimoAno =
+    MAXX(AnosComDados, DIM_TEMPO[ANO])
+VAR ValorInicial =
+    CALCULATE(
+        [Taxa de Aprovação],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = PrimeiroAno
+    )
+VAR ValorFinal =
+    CALCULATE(
+        [Taxa de Aprovação],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = UltimoAno
+    )
+RETURN
+    IF(
+        ISBLANK(PrimeiroAno)
+            || ISBLANK(UltimoAno)
+            || PrimeiroAno = UltimoAno,
+        BLANK(),
+        ValorFinal - ValorInicial
+    )
+
+Variação IDEB =
+VAR AnosComDados =
+    FILTER(
+        ALLSELECTED(DIM_TEMPO[ANO]),
+        NOT ISBLANK(CALCULATE([IDEB Médio]))
+    )
+VAR PrimeiroAno =
+    MINX(AnosComDados, DIM_TEMPO[ANO])
+VAR UltimoAno =
+    MAXX(AnosComDados, DIM_TEMPO[ANO])
+VAR ValorInicial =
+    CALCULATE(
+        [IDEB Médio],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = PrimeiroAno
+    )
+VAR ValorFinal =
+    CALCULATE(
+        [IDEB Médio],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = UltimoAno
+    )
+RETURN
+    IF(
+        ISBLANK(PrimeiroAno)
+            || ISBLANK(UltimoAno)
+            || PrimeiroAno = UltimoAno,
+        BLANK(),
+        ValorFinal - ValorInicial
+    )
+
+Variação SAEB Matemática =
+VAR AnosComDados =
+    FILTER(
+        ALLSELECTED(DIM_TEMPO[ANO]),
+        NOT ISBLANK(CALCULATE([Proficiência Média MT]))
+    )
+VAR PrimeiroAno =
+    MINX(AnosComDados, DIM_TEMPO[ANO])
+VAR UltimoAno =
+    MAXX(AnosComDados, DIM_TEMPO[ANO])
+VAR ValorInicial =
+    CALCULATE(
+        [Proficiência Média MT],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = PrimeiroAno
+    )
+VAR ValorFinal =
+    CALCULATE(
+        [Proficiência Média MT],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = UltimoAno
+    )
+RETURN
+    IF(
+        ISBLANK(PrimeiroAno)
+            || ISBLANK(UltimoAno)
+            || PrimeiroAno = UltimoAno,
+        BLANK(),
+        ValorFinal - ValorInicial
+    )
+
+Variação SAEB Português =
+VAR AnosComDados =
+    FILTER(
+        ALLSELECTED(DIM_TEMPO[ANO]),
+        NOT ISBLANK(CALCULATE([Proficiência Média LP]))
+    )
+VAR PrimeiroAno =
+    MINX(AnosComDados, DIM_TEMPO[ANO])
+VAR UltimoAno =
+    MAXX(AnosComDados, DIM_TEMPO[ANO])
+VAR ValorInicial =
+    CALCULATE(
+        [Proficiência Média LP],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = PrimeiroAno
+    )
+VAR ValorFinal =
+    CALCULATE(
+        [Proficiência Média LP],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = UltimoAno
+    )
+RETURN
+    IF(
+        ISBLANK(PrimeiroAno)
+            || ISBLANK(UltimoAno)
+            || PrimeiroAno = UltimoAno,
+        BLANK(),
+        ValorFinal - ValorInicial
+    )
+
+Variação TDI =
+VAR AnosComDados =
+    FILTER(
+        ALLSELECTED(DIM_TEMPO[ANO]),
+        NOT ISBLANK(CALCULATE([TDI Média]))
+    )
+VAR PrimeiroAno =
+    MINX(AnosComDados, DIM_TEMPO[ANO])
+VAR UltimoAno =
+    MAXX(AnosComDados, DIM_TEMPO[ANO])
+VAR ValorInicial =
+    CALCULATE(
+        [TDI Média],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = PrimeiroAno
+    )
+VAR ValorFinal =
+    CALCULATE(
+        [TDI Média],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = UltimoAno
+    )
+RETURN
+    IF(
+        ISBLANK(PrimeiroAno)
+            || ISBLANK(UltimoAno)
+            || PrimeiroAno = UltimoAno,
+        BLANK(),
+        ValorFinal - ValorInicial
+    )
