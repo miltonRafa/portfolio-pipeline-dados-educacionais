@@ -178,9 +178,38 @@ Disciplinas principais do projeto:
 
 ### PND 2025
 
-A estrutura final será definida após a transformação da população analítica auditada.
+A PND permanece separada das séries históricas de IDEB, SAEB, Rendimento e TDI.
 
-A PND permanecerá separada das séries históricas de IDEB, SAEB, Rendimento e TDI.
+Sua Silver mantém a granularidade de `REGISTRO_INDIVIDUAL`, aplicando apenas a população analítica auditada.
+
+Grão:
+
+`um registro válido da prova`
+
+Como o arquivo principal não fornece um identificador individual do participante, não será criado um identificador artificial com significado substantivo. `LINHA_ORIGEM_BRONZE` será preservada apenas como chave técnica única de rastreabilidade.
+
+Estrutura definida:
+
+- `ANO`;
+- `CO_GRUPO`;
+- `AREA_PROVA`;
+- `CO_MUNICIPIO_PROVA`;
+- `UF_PROVA`;
+- `TP_INSCRICAO_PND`;
+- `IN_REAPLICACAO`;
+- `CO_CADERNO`;
+- `TP_PRES`;
+- `TP_SIT_DISC`;
+- `PROFICIENCIA`;
+- `NT_OBJ`;
+- `NT_DIS`;
+- `NT_GER`;
+- `QT_ACERTOS`;
+- `ARQUIVO_ORIGEM`;
+- `LINHA_ORIGEM_BRONZE`;
+- `GRANULARIDADE_ORIGEM`.
+
+Os vetores de gabarito/resposta e as nove respostas do Questionário de Percepção de Prova não integram esta Silver porque não são necessários ao escopo analítico atual, que utiliza notas, acertos, área e localização de aplicação. Eles continuam preservados integralmente na Bronze.
 
 ---
 
@@ -1734,19 +1763,295 @@ A Silver do SAEB está concluída e não deve ser reaberta, salvo mudança das f
 
 ---
 
-## 17. Situação atual
+## 17. PND 2025 — definição da Silver
 
-| Fonte | Bronze | Silver |
-|---|---|---|
-| Rendimento Escolar | ✅ | ✅ concluída e validada |
-| TDI | ✅ | ✅ concluída e validada |
-| IDEB | ✅ | ✅ concluída e validada |
-| SAEB | ✅ | ✅ |
-| PND 2025 | ✅ | ⏳ |
+### 17.1 Evidência da auditoria da população
+
+A Bronze da PND preserva 1.087.359 registros substantivos do arquivo principal, além da linha física de cabeçalho.
+
+A auditoria da população mostrou:
+
+- 759.152 registros com os cinco resultados preenchidos;
+- 328.207 registros com os cinco resultados ausentes;
+- 0 registros parcialmente preenchidos.
+
+Os cinco campos avaliados conjuntamente são:
+
+- `PROFICIENCIA`;
+- `NT_OBJ`;
+- `NT_DIS`;
+- `NT_GER`;
+- `QT_ACERTOS`.
+
+Entre os registros com `TP_PRES = 555`:
+
+- 759.140 possuem os cinco resultados completos;
+- 966 não possuem o conjunto completo de resultados.
+
+Também existem 12 registros com `TP_PRES = 888` e resultados completos.
+
+### 17.2 População analítica
+
+A população Silver é definida por duas condições simultâneas:
+
+`TP_PRES = 555`
+
+e
+
+`PROFICIENCIA + NT_OBJ + NT_DIS + NT_GER + QT_ACERTOS completos`
+
+A cardinalidade esperada é:
+
+`759.140 registros`
+
+Os 12 registros `TP_PRES = 888` com resultados completos não são incluídos, porque a presença é parte explícita da definição da população analítica.
+
+Os 966 registros `TP_PRES = 555` sem conjunto completo de resultados também não são incluídos.
+
+Essa regra não imputa notas nem interpreta ausência como zero.
+
+### 17.3 Localização geográfica
+
+A PND utiliza a localização da aplicação da prova.
+
+Na Silver:
+
+- `CO_MUNICIPIO_PROVA` preserva o código do município do local de prova;
+- `UF_PROVA` é derivada diretamente de `SG_UF_MUNICIPIO_PROVA`.
+
+A UF não representa residência do participante.
+
+O nome do município não será incorporado nesta etapa. O código IBGE permanece disponível para construção posterior de dimensão geográfica na Gold, utilizando a tabela oficial de municípios presente no dicionário da PND.
+
+### 17.4 Área da prova
+
+`CO_GRUPO` é definido pelo dicionário oficial como o código da área da prova de enquadramento do curso no Enade.
+
+A Silver preserva o código e acrescenta `AREA_PROVA` com a categoria oficial correspondente.
+
+São esperadas 17 categorias:
+
+- 702 — Matemática;
+- 904 — Letras - Português;
+- 905 — Letras - Português e Inglês;
+- 906 — Letras - Português e Espanhol;
+- 1402 — Física;
+- 1502 — Química;
+- 1602 — Ciências Biológicas;
+- 2001 — Pedagogia;
+- 2402 — História;
+- 2501 — Artes Visuais;
+- 3002 — Geografia;
+- 3202 — Filosofia;
+- 3502 — Educação Física;
+- 4005 — Ciência da Computação;
+- 4301 — Música;
+- 5402 — Ciências Sociais;
+- 6407 — Letras - Inglês.
+
+Os rótulos persistidos em `AREA_PROVA` mantêm a identificação oficial `(LICENCIATURA)` do dicionário.
+
+Se surgir `CO_GRUPO` sem categoria documentada, a transformação deverá falhar explicitamente.
+
+### 17.5 Tipagem
+
+Na Bronze, as 26 colunas são preservadas como texto técnico.
+
+Na Silver:
+
+- ano, códigos, presença, situação, caderno e quantidade de acertos são convertidos para inteiros;
+- `PROFICIENCIA`, `NT_OBJ`, `NT_DIS` e `NT_GER` são convertidos para números decimais;
+- `UF_PROVA`, `AREA_PROVA` e metadados textuais permanecem texto.
+
+A conversão numérica aceita vírgula ou ponto decimal.
+
+O literal `NA`, célula vazia ou valor nulo é interpretado como ausência apenas para fins de tipagem e definição da população.
+
+Não há arredondamento analítico na transformação da PND.
+
+#### Domínio dos resultados numéricos
+
+A primeira execução da transformação foi interrompida porque a versão inicial do script impunha, por precaução, a regra de que `PROFICIENCIA`, `NT_OBJ`, `NT_DIS` e `NT_GER` não poderiam assumir valores negativos.
+
+Essa regra foi removida.
+
+A evidência documental utilizada no projeto identifica os campos e sua função, mas não estabelece, no material auditado, um limite inferior obrigatório igual a zero para essas quatro medidas. Por isso, rejeitar registros negativos representaria introduzir uma restrição não documentada pela fonte.
+
+Decisão:
+
+- valores numéricos publicados em `PROFICIENCIA`, `NT_OBJ`, `NT_DIS` e `NT_GER` são preservados, inclusive se negativos;
+- o transformador e o validador exibem mínimo, máximo e quantidade de valores negativos de cada medida para transparência;
+- nenhum valor é recodificado, truncado ou substituído por zero;
+- `QT_ACERTOS` continua obrigado a ser maior ou igual a zero, porque representa uma contagem de acertos.
+
+Essa alteração corrige uma validação excessivamente restritiva do pipeline e não altera a definição da população analítica de 759.140 registros.
+
+### 17.6 Colunas não levadas para a Silver
+
+Não serão transportados para a Silver factual:
+
+- `DS_VT_GAB_OBJ`;
+- `DS_VT_ESC_OBJ`;
+- `DS_VT_ACE_OBJ`;
+- `CO_RS_I1` a `CO_RS_I9`.
+
+Justificativa:
+
+esses campos não são necessários às análises atualmente definidas para o dashboard, que utilizam médias de acertos e notas por UF e área, além de medidas de participantes abaixo de limiares analíticos.
+
+A exclusão dessas colunas da Silver não representa perda da fonte: todos esses valores permanecem disponíveis na Bronze reproduzível.
+
+### 17.7 Rastreabilidade e ausência de identificador individual
+
+O arquivo principal não fornece um identificador individual do participante.
+
+Por isso, a Silver não inventará um código de participante.
+
+`LINHA_ORIGEM_BRONZE` é preservada como identificador técnico único do registro para:
+
+- validação;
+- diagnóstico;
+- retorno ao registro de origem.
+
+Ela não deve ser interpretada como identificador pessoal ou chave de negócio.
+
+Também serão preservados:
+
+- `ARQUIVO_ORIGEM`;
+- `GRANULARIDADE_ORIGEM`.
+
+### 17.8 Validação independente
+
+O validador não reutiliza as funções do transformador.
+
+Ele reconstrói diretamente da Bronze:
+
+- a quantidade total de registros;
+- a completude conjunta dos cinco resultados;
+- as 759.140 linhas da população analítica;
+- a exclusão dos 966 registros `TP_PRES = 555` sem resultados completos;
+- a exclusão dos 12 registros `TP_PRES = 888` com resultados;
+- a UF de prova;
+- o código e o rótulo oficial da área;
+- os cinco resultados numéricos;
+- os códigos mantidos na Silver;
+- a linha e o arquivo de origem.
+
+Na validação independente, os 759.140 registros Silver foram comparados diretamente com a referência reconstruída da Bronze.
+
+### 17.9 Situação de implementação
+
+Arquivos implementados:
+
+`src/silver/pnd/transformar_pnd.py`
+
+`src/silver/pnd/validar_silver_pnd.py`
+
+Saída gerada:
+
+`data/silver/pnd/pnd_2025.parquet`
+
+Os critérios definidos para conclusão foram atendidos:
+
+1. a transformação produziu exatamente 759.140 registros;
+2. a validação independente retornou `SILVER DA PND 2025: OK`.
+
+Status:
+
+`PND 2025 — SILVER ✅`
 
 ---
 
-## 18. Histórico de decisões
+### 17.10 Execução e validação final da Silver da PND 2025
+
+A transformação Silver da PND 2025 foi executada com sucesso em 19/08/2026.
+
+Arquivo produzido:
+
+`data/silver/pnd/pnd_2025.parquet`
+
+Resultado da transformação:
+
+- registros de dados na Bronze: 1.087.359;
+- registros com os cinco resultados completos: 759.152;
+- registros com resultados parcialmente preenchidos: 0;
+- `TP_PRES = 555` com os cinco resultados completos: 759.140;
+- `TP_PRES = 555` sem conjunto completo de resultados: 966;
+- `TP_PRES = 888` com resultados completos e excluídos da população analítica: 12;
+- linhas na Silver: 759.140;
+- UFs: 27;
+- áreas da prova: 17;
+- municípios de prova: 750;
+- valores ausentes nas cinco medidas analíticas: 0.
+
+A validação independente reconstruiu a população diretamente da Bronze e comparou os 759.140 registros da Silver com a referência reconstruída.
+
+Foram confirmados:
+
+- `TP_PRES = 555` em todos os registros da Silver;
+- ausência de valores ausentes em `PROFICIENCIA`, `NT_OBJ`, `NT_DIS`, `NT_GER` e `QT_ACERTOS`;
+- 27 UFs;
+- 17 áreas da prova;
+- 750 municípios de prova;
+- correspondência direta dos 759.140 registros Silver ↔ Bronze;
+- rastreabilidade por linha de origem;
+- mapeamento `CO_GRUPO` → área oficial.
+
+Diagnóstico dos resultados numéricos:
+
+| Campo | Mínimo | Máximo | Valores negativos |
+|---|---:|---:|---:|
+| `PROFICIENCIA` | -3,976610 | 2,688530 | 389.188 |
+| `NT_OBJ` | 0,000000 | 100,000000 | 0 |
+| `NT_DIS` | 0,000000 | 10,000000 | 0 |
+| `NT_GER` | 0,000000 | 100,000000 | 0 |
+| `QT_ACERTOS` | 0 | 77 | 0 |
+
+Os valores negativos ocorrem exclusivamente em `PROFICIENCIA`.
+
+Eles são preservados como publicados pela fonte. Nenhum valor foi truncado, recodificado, substituído por zero ou removido por ser negativo.
+
+Resultado final do validador:
+
+`SILVER DA PND 2025: OK`
+
+Com esse resultado, a Silver da PND 2025 está concluída.
+
+---
+
+## 18. Situação atual
+
+| Fonte | Bronze | Silver |
+|---|---|---|
+| Rendimento Escolar | ✅ concluída e validada | ✅ concluída e validada |
+| TDI | ✅ concluída e validada | ✅ concluída e validada |
+| IDEB | ✅ concluída e validada | ✅ concluída e validada |
+| SAEB | ✅ concluída e validada | ✅ concluída e validada |
+| PND 2025 | ✅ concluída e validada | ✅ concluída e validada |
+
+Não existem fontes pendentes na camada Silver.
+
+---
+
+## 18.1 Conclusão da camada Silver
+
+Com a validação independente da PND 2025, todas as fontes previstas para a camada Silver estão concluídas:
+
+| Fonte | Silver |
+|---|---|
+| Rendimento Escolar | ✅ concluída |
+| TDI | ✅ concluída |
+| IDEB | ✅ concluída |
+| SAEB | ✅ concluída |
+| PND 2025 | ✅ concluída |
+
+A camada Silver do projeto encontra-se integralmente concluída.
+
+As próximas transformações deverão ocorrer na camada Gold, voltada à modelagem analítica, integração entre fatos e dimensões e preparação dos dados para o Power BI.
+
+---
+
+## 19. Histórico de decisões
 
 | Data | Decisão |
 |---|---|
@@ -1787,3 +2092,14 @@ A Silver do SAEB está concluída e não deve ser reaberta, salvo mudança das f
 | 19/08/2026 | Corrigida a Silver do Saeb para respeitar o cabeçalho hierárquico de 2013 e 2015; essas edições passam a usar as posições físicas auditadas `col_001`–`col_008`, sem inventar nomes técnicos inexistentes |
 | 19/08/2026 | Silver do Saeb executada com 972 registros, 9 anos, 27 UFs, 2 etapas, 2 disciplinas e zero valores ausentes |
 | 19/08/2026 | Validação independente da Silver do Saeb concluída com comparação direta dos 972 registros contra as Bronzes e rastreabilidade completa; resultado `SILVER DO SAEB: OK` |
+| 19/08/2026 | Definida a população Silver da PND 2025 como `TP_PRES = 555` com `PROFICIENCIA`, `NT_OBJ`, `NT_DIS`, `NT_GER` e `QT_ACERTOS` completos, totalizando 759.140 registros esperados |
+| 19/08/2026 | Definida a granularidade Silver da PND como registro individual da prova; `LINHA_ORIGEM_BRONZE` será usada apenas como chave técnica de rastreabilidade porque a fonte não fornece identificador individual |
+| 19/08/2026 | Definidos `UF_PROVA`, `CO_MUNICIPIO_PROVA`, `CO_GRUPO` e `AREA_PROVA`; a área é mapeada pelas 17 categorias oficiais do dicionário da PND |
+| 19/08/2026 | Vetores de resposta/gabarito e `CO_RS_I1`–`CO_RS_I9` permanecem na Bronze e não integram a Silver factual por não fazerem parte do escopo analítico atual |
+| 19/08/2026 | Removida da transformação PND a restrição não documentada `resultado >= 0` para `PROFICIENCIA`, `NT_OBJ`, `NT_DIS` e `NT_GER`; os valores publicados passam a ser preservados integralmente e diagnosticados por mínimo, máximo e quantidade de negativos |
+| 19/08/2026 | Mantida validação `QT_ACERTOS >= 0` por se tratar de contagem de acertos |
+| 19/08/2026 | Silver da PND 2025 executada com 759.140 registros, 27 UFs, 17 áreas, 750 municípios e zero ausências nas cinco medidas analíticas |
+| 19/08/2026 | Validação independente da PND comparou diretamente os 759.140 registros Silver com a Bronze e confirmou rastreabilidade e mapeamento de área; resultado `SILVER DA PND 2025: OK` |
+| 19/08/2026 | Confirmado que valores negativos ocorrem apenas em `PROFICIENCIA` (389.188 registros; mínimo -3,976610) e são preservados conforme publicados pela fonte |
+| 19/08/2026 | Camada Silver concluída integralmente para Rendimento Escolar, TDI, IDEB, SAEB e PND 2025 |
+| 19/08/2026 | Revisada a situação final da camada Silver após a validação da PND: removido o status pendente residual e confirmadas todas as cinco fontes como concluídas e validadas |
