@@ -892,6 +892,83 @@ Status:
 
 ---
 
+## 13.4 Implementação da FATO_IDEB
+
+Arquivos implementados:
+
+`src/gold/ideb/transformar_ideb.py`
+
+`src/gold/ideb/validar_fato_ideb.py`
+
+Saída:
+
+`data/gold/fatos/fato_ideb.parquet`
+
+A transformação lê exclusivamente:
+
+`data/silver/ideb/ideb_2007_2023.parquet`
+
+e mantém as colunas analíticas:
+
+```text
+ANO
+UF
+ETAPA
+REDE
+IDEB
+```
+
+Nenhum valor do IDEB é recalculado.
+
+A Gold preserva somente as nove edições efetivamente existentes no recorte:
+
+```text
+2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021, 2023
+```
+
+Não são criadas observações para os anos intermediários.
+
+A validação implementada verifica:
+
+- 486 registros;
+- grão único `ANO + UF + ETAPA + REDE`;
+- nove edições;
+- 27 UFs;
+- duas etapas;
+- rede única `PUBLICA`;
+- ausência de valores nulos;
+- domínio do IDEB entre 0 e 10;
+- igualdade dos 486 valores Gold ↔ Silver;
+- inexistência de UFs órfãs em `DIM_UF`;
+- inexistência de anos órfãos em `DIM_TEMPO`;
+- inexistência de etapas órfãs em `DIM_ETAPA`.
+
+A transformação e a validação independente foram executadas com sucesso.
+
+Resultados confirmados:
+
+- 486 registros;
+- 9 edições;
+- 27 UFs;
+- 2 etapas;
+- rede única `PUBLICA`;
+- zero valores ausentes;
+- grão `ANO + UF + ETAPA + REDE` único;
+- 486 registros comparados diretamente com a Silver;
+- valores Gold = Silver;
+- domínio do IDEB entre 0 e 10;
+- zero chaves órfãs em `DIM_UF`, `DIM_TEMPO` e `DIM_ETAPA`.
+
+Resultado final:
+
+`FATO_IDEB GOLD: OK`
+
+Status:
+
+`FATO_IDEB ✅ concluída e validada`
+
+---
+
 ## 14. Situação atual
 
 | Componente | Situação |
@@ -900,7 +977,7 @@ Status:
 | Dimensões | ✅ concluídas e validadas |
 | FATO_RENDIMENTO | ✅ concluída e validada |
 | FATO_TDI | ✅ concluída e validada |
-| FATO_IDEB | ⏳ não implementada |
+| FATO_IDEB | ✅ concluída e validada |
 | FATO_SAEB | ⏳ não implementada |
 | FATO_PND | ⏳ não implementada |
 | Validação referencial global | ⏳ não implementada |
@@ -932,3 +1009,5 @@ A presença de `⏳` nesta seção representa trabalho realmente ainda não exec
 | 19/08/2026 | `FATO_RENDIMENTO` executada e validada com 2.754 registros; igualdade Gold ↔ Silver e integridade referencial confirmadas; resultado `FATO_RENDIMENTO GOLD: OK` |
 | 19/08/2026 | Implementados transformador e validador independente da `FATO_TDI`, preservando 918 valores da Silver sem recálculo e validando `DIM_UF`, `DIM_TEMPO` e `DIM_ETAPA` |
 | 19/08/2026 | `FATO_TDI` executada e validada com 918 registros; igualdade Gold ↔ Silver e integridade referencial confirmadas; resultado `FATO_TDI GOLD: OK` |
+| 19/08/2026 | Implementados transformador e validador independente da `FATO_IDEB`, preservando as nove edições 2007–2023, os 486 valores da Silver e a integridade referencial com as dimensões |
+| 19/08/2026 | `FATO_IDEB` executada e validada com 486 registros e 9 edições; igualdade Gold ↔ Silver e integridade referencial confirmadas; resultado `FATO_IDEB GOLD: OK` |
