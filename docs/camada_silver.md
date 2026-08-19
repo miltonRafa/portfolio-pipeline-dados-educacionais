@@ -1116,19 +1116,637 @@ Com isso, o IDEB passa a ser considerado concluído na camada Silver.
 
 ---
 
-## 16. Situação atual
+## 16. SAEB — auditoria preliminar da Silver
+
+A construção da Silver do SAEB começou por auditoria estrutural dos nove Parquets Bronze correspondentes às edições de 2007 a 2023.
+
+Script:
+
+`src/silver/saeb/auditar_silver_saeb.py`
+
+### 16.1 Correção da estratégia de identificação do cabeçalho
+
+A primeira versão da auditoria tentou inferir automaticamente uma “linha técnica” com base na aparência textual das células. Essa heurística se mostrou inadequada nas edições mais recentes.
+
+A própria saída demonstrou o problema: embora a primeira linha de 2017, 2019 e 2021 contenha os nomes das variáveis da fonte, a heurística classificou como supostas linhas técnicas registros de dados posteriores.
+
+A decisão foi abandonar essa inferência.
+
+A versão corrigida utiliza como referência autoritativa:
+
+`_indice_cabecalho_origem`
+
+Esse metadado foi gravado durante a ingestão Bronze justamente para registrar a posição real do cabeçalho na fonte. A linha física correspondente é obtida por:
+
+`_linha_origem = _indice_cabecalho_origem + 1`
+
+Justificativa: a camada Silver deve interpretar a estrutura a partir da proveniência preservada na Bronze, e não por uma tentativa probabilística de reconhecer cabeçalhos pelo conteúdo das células.
+
+Impacto: a correção modifica apenas a auditoria. Nenhum dado Bronze foi alterado e nenhuma transformação Silver do SAEB foi executada antes da resolução do problema.
+
+### 16.2 Evidências já confirmadas
+
+A auditoria confirmou que 2007 e 2009 estão em granularidade UF e possuem a categoria:
+
+`Total - Federal, Estadual, Municipal e Privada`
+
+Esse total inclui a rede privada e, portanto, não poderá ser utilizado como representação da rede pública.
+
+Em 2011, a Bronze contém explicitamente:
+
+- `SIGLA_UF`;
+- `ID_SERIE`;
+- `ID_TIPO_REDE`;
+- `ID_LOCALIZACAO`;
+- `NU_PARTICIPANTES`;
+- `MEDIA_LP`;
+- `MEDIA_MT`.
+
+Foram observadas as séries 5, 9 e 12 e seis códigos de rede, de 0 a 5. A regra de seleção do agregado público será confirmada pela auditoria focada antes da transformação.
+
+Em 2013 e 2015, a fonte organiza diretamente as proficiências de Anos Iniciais e Anos Finais em colunas distintas de Língua Portuguesa e Matemática.
+
+Em 2017, 2019 e 2021, as fontes continuam em granularidade UF, com dimensões de dependência administrativa, localização e capital, além das médias de proficiência por etapa.
+
+A edição de 2023 permanece metodologicamente distinta porque sua Bronze está em granularidade escola. Nenhuma média simples entre escolas será produzida. A forma de agregação para UF somente será definida depois da confirmação das variáveis de participação/presença e das médias correspondentes.
+
+### 16.3 Estado da decisão
+
+A Silver do SAEB permanece em auditoria.
+
+Ainda não está autorizada a transformação porque precisam ser fechadas, com evidência da própria Bronze:
+
+- a categoria pública exata em cada edição de granularidade UF;
+- a seleção de localização/capital usada para representar o total da UF;
+- a regra específica de 2007 e 2009, que não possuem no total geral uma população exclusivamente pública;
+- a estrutura completa de 2023;
+- a variável de ponderação apropriada para a agregação escola → UF em 2023.
+
+Nenhuma dessas regras será inferida por média aritmética simples.
+
+---
+
+### 16.4 Resultado da verificação focada de 2007 a 2021
+
+A verificação focada confirmou que as edições de 2007 a 2021 permitem selecionar diretamente um único estrato de UF para os Anos Iniciais e Anos Finais, sem produzir média aritmética entre redes.
+
+#### 2007 e 2009
+
+A fonte disponibiliza a categoria:
+
+`Total - Estadual e Municipal`
+
+com:
+
+`LOCALIZACAO = Total`
+
+`CAPITAL = Total`
+
+A seleção produz exatamente:
+
+- 27 UFs;
+- nenhuma UF faltante;
+- nenhuma UF adicional;
+- nenhuma duplicidade por UF;
+- nenhum valor ausente;
+- nenhum valor zero nas quatro médias de interesse.
+
+A categoria:
+
+`Total - Federal, Estadual, Municipal e Privada`
+
+não será usada porque inclui a rede privada.
+
+Também não existe categoria `Federal` isolada nas planilhas dessas duas edições.
+
+Decisão metodológica: para 2007 e 2009 será preservado o agregado público disponível na própria fonte, `Total - Estadual e Municipal`. Ele será harmonizado para a categoria analítica `PUBLICA`, mas a origem exata será mantida em `REDE_ORIGEM`.
+
+Limitação de comparabilidade: esse agregado não explicita a rede federal, ao contrário do agregado utilizado a partir de 2013. A série histórica deverá manter essa ressalva documental e não tentará estimar ou reconstruir a parcela federal.
+
+#### 2011
+
+A seleção validada é:
+
+- `ID_SERIE = 5` para Anos Iniciais;
+- `ID_SERIE = 9` para Anos Finais;
+- `ID_TIPO_REDE = 5` para rede pública;
+- `ID_LOCALIZACAO = 0`;
+- `ID_CAPITAL = 0`.
+
+Para cada etapa foram obtidas exatamente 27 UFs, sem duplicidades e sem valores ausentes em `MEDIA_LP`, `MEDIA_MT` e `NU_PARTICIPANTES`.
+
+A Silver usará diretamente `MEDIA_LP` e `MEDIA_MT` publicadas nesse estrato. `NU_PARTICIPANTES` permanecerá como informação de origem/validação; não será usado para recalcular uma média já publicada para a UF.
+
+#### 2013, 2015, 2017, 2019 e 2021
+
+A seleção validada é:
+
+`REDE = Total - Federal, Estadual e Municipal`
+
+`LOCALIZACAO = Total`
+
+`CAPITAL = Total`
+
+Em todas as cinco edições foram confirmadas:
+
+- 27 UFs;
+- nenhuma UF faltante;
+- nenhuma UF adicional;
+- nenhuma duplicidade por UF;
+- valores completos para Língua Portuguesa e Matemática nos Anos Iniciais e Anos Finais.
+
+A Silver utilizará diretamente esse agregado oficial, sem média entre Federal, Estadual e Municipal.
+
+Em 2015 a fonte informa que valor `0` representa impossibilidade de calcular a média para o estrato. No estrato público/Total/Total selecionado para a Silver não foi observado nenhum zero nas quatro médias de interesse.
+
+### 16.5 Diagnóstico de 2023 e suspensão da regra por número de presentes
+
+A Bronze de 2023 está em granularidade escola e contém 70.151 registros de escolas públicas, distribuídos pelas 27 UFs.
+
+Foram identificadas as variáveis necessárias para um cálculo exploratório:
+
+Anos Iniciais:
+
+- `NU_PRESENTES_5EF`;
+- `MEDIA_5EF_LP`;
+- `MEDIA_5EF_MT`.
+
+Anos Finais:
+
+- `NU_PRESENTES_9EF`;
+- `MEDIA_9EF_LP`;
+- `MEDIA_9EF_MT`.
+
+Foi testada, apenas como diagnóstico, a média das médias escolares ponderada pelo número de presentes da etapa. O teste produziu resultados para as 27 UFs e não gerou ausência de resultado estadual.
+
+Esse resultado, entretanto, não autoriza a regra Silver.
+
+A documentação oficial do Inep para o Saeb 2023 informa que a produção de resultados agregados utiliza pesos amostrais. Esses pesos incorporam o desenho da avaliação e procedimentos de expansão/calibração e permitem a formação de resultados para Brasil, regiões e UFs. Por isso, `NU_PRESENTES` não pode ser tratado automaticamente como equivalente ao peso estatístico oficial.
+
+Decisão metodológica: a média escolar ponderada por `NU_PRESENTES` permanece apenas como teste diagnóstico e não será usada na Silver enquanto não for confrontada com os resultados agregados oficiais de 2023.
+
+### 16.6 Validação externa necessária para 2023
+
+O Inep disponibiliza, na página oficial de resultados do Saeb 2023:
+
+- Planilhas de Resultados para Brasil, estados e municípios;
+- Microdados Saeb 2023;
+- Nota Técnica Saeb 2023;
+- relatório de dados de proficiência.
+
+A planilha oficial de resultados estaduais será usada como referência de validação do cálculo produzido a partir das escolas.
+
+Procedimento definido:
+
+1. obter e preservar a planilha oficial de resultados agregados de 2023;
+2. identificar o estrato de UF, rede pública e localização total para 5º e 9º anos;
+3. confrontar os 108 valores candidatos produzidos pela Bronze de escolas:
+   `27 UFs × 2 etapas × 2 disciplinas`;
+4. comparar com a precisão publicada pelo Inep;
+5. somente depois decidir a fonte operacional da Silver 2023.
+
+Se a agregação derivada das escolas reproduzir os resultados oficiais dentro da precisão publicada, poderá ser mantida, com documentação da validação.
+
+Se não reproduzir, a Silver não usará a ponderação por `NU_PRESENTES`. Nesse caso, a planilha agregada oficial deverá ser incorporada ao pipeline como fonte canônica de 2023, com reabertura controlada da etapa Bronze do SAEB e nova validação.
+
+Essa decisão evita produzir uma série aparentemente comparável por meio de uma ponderação que não reproduza o estimador oficial do Inep.
+
+---
+
+### 16.7 Fonte oficial agregada de 2023 incorporada à auditoria
+
+Foi incorporado ao diretório RAW do SAEB o pacote oficial de resultados agregados de 2023, preservando sua estrutura original:
+
+`data/raw/saeb/`
+
+Arquivos identificados:
+
+- `12EM_Erros_amostrais_e_intervalo_de_confiança.xlsx`;
+- `2anoEF_Erros_amostrais_e_intervalo_de_confiança_Taxa_alfabetização.xlsx`;
+- `5anoEF_Erros_amostrais_e_intervalo_de_confiança.xlsx`;
+- `9anoEF_Erros_amostrais_e_intervalo_de_confiança.xlsx`;
+- `Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb`.
+
+Para a validação da Silver, o arquivo prioritário será:
+
+`Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb`
+
+Justificativa: ele reúne os resultados agregados oficiais para Brasil, estados e municípios e permitirá confrontar diretamente os valores estaduais publicados pelo Inep com os valores derivados da Bronze escolar.
+
+Os arquivos de erros amostrais e intervalos de confiança serão mantidos no RAW como documentação complementar da fonte, mas não serão usados como substitutos da média de proficiência.
+
+Antes da comparação numérica, será executada uma auditoria estrutural do arquivo `.xlsb` para identificar:
+
+- nomes das abas;
+- posição dos cabeçalhos;
+- nível geográfico;
+- dependência administrativa/rede;
+- localização;
+- etapa;
+- disciplina;
+- variáveis de proficiência.
+
+Nenhuma regra de agregação de 2023 será finalizada antes dessa auditoria.
+
+---
+
+### 16.8 Veredito da comparação oficial × agregação escolar em 2023
+
+A comparação entre os resultados oficiais estaduais do Saeb 2023 e a média das médias escolares ponderada por `NU_PRESENTES` foi concluída.
+
+Foram confrontados:
+
+`27 UFs × 2 etapas × 2 disciplinas = 108 valores`
+
+Referência oficial:
+
+- aba `Estados`;
+- `DEPENDENCIA_ADM = Total - Federal, Estadual e Municipal`;
+- `LOCALIZACAO = Total`;
+- `CAPITAL = Total`;
+- `MEDIA_5_LP`;
+- `MEDIA_5_MT`;
+- `MEDIA_9_LP`;
+- `MEDIA_9_MT`.
+
+Candidato derivado da Bronze escolar:
+
+- `IN_PUBLICA = 1`;
+- `MEDIA_5EF_LP` e `MEDIA_5EF_MT` ponderadas por `NU_PRESENTES_5EF`;
+- `MEDIA_9EF_LP` e `MEDIA_9EF_MT` ponderadas por `NU_PRESENTES_9EF`.
+
+Resultado:
+
+- coincidências após arredondamento para duas casas: `0/108`;
+- diferença absoluta média: `1,389714`;
+- diferença absoluta mediana: `1,092905`;
+- maior diferença absoluta: `6,150034`.
+
+Por métrica:
+
+- Anos Iniciais / Língua Portuguesa: 0/27 coincidências; diferença média 0,937030;
+- Anos Iniciais / Matemática: 0/27 coincidências; diferença média 1,010801;
+- Anos Finais / Língua Portuguesa: 0/27 coincidências; diferença média 1,820663;
+- Anos Finais / Matemática: 0/27 coincidências; diferença média 1,790360.
+
+A divergência não é residual de arredondamento. Em alguns casos supera quatro ou seis pontos de proficiência.
+
+Decisão metodológica: `NU_PRESENTES` não será usado como peso canônico para reconstruir resultados estaduais de 2023.
+
+Justificativa: a ponderação por presentes não reproduz nenhum dos 108 resultados oficiais publicados. A adoção dessa regra criaria uma série histórica metodologicamente incompatível com o resultado oficial do Saeb.
+
+### 16.9 Reabertura controlada da Bronze do SAEB 2023
+
+A Bronze escolar de 2023 permanece válida e será preservada:
+
+`data/bronze/saeb/saeb_2023.parquet`
+
+Ela representa corretamente a fonte `TS_ESCOLA_2023.csv` na granularidade escola e não será substituída nem sobrescrita.
+
+Entretanto, ela não é suficiente para reproduzir o estimador estadual oficial utilizado no escopo histórico deste projeto.
+
+Por isso, será adicionada uma segunda fonte Bronze de 2023, correspondente aos resultados oficiais agregados de UF:
+
+RAW:
+
+`data/raw/saeb/Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb`
+
+Aba preservada:
+
+`Estados`
+
+Bronze adicional:
+
+`data/bronze/saeb/saeb_2023_resultados_uf.parquet`
+
+Scripts:
+
+`src/bronze/saeb/ingest_saeb_resultados_2023.py`
+
+`src/bronze/saeb/validar_bronze_saeb_resultados_2023.py`
+
+A nova Bronze preservará integralmente a aba `Estados`, sem filtrar rede, localização ou indicadores durante a ingestão.
+
+Metadados:
+
+- `_fonte`;
+- `_sha256_arquivo`;
+- `_arquivo_origem`;
+- `_aba_origem`;
+- `_ano_referencia`;
+- `_indice_cabecalho_origem`;
+- `_linha_origem`;
+- `_granularidade_origem`.
+
+A existência de duas fontes Bronze em 2023 é intencional:
+
+- `saeb_2023.parquet`: granularidade `ESCOLA`, preservando os microdados escolares;
+- `saeb_2023_resultados_uf.parquet`: granularidade `UF`, preservando os resultados agregados oficiais.
+
+A Silver histórica usará a segunda fonte para 2023 porque o seu grão analítico é UF e a tentativa de reconstruir o estimador estadual a partir das escolas não reproduziu os valores oficiais.
+
+Essa decisão não invalida a Bronze escolar. Ela separa dois produtos oficiais com granularidades e finalidades metodológicas distintas.
+
+### 16.10 Regra Silver consolidada do SAEB após a validação de 2023
+
+Se a nova Bronze agregada de 2023 passar pela validação RAW → Bronze, a regra Silver ficará:
+
+- 2007: `Total - Estadual e Municipal`, localização `Total`, capital `Total`;
+- 2009: `Total - Estadual e Municipal`, localização `Total`, capital `Total`;
+- 2011: `ID_TIPO_REDE = 5`, `ID_LOCALIZACAO = 0`, `ID_CAPITAL = 0`, séries 5 e 9;
+- 2013: `Total - Federal, Estadual e Municipal`, localização `Total`, capital `Total`;
+- 2015: mesma regra de 2013;
+- 2017: mesma regra de 2013;
+- 2019: mesma regra de 2013;
+- 2021: mesma regra de 2013;
+- 2023: resultados oficiais agregados da aba `Estados`, com `Total - Federal, Estadual e Municipal`, localização `Total` e capital `Total`.
+
+Em todos os anos serão selecionadas apenas:
+
+- Anos Iniciais;
+- Anos Finais;
+- Língua Portuguesa;
+- Matemática.
+
+A Silver não calculará médias entre redes e não reconstruirá o resultado estadual de 2023 a partir das médias escolares.
+
+---
+
+### 16.11 Política transversal de rede pública no projeto
+
+A categoria analítica `PUBLICA` não significa exclusão da rede federal.
+
+A regra geral do projeto é:
+
+`PUBLICA = Federal + Estadual + Municipal`
+
+sempre que a fonte oficial disponibiliza essa população de forma explícita ou por categoria pública consolidada.
+
+A rede privada é excluída da população analítica histórica porque o escopo do projeto é a rede pública.
+
+Aplicação por indicador:
+
+- Rendimento Escolar: utiliza o agregado oficial `Pública`; não é calculada média entre Federal, Estadual e Municipal.
+- TDI: utiliza o agregado oficial `Publico`/`Pública`; não é calculada média entre dependências.
+- IDEB: utiliza a categoria oficial `Pública (4)`. Eventuais particularidades metodológicas da própria publicação, como a nota referente ao cálculo de 2011 sem escolas federais, são preservadas como característica da fonte e não como filtro criado pelo pipeline.
+- SAEB 2013–2023: utiliza o agregado oficial `Total - Federal, Estadual e Municipal`.
+- SAEB 2011: utiliza o código oficial de rede pública já identificado na fonte.
+- SAEB 2007 e 2009: a fonte de resultados por UF disponibiliza `Total - Estadual e Municipal`, mas não apresenta categoria Federal isolada nem agregado Federal + Estadual + Municipal. Por isso, essas duas edições constituem exceção documental: a série usa o agregado público disponível na fonte e registra a ausência explícita da rede federal nessa categoria.
+- PND: a lógica de rede pública não se aplica da mesma forma, pois o conjunto analítico da PND é definido pelos critérios próprios de presença e completude da avaliação, e não por uma série histórica de redes escolares equivalente aos demais indicadores.
+
+Portanto, o projeto não adota a regra “retirar Federal e Particular”.
+
+A regra correta é “retirar a rede privada e preservar a rede federal dentro da rede pública sempre que ela estiver contemplada no agregado oficial”. As exceções são documentadas quando a própria fonte histórica não oferece esse agregado.
+
+---
+
+### 16.12 Tipagem física da Bronze agregada do SAEB 2023
+
+Durante a primeira execução da ingestão da aba `Estados`, o `pyarrow` interrompeu a gravação porque as colunas da planilha possuem conteúdo heterogêneo: a primeira linha contém os nomes técnicos das variáveis, enquanto as linhas seguintes contêm valores numéricos ou categorias.
+
+Exemplo:
+
+- `col_001`, linha 1: `ANO_SAEB`;
+- `col_001`, linhas de dados: `2023`.
+
+O Pandas leu essa coluna como `object`, mas o Arrow tentou inferir um único tipo físico para o Parquet e encontrou simultaneamente texto e inteiro.
+
+Decisão técnica: todas as colunas de origem `col_001 ... col_NNN` da nova Bronze agregada de 2023 serão armazenadas como texto anulável.
+
+Justificativa:
+
+- a Bronze deve preservar a estrutura física da fonte, inclusive a linha de cabeçalho;
+- não cabe à Bronze atribuir tipos analíticos a proficiências, códigos ou categorias;
+- o Parquet exige um tipo lógico consistente por coluna;
+- armazenar as células de origem como texto evita coerção indevida e perda da linha de cabeçalho;
+- a conversão para número será feita somente na Silver, depois da identificação da variável pelo cabeçalho preservado.
+
+Valores realmente ausentes continuam ausentes (`null`) e não são convertidos para as strings `"nan"` ou `"None"`.
+
+A validação independente compara cada célula da fonte RAW com sua representação textual normalizada na Bronze, além de verificar SHA-256, arquivo, aba, linha física, cabeçalho e granularidade.
+
+---
+
+### 16.13 Otimização da validação RAW ↔ Bronze agregada de 2023
+
+A primeira versão do validador independente percorria todas as células da aba `Estados` com acessos repetidos por `DataFrame.iloc`.
+
+Embora o conjunto possua apenas 1.553 linhas e 177 colunas, esse padrão é ineficiente em Pandas porque cada acesso escalar cria sobrecarga de indexação e conversão. Na execução real, o processo permaneceu por tempo excessivo sem produzir nova saída no terminal.
+
+Decisão técnica: a comparação foi substituída por uma validação vetorizada.
+
+Procedimento:
+
+1. a RAW é normalizada com a mesma regra textual usada na ingestão;
+2. as colunas são harmonizadas para `col_001 ... col_177`;
+3. RAW normalizada e Bronze são alinhadas na mesma ordem;
+4. ausências são substituídas temporariamente por um marcador exclusivo apenas para comparação;
+5. a igualdade é calculada de forma vetorizada com `DataFrame.eq`;
+6. se houver divergência, somente as primeiras 20 células diferentes são materializadas para diagnóstico.
+
+A regra metodológica da validação não mudou: continuam sendo confrontadas todas as células de origem. A alteração é exclusivamente de eficiência computacional.
+
+O validador também passou a emitir etapas de progresso (`1/5` a `5/5`) para tornar evidente em qual operação uma eventual demora ocorre.
+
+---
+
+### 16.14 Bronze agregada oficial do Saeb 2023 validada
+
+A nova Bronze de resultados oficiais agregados de UF foi executada e validada com sucesso.
+
+Arquivo:
+
+`data/bronze/saeb/saeb_2023_resultados_uf.parquet`
+
+Resultado da validação:
+
+- 1.553 linhas RAW/Bronze;
+- 177 colunas de origem;
+- 274.881 células de origem comparadas;
+- SHA-256 da fonte validado;
+- reprodução integral da aba `Estados` após normalização textual: OK;
+- proveniência de arquivo, aba, linha, cabeçalho e granularidade: OK;
+- estrato `Total - Federal, Estadual e Municipal` / localização `Total` / capital `Total`: 27 UFs, sem duplicidade.
+
+Faixas observadas no estrato público estadual:
+
+- `MEDIA_5_LP`: 185,22 a 225,51;
+- `MEDIA_5_MT`: 193,75 a 239,52;
+- `MEDIA_9_LP`: 230,61 a 265,44;
+- `MEDIA_9_MT`: 230,17 a 264,71.
+
+A extensão controlada da Bronze do Saeb 2023 está, portanto, concluída.
+
+### 16.15 Implementação definida para a Silver do SAEB
+
+A Silver do SAEB terá o grão:
+
+`ANO + UF + ETAPA + REDE + DISCIPLINA`
+
+Colunas analíticas principais:
+
+- `ANO`;
+- `UF`;
+- `ETAPA`;
+- `REDE`;
+- `DISCIPLINA`;
+- `PROFICIENCIA`.
+
+Colunas de rastreabilidade:
+
+- `REDE_ORIGEM`;
+- `LOCALIZACAO_ORIGEM`;
+- `CAPITAL_ORIGEM`;
+- `ARQUIVO_ORIGEM`;
+- `ABA_ORIGEM`;
+- `LINHA_ORIGEM_BRONZE`;
+- `COLUNA_ORIGEM`;
+- `GRANULARIDADE_ORIGEM`.
+
+Regras por edição:
+
+- 2007 e 2009: `Total - Estadual e Municipal`, localização `Total`, capital `Total`; Anos Iniciais a partir de `MEDIA_4_LP`/`MEDIA_4_MT` e Anos Finais a partir de `MEDIA_8_LP`/`MEDIA_8_MT`;
+- 2011: `ID_TIPO_REDE = 5`, `ID_LOCALIZACAO = 0`, `ID_CAPITAL = 0`; `ID_SERIE = 5` para Anos Iniciais e `ID_SERIE = 9` para Anos Finais; proficiências `MEDIA_LP` e `MEDIA_MT`;
+- 2013 e 2015: cabeçalho hierárquico; `Total - Federal, Estadual e Municipal`, localização `Total`, capital `Total`; proficiências nas posições auditadas `col_005`/`col_006` (Anos Iniciais) e `col_007`/`col_008` (Anos Finais);
+- 2017, 2019, 2021 e 2023: `Total - Federal, Estadual e Municipal`, localização `Total`, capital `Total`; uso dos campos técnicos próprios de cada fonte para 5º e 9º anos;
+- em 2015, valor `0` nas médias continua sendo tratado como ausência apenas porque a própria fonte informa que zero representa impossibilidade de cálculo do estrato;
+- em 2023, a Silver utiliza exclusivamente a Bronze oficial agregada de UF e não reconstrói resultados estaduais a partir das médias escolares.
+
+Normalização:
+
+- `REDE = PUBLICA`;
+- `ETAPA = ANOS_INICIAIS | ANOS_FINAIS`;
+- `DISCIPLINA = LP | MT`;
+- UFs harmonizadas para siglas oficiais de duas letras;
+- proficiências convertidas para número e arredondadas para duas casas decimais, acompanhando a precisão publicada pela fonte;
+- marcadores `-`, `--` e vazios são tratados como ausência;
+- não há imputação;
+- não há média aritmética entre redes.
+
+A quantidade estrutural esperada é:
+
+`9 anos × 27 UFs × 2 etapas × 2 disciplinas = 972 registros`
+
+Essa cardinalidade só será considerada concluída depois da execução da transformação e da validação independente.
+
+### 16.16 Validação independente definida para a Silver do SAEB
+
+O validador da Silver não importa nem reutiliza as funções do transformador.
+
+Ele reconstrói de forma independente, diretamente das Bronzes, os registros esperados para cada edição e verifica:
+
+- 9 anos esperados;
+- 27 UFs por ano e etapa;
+- duas etapas;
+- duas disciplinas;
+- rede canônica `PUBLICA`;
+- unicidade do grão;
+- ausência de proficiências nulas;
+- domínio plausível de proficiência entre 0 e 500;
+- regra específica de zero de 2015;
+- seleção de rede/localização/capital por edição;
+- valor publicado em cada célula de origem;
+- arquivo, aba, linha, coluna e granularidade de origem;
+- uso da Bronze oficial agregada de UF em 2023.
+
+A Silver só será marcada como concluída depois de o validador retornar `SILVER DO SAEB: OK`.
+
+---
+
+### 16.17 Correção da leitura de 2013 e 2015 na transformação Silver
+
+A primeira execução de `transformar_saeb.py` foi interrompida em 2013 porque o transformador procurava a variável técnica `DEPENDENCIA_ADM`.
+
+Esse nome não existe nas Bronzes de 2013 e 2015.
+
+A auditoria anterior já havia demonstrado que essas duas edições usam cabeçalho hierárquico em três linhas. Em 2013, o início do cabeçalho está em `_linha_origem = 4`; em 2015, em `_linha_origem = 3`.
+
+Estrutura física confirmada para ambas:
+
+- `col_001`: UF;
+- `col_002`: REDE;
+- `col_003`: LOCALIZAÇÃO;
+- `col_004`: CAPITAL;
+- `col_005`: Anos Iniciais / Língua Portuguesa;
+- `col_006`: Anos Iniciais / Matemática;
+- `col_007`: Anos Finais / Língua Portuguesa;
+- `col_008`: Anos Finais / Matemática.
+
+As linhas seguintes do cabeçalho identificam, separadamente, etapa e disciplina. Portanto, não é metodologicamente correto inventar nomes técnicos como `DEPENDENCIA_ADM`, `MEDIA_5_LP` ou `MEDIA_9_MT` para essas duas fontes.
+
+Decisão de implementação:
+
+- 2013 e 2015 passam a usar explicitamente as posições de coluna confirmadas pela auditoria;
+- a seleção da rede continua sendo `Total - Federal, Estadual e Municipal`;
+- localização e capital continuam `Total`;
+- as UFs são harmonizadas a partir dos nomes presentes em `col_001`;
+- a regra específica de 2015, em que valor `0` significa média não calculável para o estrato, permanece;
+- 2017, 2019, 2021 e 2023 continuam usando os cabeçalhos técnicos de suas próprias fontes.
+
+O validador independente foi corrigido pela mesma evidência estrutural, mas mantém implementação própria: ele reconstrói os registros esperados diretamente das Bronzes sem importar funções do transformador.
+
+A falha não indica problema nos dados ou na Bronze. Ela revelou uma suposição incorreta da primeira versão da Silver sobre a uniformidade dos cabeçalhos entre edições.
+
+---
+
+### 16.18 Execução e validação final da Silver do SAEB
+
+A transformação Silver do SAEB foi executada com sucesso em 19/08/2026.
+
+Arquivo produzido:
+
+`data/silver/saeb/saeb_2007_2023.parquet`
+
+Resultado da transformação:
+
+- 972 registros;
+- anos: 2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021 e 2023;
+- 27 UFs;
+- etapas: `ANOS_INICIAIS` e `ANOS_FINAIS`;
+- disciplinas: `LP` e `MT`;
+- rede canônica: `PUBLICA`;
+- valores ausentes: 0.
+
+A cardinalidade observada corresponde exatamente ao grão planejado:
+
+`9 anos × 27 UFs × 2 etapas × 2 disciplinas = 972 registros`
+
+A validação independente também foi concluída com sucesso.
+
+Foram confirmados:
+
+- 9/9 anos esperados;
+- 27 UFs por ano e etapa;
+- unicidade do grão `ANO + UF + ETAPA + REDE + DISCIPLINA`;
+- domínio plausível das proficiências entre 0 e 500;
+- regra específica de zero do Saeb 2015;
+- preservação, em 2007 e 2009, do agregado de origem `Total - Estadual e Municipal`;
+- preservação, de 2013 a 2023, do agregado oficial `Total - Federal, Estadual e Municipal`;
+- uso, em 2023, da Bronze oficial agregada de UF, e não da média das escolas ponderada por `NU_PRESENTES`;
+- comparação direta dos 972 registros com as respectivas Bronzes;
+- rastreabilidade de arquivo, aba, linha, coluna e granularidade.
+
+Resultado final do validador:
+
+`SILVER DO SAEB: OK`
+
+A Silver do SAEB está concluída e não deve ser reaberta, salvo mudança das fontes ou descoberta de evidência metodológica nova que contradiga as decisões já documentadas.
+
+---
+
+## 17. Situação atual
 
 | Fonte | Bronze | Silver |
 |---|---|---|
 | Rendimento Escolar | ✅ | ✅ concluída e validada |
 | TDI | ✅ | ✅ concluída e validada |
 | IDEB | ✅ | ✅ concluída e validada |
-| SAEB | ✅ | ⏳ |
+| SAEB | ✅ | ✅ |
 | PND 2025 | ✅ | ⏳ |
 
 ---
 
-## 17. Histórico de decisões
+## 18. Histórico de decisões
 
 | Data | Decisão |
 |---|---|
@@ -1156,3 +1774,16 @@ Com isso, o IDEB passa a ser considerado concluído na camada Silver.
 | 19/08/2026 | Executada com sucesso a transformação Silver do IDEB, gerando 486 registros para nove anos, 27 UFs e duas etapas |
 | 19/08/2026 | Validados os 486 registros Silver do IDEB diretamente contra a Bronze por arquivo, aba, linha e coluna de origem |
 | 19/08/2026 | IDEB marcado como concluído na camada Silver após validação final com status OK |
+| 19/08/2026 | Corrigida a auditoria Silver do SAEB: a identificação do cabeçalho passa a usar `_indice_cabecalho_origem` da Bronze, abandonando a heurística textual que classificou linhas de dados como cabeçalho em algumas edições |
+| 19/08/2026 | Verificação focada do SAEB confirmou os agregados públicos de 2007–2021; para 2023, a ponderação por `NU_PRESENTES` foi mantida apenas como diagnóstico até confronto com a planilha oficial de resultados estaduais do Inep |
+| 19/08/2026 | Incorporado ao RAW o pacote oficial de resultados agregados do Saeb 2023; `Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb` será usado para validar os resultados estaduais antes de definir a regra final de agregação escola → UF |
+| 19/08/2026 | A comparação de 108 valores do Saeb 2023 confirmou 0/108 coincidências entre o resultado oficial estadual e a média escolar ponderada por `NU_PRESENTES`; essa ponderação foi rejeitada como regra canônica |
+| 19/08/2026 | Definida reabertura controlada da Bronze do Saeb 2023 para incorporar a aba oficial `Estados` como fonte agregada de UF, preservando separadamente a Bronze escolar existente |
+| 19/08/2026 | Esclarecida a política transversal de rede: `PUBLICA` inclui Federal + Estadual + Municipal sempre que o agregado oficial está disponível; a rede privada é excluída. SAEB 2007/2009 permanecem como exceção documental por disponibilizarem apenas `Total - Estadual e Municipal` |
+| 19/08/2026 | Corrigida a tipagem física da Bronze agregada do Saeb 2023: colunas de origem heterogêneas passam a ser preservadas como texto anulável, com tipagem numérica adiada para a Silver |
+| 19/08/2026 | Otimizada a validação da Bronze agregada do Saeb 2023: comparação célula a célula via `iloc` foi substituída por comparação vetorizada, mantendo a conferência integral de todas as células de origem |
+| 19/08/2026 | Bronze oficial agregada do Saeb 2023 validada integralmente: 1.553 linhas, 177 colunas e 274.881 células RAW ↔ Bronze comparadas |
+| 19/08/2026 | Definidos transformador e validador independente da Silver do Saeb 2007–2023, com grão `ANO + UF + ETAPA + REDE + DISCIPLINA` e 972 registros esperados |
+| 19/08/2026 | Corrigida a Silver do Saeb para respeitar o cabeçalho hierárquico de 2013 e 2015; essas edições passam a usar as posições físicas auditadas `col_001`–`col_008`, sem inventar nomes técnicos inexistentes |
+| 19/08/2026 | Silver do Saeb executada com 972 registros, 9 anos, 27 UFs, 2 etapas, 2 disciplinas e zero valores ausentes |
+| 19/08/2026 | Validação independente da Silver do Saeb concluída com comparação direta dos 972 registros contra as Bronzes e rastreabilidade completa; resultado `SILVER DO SAEB: OK` |

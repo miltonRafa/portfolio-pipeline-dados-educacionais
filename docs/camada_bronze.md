@@ -114,7 +114,7 @@ Na PND 2025 também será utilizado:
 
 - `_granularidade_origem`.
 
-No SAEB, esse campo registra se o arquivo selecionado para a edição foi publicado no nível de `UF` ou `ESCOLA`.
+No SAEB, esse campo registra a granularidade efetivamente preservada em cada tabela Bronze. Em 2023 coexistem duas tabelas oficiais preservadas separadamente: uma em nível de `ESCOLA` e outra em nível de `UF`.
 
 Na PND, `_granularidade_origem = REGISTRO_INDIVIDUAL` registra que o arquivo principal preserva registros individuais da prova.
 
@@ -287,33 +287,49 @@ No conjunto RAW utilizado pelo projeto existem:
 - arquivos em nível escolar;
 - arquivos XLSX;
 - arquivos CSV;
+- arquivo XLSB de resultados oficiais agregados;
 - dicionários de dados auxiliares.
 
-A Bronze deverá respeitar a estrutura e a granularidade da fonte selecionada para cada edição, sem harmonização forçada.
+A Bronze respeita a estrutura e a granularidade de cada fonte selecionada, sem harmonização forçada.
 
-#### Decisão de seleção da fonte
+#### Decisão de seleção das fontes
 
-Quando houver resultado oficial agregado por Unidade da Federação entre os arquivos disponíveis e auditados, essa tabela será utilizada como fonte principal da respectiva edição.
+Quando o Inep disponibiliza resultado oficial agregado por Unidade da Federação, essa tabela é preferida para representar o resultado estadual publicado.
 
-A estrutura RAW atualmente disponível permite utilizar fonte agregada por UF em todas as edições de 2007 a 2021:
+A estrutura RAW utilizada inicialmente permitiu empregar fontes agregadas por UF em todas as edições de 2007 a 2021. Em 2023, a primeira fonte ingerida foi `TS_ESCOLA_2023.csv`, em nível escolar.
 
-| Ano | Arquivo selecionado | Granularidade |
-|---:|---|---|
-| 2007 | `MEDIA_UF_2007.xlsx` | UF |
-| 2009 | `MEDIA_UF_2009.xlsx` | UF |
-| 2011 | `TS_RESULTADO_UF_2011.csv` | UF |
-| 2013 | `TS_UF_2013.xlsx` | UF |
-| 2015 | `TS_UF_2015.xlsx` | UF |
-| 2017 | `TS_UF_2017.xlsx` | UF |
-| 2019 | `TS_UF_2019.xlsx` | UF |
-| 2021 | `TS_UF_2021.xlsx` | UF |
-| 2023 | `TS_ESCOLA_2023.csv` | escola |
+Durante a construção da Silver, a tentativa de reproduzir os resultados estaduais de 2023 a partir das médias escolares ponderadas por `NU_PRESENTES` não reproduziu os valores oficiais: foram obtidas `0/108` coincidências após arredondamento para duas casas decimais.
 
-A edição de 2023 é a única, entre as fontes atualmente selecionadas para a série do projeto, cuja tabela disponível para ingestão permanece em nível escolar.
+Como consequência, foi incorporada ao RAW uma segunda fonte oficial de 2023:
 
-Essa escolha reduz transformações desnecessárias: quando o Inep já fornece uma tabela agregada por UF, a Bronze preserva esse agregado oficial em vez de reconstruí-lo a partir de escolas.
+`data/raw/saeb/Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb`
 
-A decisão não representa uma agregação realizada na Bronze. Ela define explicitamente qual arquivo de origem será ingerido.
+A aba utilizada é:
+
+`Estados`
+
+Essa fonte foi ingerida como uma Bronze adicional, preservando o resultado agregado oficial de UF sem substituir nem alterar a Bronze escolar já existente.
+
+A configuração final do SAEB na Bronze é:
+
+| Ano | Arquivo de origem | Aba | Granularidade | Papel |
+|---:|---|---|---|---|
+| 2007 | `MEDIA_UF_2007.xlsx` | `MEDIA_ESTADOS` | UF | resultado oficial agregado |
+| 2009 | `MEDIA_UF_2009.xlsx` | `MEDIA_ESTADOS` | UF | resultado oficial agregado |
+| 2011 | `TS_RESULTADO_UF_2011.csv` | não se aplica | UF | resultado oficial agregado |
+| 2013 | `TS_UF_2013.xlsx` | `UF` | UF | resultado oficial agregado |
+| 2015 | `TS_UF_2015.xlsx` | `UFs` | UF | resultado oficial agregado |
+| 2017 | `TS_UF_2017.xlsx` | `TS_UF` | UF | resultado oficial agregado |
+| 2019 | `TS_UF_2019.xlsx` | `Estados` | UF | resultado oficial agregado |
+| 2021 | `TS_UF_2021.xlsx` | `Estados` | UF | resultado oficial agregado |
+| 2023 | `TS_ESCOLA_2023.csv` | não se aplica | ESCOLA | microdados escolares preservados |
+| 2023 | `Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb` | `Estados` | UF | resultado oficial agregado preservado |
+
+A existência de duas tabelas Bronze em 2023 é deliberada.
+
+A Bronze escolar preserva o arquivo oficial em nível de escola. A Bronze agregada preserva outra publicação oficial do Inep em nível de UF. Nenhuma delas é derivada da outra dentro da camada Bronze.
+
+A decisão não representa uma agregação realizada na Bronze. Trata-se da ingestão separada de duas fontes oficiais com granularidades distintas.
 
 #### Arquivos escolares de 2007 e 2009
 
@@ -322,7 +338,7 @@ Também existem no RAW:
 - `TS_ESCOLA_2007.csv`;
 - `TS_ESCOLA_2009.csv`.
 
-Esses arquivos não serão utilizados como fonte principal da série analítica porque os respectivos anos já possuem os arquivos oficiais agregados:
+Esses arquivos não são utilizados como fonte principal da série analítica porque os respectivos anos já possuem os arquivos oficiais agregados:
 
 - `MEDIA_UF_2007.xlsx`;
 - `MEDIA_UF_2009.xlsx`.
@@ -340,123 +356,94 @@ Os seguintes arquivos de dicionário também estão preservados no RAW:
 
 Eles são fontes auxiliares de documentação e interpretação estrutural.
 
-Não constituem tabelas de resultados do indicador e, por isso, não serão tratados como fatos da Bronze do SAEB.
+Não constituem tabelas de resultados do indicador e, por isso, não são tratados como fatos da Bronze do SAEB.
 
-Seu conteúdo poderá ser consultado pelo pipeline ou pela documentação sempre que necessário para interpretar códigos, campos e categorias.
+Seu conteúdo pode ser consultado pelo pipeline ou pela documentação sempre que necessário para interpretar códigos, campos e categorias.
 
 #### Estruturas confirmadas nas fontes agregadas
 
-Para 2007 e 2009, os arquivos `MEDIA_UF_*.xlsx` utilizam a aba:
+Para 2007 e 2009, os arquivos `MEDIA_UF_*.xlsx` utilizam a aba `MEDIA_ESTADOS` e apresentam diretamente variáveis como `ANO_SAEB`, `CO_UF`, `NO_UF`, `DEPENDENCIA_ADM`, `LOCALIZACAO`, `CAPITAL` e médias de Língua Portuguesa e Matemática.
 
-`MEDIA_ESTADOS`
+Em 2011, `TS_RESULTADO_UF_2011.csv` possui estrutura tabular em CSV e utiliza códigos como `ID_UF`, `ID_SERIE`, `ID_TIPO_REDE`, `ID_LOCALIZACAO`, `ID_CAPITAL`, `NU_PARTICIPANTES`, `MEDIA_LP` e `MEDIA_MT`.
 
-e apresentam diretamente variáveis como:
-
-- `ANO_SAEB`;
-- `CO_UF`;
-- `NO_UF`;
-- `DEPENDENCIA_ADM`;
-- `LOCALIZACAO`;
-- `CAPITAL`;
-- médias de Língua Portuguesa;
-- médias de Matemática.
-
-Em 2011, `TS_RESULTADO_UF_2011.csv` possui estrutura tabular em CSV e utiliza códigos como:
-
-- `ID_UF`;
-- `ID_SERIE`;
-- `ID_TIPO_REDE`;
-- `ID_LOCALIZACAO`;
-- `ID_CAPITAL`;
-- `NU_PARTICIPANTES`;
-- `MEDIA_LP`;
-- `MEDIA_MT`.
-
-Para 2013, 2015 e 2017, os arquivos de UF apresentam mudanças de layout e nomes de abas entre as edições.
-
-Nos arquivos de 2013 e 2015, o cabeçalho é hierárquico e ocupa múltiplas linhas. A auditoria confirmou uma diferença adicional entre as duas edições:
+Para 2013 e 2015, o cabeçalho é hierárquico e ocupa múltiplas linhas. A auditoria confirmou:
 
 - em 2013, a primeira linha semântica do cabeçalho está no índice `3`, correspondente à linha de origem `4`;
 - em 2015, a primeira linha semântica do cabeçalho está no índice `2`, correspondente à linha de origem `3`.
 
-A diferença ocorre porque a planilha de 2013 contém uma linha completamente vazia entre a observação inicial e o início do cabeçalho, enquanto a planilha de 2015 inicia o cabeçalho imediatamente após a observação inicial.
+A estrutura analítica preservada nessas duas edições foi confirmada nas posições:
 
-Essa diferença é preservada explicitamente em `_indice_cabecalho_origem`. Não será aplicada uma posição única de cabeçalho às duas edições.
+- `col_001`: UF;
+- `col_002`: rede;
+- `col_003`: localização;
+- `col_004`: capital;
+- `col_005`: Anos Iniciais / Língua Portuguesa;
+- `col_006`: Anos Iniciais / Matemática;
+- `col_007`: Anos Finais / Língua Portuguesa;
+- `col_008`: Anos Finais / Matemática.
 
-Para 2019 e 2021, os arquivos:
+Essa diferença estrutural é preservada explicitamente e não é substituída por nomes técnicos inexistentes na fonte.
 
-- `TS_UF_2019.xlsx`;
-- `TS_UF_2021.xlsx`;
+Para 2017, 2019 e 2021, os arquivos de UF utilizam cabeçalhos técnicos próprios das respectivas edições. Em 2019 e 2021, a aba é `Estados` e as fontes incluem, além das médias de proficiência, variáveis de níveis de proficiência e outras etapas avaliadas.
 
-utilizam a aba:
+Na nova fonte agregada de 2023, a aba `Estados` possui 177 colunas, entre elas `ANO_SAEB`, `CO_UF`, `NO_UF`, `DEPENDENCIA_ADM`, `LOCALIZACAO`, `CAPITAL`, `MEDIA_5_LP`, `MEDIA_5_MT`, `MEDIA_9_LP` e `MEDIA_9_MT`.
 
-`Estados`
+A primeira linha física contém os nomes técnicos das variáveis e é preservada na Bronze.
 
-e contêm, além das médias de proficiência, variáveis adicionais de níveis de proficiência e diferentes etapas avaliadas.
+#### Tipagem da fonte agregada de 2023
 
-Essas diferenças serão preservadas na Bronze e interpretadas semanticamente somente na Silver.
+Na primeira tentativa de persistência da aba `Estados` de 2023, o PyArrow identificou tipos heterogêneos nas mesmas colunas, pois a primeira linha contém nomes técnicos e as linhas seguintes contêm números ou categorias.
+
+Por isso, as 177 colunas de origem são persistidas como texto anulável na Bronze agregada de 2023.
+
+Essa decisão é exclusivamente técnica:
+
+- preserva a linha de cabeçalho;
+- evita coerção indevida entre texto e número;
+- mantém células realmente vazias como `null`;
+- adia a tipagem analítica para a Silver.
 
 #### Preservação da granularidade
 
-A Bronze manterá a granularidade da fonte selecionada em cada edição.
+A Bronze não força uma única granularidade para o SAEB.
 
-Assim:
+A configuração final é:
 
-- 2007 a 2021 permanecerão em nível de UF;
-- 2023 permanecerá em nível escolar.
+- 2007 a 2021: tabelas principais em nível de UF;
+- 2023: uma tabela em nível de ESCOLA e uma tabela oficial adicional em nível de UF.
 
-Os registros escolares de 2023 não serão agregados por UF na Bronze.
+O arquivo escolar de 2023 não é agregado pela Bronze.
 
-A agregação necessária para harmonizar 2023 com a série histórica será realizada somente na Silver e deverá seguir a metodologia definida na auditoria do SAEB.
+O arquivo de UF de 2023 também não é calculado pela Bronze: ele é uma publicação oficial independente do Inep e é apenas estruturado e rastreado em Parquet.
+
+Na Silver histórica, o resultado estadual de 2023 utiliza a Bronze oficial de UF porque a reconstrução a partir das escolas por `NU_PRESENTES` não reproduziu os resultados publicados.
 
 #### Rede pública
 
-Nenhum filtro de rede será aplicado na Bronze.
+Nenhum filtro de rede é aplicado na Bronze.
 
-Serão preservados, conforme a estrutura de cada edição:
+São preservados, conforme a estrutura de cada edição:
 
 - categorias de `DEPENDENCIA_ADM`;
 - códigos de `ID_TIPO_REDE`;
 - o indicador `IN_PUBLICA`;
 - demais categorias originais de rede.
 
-A definição canônica:
+A definição canônica `REDE = PUBLICA` é aplicada somente na Silver, seguindo `docs/definicao_rede_publica.md`.
 
-`REDE = PUBLICA`
-
-será aplicada somente na Silver, seguindo `docs/definicao_rede_publica.md`.
-
-A Bronze não deverá transformar o agregado geral que inclui rede privada em rede pública, nem calcular média simples entre redes Federal, Estadual e Municipal.
+A Bronze não transforma o agregado geral que inclui rede privada em rede pública e não calcula média simples entre redes Federal, Estadual e Municipal.
 
 #### Proficiências, etapas e variáveis adicionais
 
-A Bronze não selecionará exclusivamente:
+A Bronze não seleciona exclusivamente Anos Iniciais, Anos Finais, Língua Portuguesa ou Matemática.
 
-- Anos Iniciais;
-- Anos Finais;
-- Língua Portuguesa;
-- Matemática.
+Quando a fonte possui 2º ano, Ensino Médio, Ciências Humanas, Ciências da Natureza, níveis de proficiência, participação, erros-padrão ou outras variáveis publicadas, essas informações permanecem preservadas na estrutura Bronze correspondente.
 
-Quando a fonte possuir:
-
-- 2º ano;
-- Ensino Médio;
-- Ciências Humanas;
-- Ciências da Natureza;
-- níveis de proficiência;
-- participação;
-- erros-padrão;
-- outras variáveis publicadas;
-
-essas informações serão preservadas na estrutura Bronze correspondente.
-
-A seleção das medidas necessárias ao modelo analítico será realizada somente na Silver.
+A seleção das medidas necessárias ao modelo analítico é responsabilidade da Silver.
 
 #### CSV, delimitador e codificação
 
-Os CSV do SAEB não terão sua codificação presumida silenciosamente.
-
-Foi realizada verificação técnica específica dos dois arquivos CSV selecionados para a Bronze.
+Os CSV do SAEB não têm sua codificação presumida silenciosamente.
 
 Para `TS_RESULTADO_UF_2011.csv`, foi confirmado:
 
@@ -474,19 +461,29 @@ Para `TS_ESCOLA_2023.csv`, foi confirmado:
 - 136 delimitadores na linha de cabeçalho;
 - 137 campos na estrutura tabular.
 
-A configuração da ingestão utilizará diretamente esses parâmetros.
-
-Não será implementada tentativa automática de múltiplas codificações durante a execução normal do pipeline.
-
-Se um arquivo deixar de corresponder à codificação, ao delimitador ou aos marcadores estruturais documentados, a execução deverá falhar explicitamente.
-
-Essa decisão torna a leitura reprodutível e evita que uma codificação alternativa seja aceita silenciosamente em uma futura versão da fonte.
+A configuração da ingestão utiliza diretamente esses parâmetros. Se a estrutura esperada mudar, a execução deve falhar explicitamente.
 
 #### Situação da ingestão
 
-A ingestão Bronze do SAEB ainda não foi concluída nesta versão do documento.
+A Bronze do SAEB está concluída e validada.
 
-A implementação deverá produzir um Parquet por edição selecionada, preservando a granularidade e a estrutura da fonte correspondente e adicionando os metadados técnicos de rastreabilidade definidos nesta documentação.
+A extensão oficial agregada de 2023 é reproduzida por:
+
+`src/bronze/saeb/ingest_saeb_resultados_2023.py`
+
+e validada independentemente por:
+
+`src/bronze/saeb/validar_bronze_saeb_resultados_2023.py`
+
+A nova tabela produzida é:
+
+`data/bronze/saeb/saeb_2023_resultados_uf.parquet`
+
+Ela coexiste com:
+
+`data/bronze/saeb/saeb_2023.parquet`
+
+que preserva os registros escolares.
 
 ---
 
@@ -1169,29 +1166,27 @@ Status:
 
 ## 17. Resultado da ingestão — SAEB
 
-A ingestão Bronze do Sistema de Avaliação da Educação Básica foi executada para as 9 edições compreendidas entre 2007 e 2023:
+A ingestão Bronze do Sistema de Avaliação da Educação Básica cobre 9 edições entre 2007 e 2023.
 
-- 2007;
-- 2009;
-- 2011;
-- 2013;
-- 2015;
-- 2017;
-- 2019;
-- 2021;
-- 2023.
+Após a extensão metodológica de 2023, essas 9 edições são representadas por **10 arquivos Parquet**, porque 2023 possui duas fontes oficiais preservadas separadamente.
 
-A ingestão foi realizada por meio de:
+A ingestão principal foi realizada por meio de:
 
-`src/bronze/ingest_saeb.py`
+`src/bronze/saeb/ingest_saeb.py`
 
-Após a geração dos arquivos Parquet, foi executada validação independente por meio de:
+e validada independentemente por:
 
-`src/bronze/validar_bronze_saeb.py`
+`src/bronze/saeb/validar_bronze_saeb.py`
+
+A fonte agregada adicional de 2023 é ingerida por:
+
+`src/bronze/saeb/ingest_saeb_resultados_2023.py`
+
+e validada independentemente por:
+
+`src/bronze/saeb/validar_bronze_saeb_resultados_2023.py`
 
 ### Resultado
-
-Foram encontrados e validados os 9 arquivos Parquet esperados.
 
 | Ano | Arquivo de origem | Aba | Granularidade | Linhas Bronze | Colunas da fonte |
 |---:|---|---|---|---:|---:|
@@ -1204,80 +1199,129 @@ Foram encontrados e validados os 9 arquivos Parquet esperados.
 | 2019 | `TS_UF_2019.xlsx` | `Estados` | UF | 1.551 | 156 |
 | 2021 | `TS_UF_2021.xlsx` | `Estados` | UF | 1.517 | 156 |
 | 2023 | `TS_ESCOLA_2023.csv` | não se aplica | ESCOLA | 70.152 | 137 |
+| 2023 | `Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb` | `Estados` | UF | 1.553 | 177 |
 
-O total armazenado na Bronze do SAEB foi de:
+O conjunto original das nove Bronzes totalizava `83.247 linhas`.
 
-`83.247 linhas`
+A inclusão da Bronze agregada oficial de 2023 acrescentou 1.553 linhas.
 
-### Validações independentes
+O total atual das tabelas Bronze do SAEB é:
 
-A validação confirmou, para todas as 9 edições:
+`84.800 linhas`
+
+Esse total representa linhas físicas preservadas em 10 Parquets e não deve ser interpretado como quantidade de observações analíticas comparáveis entre si, pois as fontes possuem granularidades e estruturas distintas.
+
+### Validação das nove Bronzes originais
+
+A validação confirmou para as nove tabelas originais:
 
 - presença dos Parquets esperados;
 - ausência de arquivos vazios;
-- quantidade esperada de linhas;
-- quantidade esperada de colunas da fonte;
-- identificação correta do arquivo de origem;
-- identificação correta da aba, quando aplicável;
-- identificação correta da granularidade de origem;
-- consistência de `_ano_referencia`;
-- consistência de `_indice_cabecalho_origem`;
-- consistência e unicidade de `_linha_origem`;
-- sequência das colunas técnicas `col_001`, `col_002`, etc.;
-- presença dos marcadores estruturais esperados;
-- correspondência entre o SHA-256 armazenado na Bronze e o arquivo RAW atual.
+- quantidade esperada de linhas e colunas;
+- identificação correta do arquivo e da aba;
+- granularidade de origem;
+- consistência de `_ano_referencia`, `_indice_cabecalho_origem` e `_linha_origem`;
+- sequência das colunas técnicas;
+- marcadores estruturais esperados;
+- correspondência entre SHA-256 da Bronze e o RAW atual.
 
-Todos os arquivos apresentaram:
+### Validação da Bronze agregada oficial de 2023
 
-`SHA-256: OK`
+A Bronze adicional:
 
-e:
+`data/bronze/saeb/saeb_2023_resultados_uf.parquet`
 
-`Status: OK`
+foi comparada diretamente com:
+
+`data/raw/saeb/Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb`
+
+na aba `Estados`.
+
+A validação independente confirmou:
+
+- SHA-256: `e593b547f608b2377ac3d90491d02097326d3b276d4539a93201922466207a01`;
+- 1.553 linhas RAW/Bronze;
+- 177 colunas de origem;
+- 177 colunas de origem persistidas como texto;
+- 274.881 células comparadas RAW ↔ Bronze;
+- reprodução integral do conteúdo da aba após normalização textual;
+- proveniência de arquivo, aba, linha, cabeçalho e granularidade;
+- `_indice_cabecalho_origem = 0`;
+- `_linha_origem` de 1 a 1.553;
+- `_granularidade_origem = UF`.
+
+Também foi validado o estrato oficial `Total - Federal, Estadual e Municipal`, com `LOCALIZACAO = Total` e `CAPITAL = Total`:
+
+- 27 UFs;
+- nenhuma duplicidade;
+- nenhum valor ausente nas quatro proficiências utilizadas pela Silver.
+
+Faixas observadas:
+
+- `MEDIA_5_LP`: 185,22 a 225,51;
+- `MEDIA_5_MT`: 193,75 a 239,52;
+- `MEDIA_9_LP`: 230,61 a 265,44;
+- `MEDIA_9_MT`: 230,17 a 264,71.
+
+Resultado:
+
+`BRONZE SAEB 2023 RESULTADOS OFICIAIS DE UF: OK`
+
+### Justificativa da extensão de 2023
+
+A Bronze escolar de 2023 foi mantida intacta.
+
+Durante a auditoria da Silver, foi testada a hipótese de reproduzir os resultados estaduais utilizando as médias escolares ponderadas por `NU_PRESENTES`.
+
+Foram comparados `27 UFs × 2 etapas × 2 disciplinas = 108 valores`.
+
+A comparação apresentou:
+
+- `0/108` coincidências após arredondamento para duas casas;
+- diferença absoluta média: `1,389714`;
+- diferença absoluta mediana: `1,092905`;
+- maior diferença absoluta: `6,150034`.
+
+Por isso, `NU_PRESENTES` foi rejeitado como regra de reconstrução do resultado estadual.
+
+A solução adotada não foi agregar as escolas na Bronze, mas incorporar a publicação oficial agregada de UF como uma segunda fonte Bronze de 2023.
 
 ### Diferença estrutural entre 2013 e 2015
-
-A validação confirmou uma diferença relevante entre os cabeçalhos hierárquicos das edições de 2013 e 2015.
 
 Em 2013:
 
 - `_indice_cabecalho_origem = 3`;
-- a primeira linha semântica do cabeçalho corresponde a `_linha_origem = 4`;
-- `_linha_origem = 3` é uma linha completamente vazia e, por isso, não é persistida na Bronze.
+- a primeira linha semântica do cabeçalho corresponde a `_linha_origem = 4`.
 
 Em 2015:
 
 - `_indice_cabecalho_origem = 2`;
-- a primeira linha semântica do cabeçalho corresponde a `_linha_origem = 3`;
-- não existe a linha vazia intermediária presente em 2013.
+- a primeira linha semântica do cabeçalho corresponde a `_linha_origem = 3`.
 
-Essa diferença foi mantida explicitamente na configuração da ingestão e da validação.
+Essa diferença permanece explicitamente documentada e preservada.
 
 ### Codificação e delimitador dos CSV
 
-Foram utilizados os parâmetros técnicos previamente verificados:
+Foram utilizados:
 
 - 2011: `utf-8` com delimitador `;`;
-- 2023: `cp1252` com delimitador `;`.
-
-A ingestão não utiliza detecção automática ou tentativa silenciosa de codificações alternativas.
+- 2023 escolar: `cp1252` com delimitador `;`.
 
 ### Granularidade
 
-A Bronze preserva a granularidade da fonte selecionada:
+A Bronze preserva as granularidades efetivamente publicadas:
 
 - 2007 a 2021: UF;
-- 2023: ESCOLA.
+- 2023 escolar: ESCOLA;
+- 2023 agregado oficial: UF.
 
-A edição de 2023 não foi agregada por UF na Bronze.
+A tabela escolar de 2023 não é agregada pela Bronze.
 
-Essa harmonização ocorrerá somente na Silver, conforme a metodologia já definida para o SAEB.
+A tabela agregada de 2023 é outra publicação oficial, ingerida diretamente e sem reconstrução.
 
 ### Conclusão
 
-A camada Bronze do SAEB foi considerada válida.
-
-Os arquivos foram estruturados em Parquet sem aplicação de filtros analíticos de rede, etapa, disciplina ou população.
+A camada Bronze do SAEB foi considerada válida após a extensão controlada de 2023.
 
 A rastreabilidade foi preservada por arquivo, aba, ano, granularidade, linha de origem e SHA-256.
 
@@ -1386,7 +1430,7 @@ Até esta atualização:
 | SAEB | ✅ concluída | ✅ concluída |
 | PND 2025 | ✅ concluída | ✅ concluída |
 
-As decisões metodológicas documentadas nas auditorias e em `docs/definicao_rede_publica.md` serão aplicadas posteriormente na Silver. Na Bronze permanecem apenas as transformações técnicas e os metadados de rastreabilidade.
+As decisões metodológicas documentadas nas auditorias e em `docs/definicao_rede_publica.md` são aplicadas na Silver. Na Bronze permanecem apenas transformações técnicas, preservação estrutural e metadados de rastreabilidade. A inclusão do resultado agregado oficial do SAEB 2023 não altera essa separação: trata-se de uma segunda fonte oficial, não de uma agregação calculada na Bronze.
 
 ---
 
@@ -1407,7 +1451,7 @@ Seu papel é produzir representações estruturadas, verificáveis e reconstruí
 
 Com a conclusão e validação independente de Rendimento Escolar, TDI, IDEB, SAEB e PND 2025, a camada Bronze do projeto encontra-se integralmente concluída.
 
-A próxima etapa do pipeline é a camada Silver, na qual serão realizadas as harmonizações semânticas, recortes analíticos, normalizações de rede, etapa, indicadores e granularidade já definidas metodologicamente.
+A etapa subsequente do pipeline é a camada Silver, responsável pelas harmonizações semânticas, recortes analíticos, normalizações de rede, etapa, indicadores e granularidade. A camada Bronze permanece encerrada e reproduzível, salvo a incorporação futura de nova fonte oficial que exija extensão documentada.
 
 ---
 
@@ -1432,3 +1476,7 @@ A próxima etapa do pipeline é a camada Silver, na qual serão realizadas as ha
 | 18/08/2026 | Corrigida a escrita em chunks da PND para resetar o índice de cada bloco e impedir alinhamento automático do pandas nos metadados técnicos |
 | 18/08/2026 | Concluída e validada independentemente a ingestão Bronze da PND 2025, com 1.087.359 registros de dados e 1.087.360 linhas Bronze incluindo o cabeçalho preservado |
 | 18/08/2026 | Camada Bronze concluída integralmente para Rendimento Escolar, TDI, IDEB, SAEB e PND 2025 |
+| 19/08/2026 | Comparação da Bronze escolar do SAEB 2023 com os resultados estaduais oficiais mostrou 0/108 coincidências quando as médias escolares foram ponderadas por `NU_PRESENTES`; a regra de agregação foi rejeitada |
+| 19/08/2026 | Incorporado ao RAW `Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb` e criada uma segunda Bronze de 2023 em granularidade UF, preservando separadamente a Bronze escolar existente |
+| 19/08/2026 | Bronze agregada oficial do SAEB 2023 validada integralmente: 1.553 linhas, 177 colunas, 274.881 células RAW ↔ Bronze e SHA-256 `e593b547f608b2377ac3d90491d02097326d3b276d4539a93201922466207a01` |
+| 19/08/2026 | Atualizado o total do SAEB Bronze para 10 Parquets e 84.800 linhas físicas, mantendo 9 edições e duas fontes oficiais distintas em 2023 |
