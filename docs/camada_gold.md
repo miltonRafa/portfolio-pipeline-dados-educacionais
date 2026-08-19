@@ -1060,7 +1060,262 @@ Status:
 
 ---
 
+## 13.6 Implementação da FATO_PND
+
+Arquivos implementados:
+
+`src/gold/pnd/transformar_pnd.py`
+
+`src/gold/pnd/validar_fato_pnd.py`
+
+Saída:
+
+`data/gold/fatos/fato_pnd.parquet`
+
+A transformação lê exclusivamente:
+
+`data/silver/pnd/pnd_2025.parquet`
+
+e preserva o grão individual já definido e validado na Silver:
+
+`um registro individual válido da prova`
+
+A fato mantém os campos necessários ao modelo analítico e acrescenta a classificação oficial de desempenho:
+
+```text
+ANO
+UF_PROVA
+CO_MUNICIPIO_PROVA
+CO_GRUPO
+PROFICIENCIA
+NT_OBJ
+NT_DIS
+NT_GER
+QT_ACERTOS
+PADRAO_DESEMPENHO
+```
+
+Foram deliberadamente retirados da Gold:
+
+- `AREA_PROVA`, porque o rótulo passa a ser fornecido por `DIM_AREA_PND`;
+- `TP_INSCRICAO_PND`;
+- `IN_REAPLICACAO`;
+- `CO_CADERNO`;
+- `TP_PRES`;
+- `TP_SIT_DISC`;
+- `ARQUIVO_ORIGEM`;
+- `LINHA_ORIGEM_BRONZE`;
+- `GRANULARIDADE_ORIGEM`.
+
+Os campos técnicos e variáveis que não participam do escopo atual continuam preservados na Silver. Sua retirada da Gold reduz redundância e mantém a fato orientada ao consumo analítico no Power BI.
+
+A Gold não cria identificador artificial de participante. A fonte não disponibiliza um identificador pessoal, e registros distintos podem possuir os mesmos valores analíticos. Portanto, não será imposta uma falsa chave de unicidade baseada na combinação de notas, área ou localização.
+
+### Integridade dimensional da PND
+
+A validação verifica quatro relacionamentos:
+
+```text
+DIM_TEMPO[ANO] 1 ─── * FATO_PND[ANO]
+DIM_UF[UF] 1 ─── * FATO_PND[UF_PROVA]
+DIM_AREA_PND[CO_GRUPO] 1 ─── * FATO_PND[CO_GRUPO]
+DIM_MUNICIPIO[CO_MUNICIPIO] 1 ─── * FATO_PND[CO_MUNICIPIO_PROVA]
+```
+
+Além da ausência de chaves órfãs, é verificada a coerência:
+
+`CO_MUNICIPIO_PROVA → UF_PROVA`
+
+contra o par correspondente em `DIM_MUNICIPIO`.
+
+`DIM_MUNICIPIO` não será relacionada diretamente a `DIM_UF` no Power BI. Assim, evita-se criar um segundo caminho geográfico de filtro entre UF e FATO_PND.
+
+### Preservação dos resultados
+
+A transformação não recalcula:
+
+- `PROFICIENCIA`;
+- `NT_OBJ`;
+- `NT_DIS`;
+- `NT_GER`;
+- `QT_ACERTOS`.
+
+Os 759.140 registros da Gold deverão reproduzir diretamente os valores da Silver.
+
+Valores negativos de `PROFICIENCIA` são preservados.
+
+Não será imposto na Gold limite inferior adicional a `PROFICIENCIA`, `NT_OBJ`, `NT_DIS` ou `NT_GER`, porque isso alteraria uma decisão metodológica já resolvida e validada na Silver.
+
+`QT_ACERTOS` permanece sujeito à regra semântica de contagem não negativa.
+
+### Padrão oficial de proficiência da PND 2025
+
+A classificação de desempenho utilizada na Gold não será baseada em um ponto médio arbitrário da escala.
+
+A referência adotada é o padrão oficial estabelecido pelo Inep para a PND 2025.
+
+A **Nota Técnica nº 1/2026/GPP/GAB-INEP** documenta que os pontos de corte foram definidos por meio do **Método de Angoff Modificado** e posteriormente transpostos para a escala de proficiência da Teoria de Resposta ao Item (TRI). Na seção 8.1, o Inep estabelece, para todas as áreas da PND:
+
+```text
+Básico: 50 pontos
+Adequado: 70 pontos
+```
+
+Fonte oficial:
+
+INSTITUTO NACIONAL DE ESTUDOS E PESQUISAS EDUCACIONAIS ANÍSIO TEIXEIRA. **Nota Técnica nº 1/2026/GPP/GAB-INEP**. Apresentação dos procedimentos adotados para estabelecimento dos pontos de corte da Prova Nacional Docente – PND por meio da aplicação do Método de Angoff Modificado, e subsequente transposição dos resultados para a escala de proficiência da Teoria de Resposta ao Item (TRI). Brasília: Inep, 2026. Disponível em: <https://download.inep.gov.br/pnd/notas_tecnicas/SEI_1873050_nota_tecnica_1.pdf>. Acesso em: 19 ago. 2026.
+
+A **Nota Técnica nº 44/2025/CEI/CGGI/DAES-INEP** demonstra que a proficiência individual das questões objetivas é estimada pela TRI e que a `NT_OBJ` é obtida pela transformação dessa proficiência para a escala de divulgação de 0 a 100, com constantes específicas de cada área. Essas constantes são ancoradas no ponto de corte definido pelo método de Angoff. A nota objetiva é, portanto, a variável dos microdados compatível com os pontos de corte oficiais.
+
+Fonte oficial:
+
+INSTITUTO NACIONAL DE ESTUDOS E PESQUISAS EDUCACIONAIS ANÍSIO TEIXEIRA. **Nota Técnica nº 44/2025/CEI/CGGI/DAES-INEP**. Metodologia de cálculo da nota geral dos participantes do Enade das Licenciaturas e da Prova Nacional Docente (PND), edições de 2025. Brasília: Inep, 2025. Disponível em: <https://download.inep.gov.br/pnd/notas_tecnicas/SEI_1854638_nota_tecnica_44.pdf>. Acesso em: 19 ago. 2026.
+
+A apresentação oficial dos resultados da PND e do Enade das Licenciaturas 2025 confirma a interpretação: são considerados **proficientes** os participantes com desempenho igual ou superior a 50 pontos na escala de cada área e são apresentados dois padrões de proficiência.
+
+Fonte oficial:
+
+INSTITUTO NACIONAL DE ESTUDOS E PESQUISAS EDUCACIONAIS ANÍSIO TEIXEIRA. **PND e Enade das Licenciaturas: resultados de 2025**. Brasília: Inep, 2026. p. 22. Disponível em: <https://download.inep.gov.br/educacao_superior/enade/pnd_e_enade_2025_cursos.pdf>. Acesso em: 19 ago. 2026.
+
+Com base nessas fontes, a Gold aplica a seguinte classificação sobre `NT_OBJ`:
+
+```text
+NT_OBJ < 50              → NAO_PROFICIENTE
+50 <= NT_OBJ < 70        → PADRAO_1
+NT_OBJ >= 70             → PADRAO_2
+```
+
+Assim:
+
+```text
+PROFICIENTE = PADRAO_1 + PADRAO_2
+NAO_PROFICIENTE = NT_OBJ < 50
+```
+
+O corte de 50 pontos **não representa "50% de acertos" nem simplesmente a metade de uma escala escolhida pelo projeto**. Ele representa o ponto de corte oficial de proficiência definido pelo Inep mediante procedimento de estabelecimento de padrões, com Método de Angoff Modificado e ancoragem na TRI.
+
+O valor de 70 pontos corresponde ao segundo ponto de corte oficial, denominado `Adequado` na Nota Técnica nº 1/2026. Na apresentação dos resultados, os participantes proficientes são organizados nos padrões 1 e 2; por isso, a Gold operacionaliza o primeiro intervalo proficiente como `PADRAO_1` e o segundo como `PADRAO_2`.
+
+### Por que o corte não é aplicado a NT_GER ou NT_DIS
+
+A regra anterior do projeto, que considerava simultaneamente:
+
+```text
+NT_OBJ < 50
+NT_GER < 50
+NT_DIS < 5
+```
+
+foi **descartada antes da execução da FATO_PND Gold**.
+
+Após consulta à documentação técnica oficial, não foi encontrada base para interpretar `NT_GER < 50` ou `NT_DIS < 5` como pontos de corte oficiais de proficiência.
+
+A nota geral possui finalidade distinta. O Guia de Apoio Técnico da PND informa que a Nota Geral resulta da ponderação de 80% da nota objetiva e 20% da nota discursiva. Portanto, ela continuará disponível para análises de média e distribuição, mas não será utilizada para reproduzir o padrão oficial de proficiência.
+
+Referência complementar:
+
+INSTITUTO NACIONAL DE ESTUDOS E PESQUISAS EDUCACIONAIS ANÍSIO TEIXEIRA. **Guia de Apoio Técnico – Prova Nacional Docente**. Brasília: Inep, 2026. Disponível em: <https://download.inep.gov.br/pnd/guia_apoio_tecnico_pnd_2026.pdf>. Acesso em: 19 ago. 2026.
+
+`NT_DIS` também continuará como resultado descritivo. Não será criado um limite de 5 pontos como se representasse proficiência oficial.
+
+`PROFICIENCIA` permanece preservada na escala original da TRI encontrada nos microdados. Seus valores negativos continuam válidos e não são truncados. A classificação de desempenho não é realizada diretamente sobre esse campo porque os próprios microdados já disponibilizam `NT_OBJ`, que corresponde à transformação da proficiência objetiva para a escala oficial de divulgação.
+
+### Materialização do padrão na Gold
+
+Diferentemente de médias, percentuais e variações, `PADRAO_DESEMPENHO` não depende do contexto de filtro do Power BI. É uma classificação determinística de cada registro a partir de um padrão oficial.
+
+Por esse motivo, a Gold passa a materializar:
+
+```text
+PADRAO_DESEMPENHO
+```
+
+Essa coluna permite que o Power BI calcule, de forma simples e auditável:
+
+```text
+total de não proficientes
+total de proficientes
+% de proficientes
+% de não proficientes
+distribuição entre Padrão 1 e Padrão 2
+```
+
+Os percentuais e contagens continuam sendo medidas DAX, pois dependem do contexto de filtro por UF, município e área.
+
+### Validação prevista
+
+A validação independente verifica:
+
+- 759.140 registros;
+- ano único 2025;
+- 27 UFs de prova;
+- 17 áreas;
+- 750 municípios de prova;
+- zero ausências nos dez campos Gold;
+- igualdade dos nove campos de origem nos 759.140 registros Gold ↔ Silver;
+- `NT_OBJ` dentro da escala oficial 0–100;
+- classificação independente de `PADRAO_DESEMPENHO` a partir dos cortes oficiais de 50 e 70 pontos;
+- domínio exclusivo `NAO_PROFICIENTE`, `PADRAO_1` e `PADRAO_2`;
+- ausência de chaves órfãs nas quatro dimensões relacionadas;
+- coerência município → UF;
+- `QT_ACERTOS` não negativo;
+- preservação dos valores negativos de `PROFICIENCIA`;
+- diagnóstico dos valores mínimos, máximos e negativos sem impor domínio artificial a `PROFICIENCIA`, `NT_DIS` ou `NT_GER`.
+
+A transformação e a validação independente foram executadas com sucesso.
+
+Resultados confirmados:
+
+- 759.140 registros;
+- ano único 2025;
+- 27 UFs de prova;
+- 17 áreas;
+- 750 municípios de prova;
+- zero resultados ausentes;
+- 759.140 registros comparados diretamente com a Silver;
+- resultados Gold = Silver;
+- `NT_OBJ` integralmente na escala 0–100;
+- zero chaves órfãs em `DIM_UF`, `DIM_TEMPO`, `DIM_AREA_PND` e `DIM_MUNICIPIO`;
+- coerência `CO_MUNICIPIO_PROVA → UF_PROVA`: OK;
+- valores negativos de `PROFICIENCIA` preservados.
+
+A classificação oficial derivada de `NT_OBJ` resultou em:
+
+```text
+NAO_PROFICIENTE (NT_OBJ < 50):        265.932
+PADRAO_1 (50 <= NT_OBJ < 70):         304.638
+PADRAO_2 (NT_OBJ >= 70):              188.570
+PROFICIENTES (PADRAO_1 + PADRAO_2):   493.208
+PERCENTUAL DE PROFICIENTES:           64,97%
+```
+
+O percentual de 64,97% reproduz, com arredondamento, o patamar de aproximadamente 65% divulgado oficialmente pelo Inep para a PND 2025, funcionando como evidência externa adicional de coerência da classificação implementada. Essa comparação não substitui a validação registro a registro com a Silver, mas reforça a plausibilidade do resultado agregado.
+
+Diagnóstico numérico observado:
+
+```text
+PROFICIENCIA: mín=-3,976610 | máx=2,688530 | negativos=389.188
+NT_OBJ:       mín=0        | máx=100      | negativos=0
+NT_DIS:       mín=0        | máx=10       | negativos=0
+NT_GER:       mín=0        | máx=100      | negativos=0
+QT_ACERTOS:   mín=0        | máx=77       | negativos=0
+```
+
+Resultado final:
+
+`FATO_PND GOLD: OK`
+
+Status:
+
+`FATO_PND ✅ concluída e validada`
+
+---
+
 ## 14. Situação atual
+
+Todas as cinco tabelas fato da camada Gold estão concluídas e validadas.
+A etapa seguinte é a validação referencial global do modelo dimensional antes da conexão definitiva com o Power BI.
+
 
 | Componente | Situação |
 |---|---|
@@ -1070,7 +1325,7 @@ Status:
 | FATO_TDI | ✅ concluída e validada |
 | FATO_IDEB | ✅ concluída e validada |
 | FATO_SAEB | ✅ concluída e validada |
-| FATO_PND | ⏳ não implementada |
+| FATO_PND | ✅ concluída e validada |
 | Validação referencial global | ⏳ não implementada |
 | Power BI sobre Gold | ⏳ não migrado |
 
@@ -1104,3 +1359,10 @@ A presença de `⏳` nesta seção representa trabalho realmente ainda não exec
 | 19/08/2026 | `FATO_IDEB` executada e validada com 486 registros e 9 edições; igualdade Gold ↔ Silver e integridade referencial confirmadas; resultado `FATO_IDEB GOLD: OK` |
 | 19/08/2026 | Implementados transformador e validador independente da `FATO_SAEB`, preservando as 972 proficiências oficiais da Silver, sem ponderação escolar ou recomposição, e validando integridade com as dimensões |
 | 19/08/2026 | `FATO_SAEB` executada e validada com 972 registros e 9 edições; proficiências Gold = Silver, domínio 0–500 e integridade referencial confirmados; resultado `FATO_SAEB GOLD: OK` |
+| 19/08/2026 | Implementados transformador e validador independente da `FATO_PND`, preservando o grão individual de 759.140 registros e relacionamentos com tempo, UF, área e município |
+| 19/08/2026 | Retificada a metodologia da PND antes da execução da Gold: descartados os cortes arbitrários em `NT_GER` e `NT_DIS`; adotados os pontos de corte oficiais do Inep aplicados a `NT_OBJ` |
+| 19/08/2026 | Documentadas as referências oficiais dos cortes: Nota Técnica nº 1/2026/GPP/GAB-INEP (Angoff Modificado; Básico=50 e Adequado=70), Nota Técnica nº 44/2025/CEI/CGGI/DAES-INEP (transformação TRI → `NT_OBJ`) e apresentação oficial dos resultados de 2025 |
+| 19/08/2026 | `PADRAO_DESEMPENHO` passou a ser materializado na FATO_PND como classificação determinística: `NAO_PROFICIENTE`, `PADRAO_1` e `PADRAO_2`; percentuais permanecem medidas DAX |
+| 19/08/2026 | `FATO_PND` executada e validada com 759.140 registros; resultados Gold = Silver e integridade referencial confirmados; resultado `FATO_PND GOLD: OK` |
+| 19/08/2026 | Classificação oficial da PND validada: 265.932 não proficientes, 304.638 no Padrão 1, 188.570 no Padrão 2 e 493.208 proficientes (64,97%) |
+| 19/08/2026 | Concluídas e validadas todas as cinco tabelas fato da camada Gold; próxima etapa definida como validação referencial global do modelo dimensional |
