@@ -583,31 +583,7 @@ Com isso, o Rendimento Escolar passa a ser considerado concluído na camada Silv
 
 ---
 
-## 14. Situação atual
-
-| Fonte | Bronze | Silver |
-|---|---|---|
-| Rendimento Escolar | ✅ | ✅ concluída e validada |
-| TDI | ✅ | ✅ concluída e validada |
-| IDEB | ✅ | ⏳ |
-| SAEB | ✅ | ⏳ |
-| PND 2025 | ✅ | ⏳ |
-
 ---
-
-## 15. Histórico de decisões
-
-| Data | Decisão |
-|---|---|
-| 18/08/2026 | Iniciada a camada Silver após conclusão integral da Bronze |
-| 18/08/2026 | Definido que cada fonte será auditada diretamente a partir dos Parquets Bronze antes da implementação semântica |
-| 18/08/2026 | Rendimento Escolar escolhido como primeira fonte da Silver |
-| 18/08/2026 | Concluída a auditoria Silver do Rendimento Escolar e documentadas cinco configurações estruturais da série 2007–2023 |
-| 18/08/2026 | Definido o grão Silver do Rendimento como ANO + UF + ETAPA + REDE + INDICADOR, com 2.754 registros esperados |
-| 18/08/2026 | Definido o uso do agregado público oficial da fonte, localização Total, conversão de `--` para ausência e normalização das taxas para uma casa decimal |
-| 18/08/2026 | Executada com sucesso a transformação Silver do Rendimento Escolar, gerando 2.754 registros para 2007–2023 |
-| 18/08/2026 | Validados os 2.754 registros Silver diretamente contra a Bronze por arquivo, linha e coluna de origem |
-| 18/08/2026 | Rendimento Escolar marcado como concluído na camada Silver após validação final com status OK |
 
 ## 14. TDI — Distorção Idade-Série
 
@@ -858,6 +834,313 @@ Status final:
 `SILVER DA TDI: OK`
 
 Com isso, a TDI passa a ser considerada concluída na camada Silver.
+
+---
+
+## 15. IDEB — Índice de Desenvolvimento da Educação Básica
+
+A auditoria da Bronze do IDEB foi executada sobre os Parquets:
+
+- `data/bronze/ideb/ideb_ai.parquet`;
+- `data/bronze/ideb/ideb_af.parquet`;
+- `data/bronze/ideb/ideb_em.parquet`.
+
+O Ensino Médio foi inspecionado apenas para documentar a estrutura da fonte. A Silver histórica do projeto permanece restrita aos Anos Iniciais e Anos Finais do Ensino Fundamental.
+
+Scripts de auditoria e diagnóstico:
+
+`src/silver/ideb/auditar_silver_ideb.py`
+
+`src/silver/ideb/verificar_rede_publica_ideb.py`
+
+`src/silver/ideb/diagnosticar_ufs_ausentes_ideb.py`
+
+Nenhum desses scripts altera a Bronze ou a Silver.
+
+### 15.1 Escopo temporal
+
+O workbook de divulgação de 2023 contém resultados observados para:
+
+- 2005;
+- 2007;
+- 2009;
+- 2011;
+- 2013;
+- 2015;
+- 2017;
+- 2019;
+- 2021;
+- 2023.
+
+O projeto histórico começa em 2007. Por isso, 2005 será preservado na Bronze, mas excluído da Silver.
+
+A série Silver do IDEB conterá nove anos:
+
+`2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021, 2023`
+
+O IDEB é divulgado em anos de aplicação correspondentes à série histórica disponível na planilha; portanto, não serão criadas linhas artificiais para anos pares.
+
+### 15.2 Identificação dos anos e erro visual `20215`
+
+O cabeçalho visual da planilha contém a grafia `20215` em posições correspondentes a 2021.
+
+A Bronze preserva essa característica da fonte e não a corrige.
+
+Na Silver, a seleção do ano não será feita pelo texto visual do cabeçalho. Será usada a linha técnica `_linha_origem=10`, que contém os nomes oficiais das variáveis:
+
+`VL_OBSERVADO_2007`
+
+`VL_OBSERVADO_2009`
+
+`VL_OBSERVADO_2011`
+
+`VL_OBSERVADO_2013`
+
+`VL_OBSERVADO_2015`
+
+`VL_OBSERVADO_2017`
+
+`VL_OBSERVADO_2019`
+
+`VL_OBSERVADO_2021`
+
+`VL_OBSERVADO_2023`
+
+Essa decisão evita interpretar o erro gráfico como ano válido e mantém a transformação ancorada na variável técnica da própria fonte.
+
+### 15.3 Colunas do IDEB observado
+
+Nos Anos Iniciais:
+
+- 2007: `col_104`;
+- 2009: `col_105`;
+- 2011: `col_106`;
+- 2013: `col_107`;
+- 2015: `col_108`;
+- 2017: `col_109`;
+- 2019: `col_110`;
+- 2021: `col_111`;
+- 2023: `col_112`.
+
+Nos Anos Finais:
+
+- 2007: `col_094`;
+- 2009: `col_095`;
+- 2011: `col_096`;
+- 2013: `col_097`;
+- 2015: `col_098`;
+- 2017: `col_099`;
+- 2019: `col_100`;
+- 2021: `col_101`;
+- 2023: `col_102`.
+
+A implementação não dependerá somente dessas posições fixas. O script localizará cada coluna por `VL_OBSERVADO_YYYY` na linha técnica e falhará se a variável não for encontrada de forma única.
+
+### 15.4 Rede pública
+
+Nas linhas das Unidades Federativas, o agregado público é publicado como:
+
+`Pública (4)`
+
+A Silver utilizará diretamente esse agregado oficial.
+
+Não será calculada média entre redes.
+
+Não será utilizado `Total (4)` como substituto da rede pública.
+
+A rede privada e a rede estadual isolada não serão utilizadas.
+
+A categoria canônica será:
+
+`REDE = PUBLICA`
+
+O rótulo original será preservado em:
+
+`REDE_ORIGEM = Pública (4)`
+
+A nota metodológica `(4)` da própria planilha informa que as médias do SAEB 2011 e o IDEB 2011 foram calculados sem as escolas federais. A Silver não tentará recompor ou alterar esse valor: será preservado o resultado oficial publicado pelo Inep.
+
+### 15.5 Harmonização das UFs
+
+A auditoria inicialmente reconheceu 24 das 27 UFs porque três nomes aparecem abreviados na própria fonte.
+
+Foram identificadas as seguintes correspondências:
+
+- `R. G. do Norte` → `RN`;
+- `R. G. do Sul` → `RS`;
+- `M. G. do Sul` → `MS`.
+
+Essas grafias aparecem tanto nos Anos Iniciais quanto nos Anos Finais e possuem linha `Pública (4)` com resultados para todos os nove anos da série.
+
+A Silver harmonizará essas três formas para as siglas oficiais, sem modificar a Bronze.
+
+Os demais nomes de UF também serão convertidos para as 27 siglas oficiais por mapeamento explícito.
+
+A grafia de origem será preservada em:
+
+`GEOGRAFIA_ORIGEM`
+
+A transformação falhará caso, depois da harmonização:
+
+- alguma das 27 UFs esteja ausente;
+- exista UF adicional;
+- uma UF possua mais de uma linha pública.
+
+### 15.6 Anos Iniciais e Anos Finais
+
+Os arquivos Bronze usados serão:
+
+`data/bronze/ideb/ideb_ai.parquet`
+
+`data/bronze/ideb/ideb_af.parquet`
+
+As etapas canônicas serão:
+
+`ANOS_INICIAIS`
+
+`ANOS_FINAIS`
+
+O Ensino Médio permanecerá fora da Silver histórica principal.
+
+### 15.7 Marcadores de ausência e domínio
+
+Serão tratados como ausência apenas:
+
+- célula vazia;
+- `-`;
+- `--`.
+
+Zero continuará sendo valor substantivo.
+
+Não haverá imputação.
+
+O IDEB será numérico e deverá permanecer no intervalo de 0 a 10.
+
+Os valores serão normalizados para uma casa decimal, preservando a precisão publicada do IDEB observado.
+
+### 15.8 Formato Silver
+
+Será produzido:
+
+`data/silver/ideb/ideb_2007_2023.parquet`
+
+Grão:
+
+`ANO + UF + ETAPA + REDE`
+
+Estrutura:
+
+- `ANO`;
+- `UF`;
+- `ETAPA`;
+- `REDE`;
+- `IDEB`;
+- `GEOGRAFIA_ORIGEM`;
+- `REDE_ORIGEM`;
+- `ARQUIVO_ORIGEM`;
+- `ABA_ORIGEM`;
+- `LINHA_ORIGEM_BRONZE`;
+- `COLUNA_ORIGEM`.
+
+### 15.9 Cardinalidade esperada
+
+São esperados:
+
+- 9 anos;
+- 27 UFs;
+- 2 etapas;
+- 1 rede canônica.
+
+Assim:
+
+`9 × 27 × 2 = 486 registros`
+
+A existência de valor ausente não removerá o registro do grão.
+
+### 15.10 Validação independente
+
+A validação deverá confirmar:
+
+- 486 registros;
+- 54 registros por ano;
+- 27 UFs por ano e etapa;
+- ausência de duplicidade no grão;
+- somente `REDE = PUBLICA`;
+- somente Anos Iniciais e Anos Finais;
+- somente os nove anos previstos;
+- IDEB numérico entre 0 e 10;
+- harmonização explícita de `R. G. do Norte`, `R. G. do Sul` e `M. G. do Sul`;
+- seleção de 2021 por `VL_OBSERVADO_2021`, e não pelo cabeçalho visual `20215`;
+- correspondência de cada registro Silver com arquivo, aba, linha e coluna da Bronze.
+
+Scripts:
+
+`src/silver/ideb/transformar_ideb.py`
+
+`src/silver/ideb/validar_silver_ideb.py`
+
+### 15.11 Resultado da execução e validação
+
+Em 19/08/2026, a transformação Silver do IDEB foi executada com sucesso.
+
+Resultado produzido:
+
+`data/silver/ideb/ideb_2007_2023.parquet`
+
+A execução confirmou:
+
+- 486 registros;
+- 9 anos da série histórica: 2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021 e 2023;
+- 27 UFs em cada combinação de ano e etapa;
+- 243 registros para `ANOS_INICIAIS`;
+- 243 registros para `ANOS_FINAIS`;
+- 54 registros por ano;
+- rede canônica única: `PUBLICA`;
+- nenhum valor ausente na população analítica selecionada.
+
+A validação independente confirmou:
+
+- grão analítico único `ANO + UF + ETAPA + REDE`;
+- domínio do IDEB entre 0 e 10;
+- harmonização dos aliases `R. G. do Norte` → `RN`, `R. G. do Sul` → `RS` e `M. G. do Sul` → `MS`, com preservação da grafia original na proveniência;
+- identificação de 2021 por `VL_OBSERVADO_2021`, sem dependência do cabeçalho visual `20215`;
+- 486 registros comparados diretamente com a Bronze;
+- rastreabilidade por arquivo, aba, linha e coluna de origem;
+- correspondência integral entre os valores Silver e suas células de origem na Bronze.
+
+Status final:
+
+`SILVER DO IDEB: OK`
+
+Com isso, o IDEB passa a ser considerado concluído na camada Silver.
+
+---
+
+## 16. Situação atual
+
+| Fonte | Bronze | Silver |
+|---|---|---|
+| Rendimento Escolar | ✅ | ✅ concluída e validada |
+| TDI | ✅ | ✅ concluída e validada |
+| IDEB | ✅ | ✅ concluída e validada |
+| SAEB | ✅ | ⏳ |
+| PND 2025 | ✅ | ⏳ |
+
+---
+
+## 17. Histórico de decisões
+
+| Data | Decisão |
+|---|---|
+| 18/08/2026 | Iniciada a camada Silver após conclusão integral da Bronze |
+| 18/08/2026 | Definido que cada fonte será auditada diretamente a partir dos Parquets Bronze antes da implementação semântica |
+| 18/08/2026 | Rendimento Escolar escolhido como primeira fonte da Silver |
+| 18/08/2026 | Concluída a auditoria Silver do Rendimento Escolar e documentadas cinco configurações estruturais da série 2007–2023 |
+| 18/08/2026 | Definido o grão Silver do Rendimento como ANO + UF + ETAPA + REDE + INDICADOR, com 2.754 registros esperados |
+| 18/08/2026 | Definido o uso do agregado público oficial da fonte, localização Total, conversão de `--` para ausência e normalização das taxas para uma casa decimal |
+| 18/08/2026 | Executada com sucesso a transformação Silver do Rendimento Escolar, gerando 2.754 registros para 2007–2023 |
+| 18/08/2026 | Validados os 2.754 registros Silver diretamente contra a Bronze por arquivo, linha e coluna de origem |
+| 18/08/2026 | Rendimento Escolar marcado como concluído na camada Silver após validação final com status OK |
 | 18/08/2026 | Concluída a auditoria Silver da TDI para 2007–2023 |
 | 18/08/2026 | Verificação focada confirmou agregado público explícito em todos os anos: `Publico` em 2007–2014 e `Pública` em 2015–2023 |
 | 18/08/2026 | Corrigida a interpretação inicial da auditoria da TDI: a ausência aparente de `Pública` decorreu de busca textual sem normalização de acentuação |
@@ -865,3 +1148,11 @@ Com isso, a TDI passa a ser considerada concluída na camada Silver.
 | 18/08/2026 | Executada com sucesso a transformação Silver da TDI, gerando 918 registros para 2007–2023 |
 | 18/08/2026 | Validados os 918 registros Silver da TDI diretamente contra a Bronze por arquivo, linha e coluna de origem |
 | 18/08/2026 | TDI marcada como concluída na camada Silver após validação final com status OK |
+| 19/08/2026 | Concluída a auditoria estrutural da Silver do IDEB |
+| 19/08/2026 | Confirmado que as UFs usam o agregado oficial `Pública (4)` nas linhas de resultados do IDEB |
+| 19/08/2026 | Identificadas grafias abreviadas na fonte: `R. G. do Norte`, `R. G. do Sul` e `M. G. do Sul`, harmonizadas respectivamente para RN, RS e MS |
+| 19/08/2026 | Definida identificação dos anos do IDEB por `VL_OBSERVADO_YYYY`, evitando dependência do cabeçalho visual `20215` |
+| 19/08/2026 | Definido o grão Silver do IDEB como ANO + UF + ETAPA + REDE, com 486 registros esperados |
+| 19/08/2026 | Executada com sucesso a transformação Silver do IDEB, gerando 486 registros para nove anos, 27 UFs e duas etapas |
+| 19/08/2026 | Validados os 486 registros Silver do IDEB diretamente contra a Bronze por arquivo, aba, linha e coluna de origem |
+| 19/08/2026 | IDEB marcado como concluído na camada Silver após validação final com status OK |
