@@ -1311,10 +1311,252 @@ Status:
 
 ---
 
+## 13.7 Validação global da camada Gold
+
+Após a validação individual das cinco dimensões e das cinco tabelas fato, foi implementado um validador transversal do modelo dimensional:
+
+`src/gold/validar_gold.py`
+
+### Objetivo
+
+A validação global não substitui os validadores específicos de cada fonte.
+
+Os validadores individuais verificam a transformação de cada tabela e, quando aplicável, sua reprodução direta da Silver.
+
+O validador global possui outro objetivo: confirmar que **o conjunto das tabelas Gold forma um modelo dimensional internamente coerente antes de ser consumido pelo Power BI**.
+
+Essa separação é deliberada:
+
+```text
+validação individual
+    ↓
+confirma cada tabela isoladamente
+
+validação global
+    ↓
+confirma o funcionamento do conjunto dimensional
+```
+
+### Arquivos verificados
+
+O script exige a existência das cinco dimensões:
+
+```text
+data/gold/dimensoes/dim_uf.parquet
+data/gold/dimensoes/dim_tempo.parquet
+data/gold/dimensoes/dim_etapa.parquet
+data/gold/dimensoes/dim_area_pnd.parquet
+data/gold/dimensoes/dim_municipio.parquet
+```
+
+e das cinco fatos:
+
+```text
+data/gold/fatos/fato_rendimento.parquet
+data/gold/fatos/fato_tdi.parquet
+data/gold/fatos/fato_ideb.parquet
+data/gold/fatos/fato_saeb.parquet
+data/gold/fatos/fato_pnd.parquet
+```
+
+A ausência de qualquer arquivo provoca falha explícita.
+
+### Validação das dimensões
+
+São verificados:
+
+- esquema e ordem das colunas;
+- quantidade esperada de registros;
+- ausência de valores nulos;
+- unicidade das chaves dimensionais;
+- domínio completo das 27 UFs;
+- 18 anos em `DIM_TEMPO`, correspondentes a 2007–2023 e 2025;
+- duas etapas e sua ordem analítica;
+- 17 códigos de área da PND;
+- 750 municípios de prova;
+- pertencimento das UFs de `DIM_MUNICIPIO` ao domínio de `DIM_UF`.
+
+### Validação das fatos
+
+O script verifica os esquemas e as cardinalidades já confirmadas pelas validações individuais:
+
+```text
+FATO_RENDIMENTO: 2.754
+FATO_TDI:           918
+FATO_IDEB:          486
+FATO_SAEB:          972
+FATO_PND:       759.140
+```
+
+Também são reavaliados os grãos das quatro fatos agregadas:
+
+```text
+FATO_RENDIMENTO
+ANO + UF + ETAPA + REDE + INDICADOR
+
+FATO_TDI
+ANO + UF + ETAPA + REDE
+
+FATO_IDEB
+ANO + UF + ETAPA + REDE
+
+FATO_SAEB
+ANO + UF + ETAPA + REDE + DISCIPLINA
+```
+
+A `FATO_PND` é tratada de forma diferente. Como a fonte pública não disponibiliza identificador individual do participante, o validador **não inventa uma chave composta artificial nem exige unicidade de uma combinação de notas e atributos**. Ele preserva a decisão metodológica de que cada linha corresponde a um registro individual válido da prova.
+
+### Domínios analíticos
+
+O validador global confirma:
+
+- `PUBLICA` como única rede das quatro fatos históricas;
+- Rendimento entre 0 e 100;
+- TDI entre 0 e 100;
+- IDEB entre 0 e 10;
+- proficiência do SAEB entre 0 e 500;
+- `LP` e `MT` como disciplinas do SAEB;
+- as três categorias de Rendimento: `APROVACAO`, `REPROVACAO` e `ABANDONO`;
+- `NT_OBJ` da PND entre 0 e 100;
+- `QT_ACERTOS` da PND não negativo;
+- `PADRAO_DESEMPENHO` restrito a `NAO_PROFICIENTE`, `PADRAO_1` e `PADRAO_2`;
+- consistência da classificação da PND com os cortes oficiais de 50 e 70 pontos aplicados a `NT_OBJ`.
+
+Os valores negativos de `PROFICIENCIA` da PND continuam preservados. O validador global não cria domínio artificial para essa variável.
+
+### Integridade referencial
+
+As quatro fatos históricas são verificadas contra:
+
+```text
+DIM_UF
+DIM_TEMPO
+DIM_ETAPA
+```
+
+A PND é verificada contra:
+
+```text
+DIM_UF
+DIM_TEMPO
+DIM_AREA_PND
+DIM_MUNICIPIO
+```
+
+Qualquer chave da fato sem correspondência na respectiva dimensão provoca falha.
+
+Também é validada a coerência:
+
+`CO_MUNICIPIO_PROVA → UF_PROVA`
+
+contra `DIM_MUNICIPIO`.
+
+### Reprodução dos domínios pelas dimensões
+
+Além de verificar se não existem chaves órfãs, o script realiza a validação inversa.
+
+As dimensões devem representar exatamente os domínios efetivamente utilizados pelas fatos:
+
+- `DIM_UF` = conjunto de UFs das fatos;
+- `DIM_TEMPO` = união dos anos das fatos;
+- `DIM_ETAPA` = conjunto de etapas das fatos históricas;
+- `DIM_AREA_PND` = conjunto de `CO_GRUPO` da `FATO_PND`;
+- `DIM_MUNICIPIO` = conjunto de municípios da `FATO_PND`.
+
+Essa regra evita dimensões com categorias artificiais, registros sem uso ou anos criados apenas para preencher lacunas do calendário.
+
+### Relações previstas no Power BI
+
+A validação global confirma os dados necessários para as seguintes relações `1:*`:
+
+```text
+DIM_UF[UF]
+    → FATO_RENDIMENTO[UF]
+    → FATO_TDI[UF]
+    → FATO_IDEB[UF]
+    → FATO_SAEB[UF]
+    → FATO_PND[UF_PROVA]
+
+DIM_TEMPO[ANO]
+    → todas as fatos
+
+DIM_ETAPA[ETAPA]
+    → FATO_RENDIMENTO[ETAPA]
+    → FATO_TDI[ETAPA]
+    → FATO_IDEB[ETAPA]
+    → FATO_SAEB[ETAPA]
+
+DIM_AREA_PND[CO_GRUPO]
+    → FATO_PND[CO_GRUPO]
+
+DIM_MUNICIPIO[CO_MUNICIPIO]
+    → FATO_PND[CO_MUNICIPIO_PROVA]
+```
+
+A direção de filtro recomendada permanece:
+
+`dimensão → fato`
+
+Não será criada relação direta `DIM_MUNICIPIO → DIM_UF`, pois a FATO_PND já possui relacionamento direto com ambas e a relação adicional criaria um segundo caminho geográfico de filtragem.
+
+### Regra de fechamento
+
+A validação global foi executada com sucesso.
+
+Resultados confirmados:
+
+```text
+DIM_UF: 27
+DIM_TEMPO: 18
+DIM_ETAPA: 2
+DIM_AREA_PND: 17
+DIM_MUNICIPIO: 750
+
+FATO_RENDIMENTO: 2.754
+FATO_TDI: 918
+FATO_IDEB: 486
+FATO_SAEB: 972
+FATO_PND: 759.140
+```
+
+A integridade referencial foi confirmada entre:
+
+```text
+Fatos históricas
+    → DIM_UF
+    → DIM_TEMPO
+    → DIM_ETAPA
+
+FATO_PND
+    → DIM_UF
+    → DIM_TEMPO
+    → DIM_AREA_PND
+    → DIM_MUNICIPIO
+```
+
+Também foram confirmados:
+
+- coerência `CO_MUNICIPIO_PROVA → UF_PROVA`;
+- dimensões correspondendo exatamente aos domínios efetivamente utilizados pelas fatos;
+- classificação oficial da PND com 265.932 não proficientes, 304.638 no Padrão 1 e 188.570 no Padrão 2;
+- 493.208 participantes proficientes, equivalentes a 64,97%.
+
+Resultado final:
+
+`MODELO DIMENSIONAL GOLD: OK`
+
+Status:
+
+`CAMADA GOLD ✅ concluída e validada globalmente`
+
+A camada Gold está pronta para consumo no Power BI.
+
+---
+
 ## 14. Situação atual
 
-Todas as cinco tabelas fato da camada Gold estão concluídas e validadas.
-A etapa seguinte é a validação referencial global do modelo dimensional antes da conexão definitiva com o Power BI.
+Todas as cinco dimensões e as cinco tabelas fato da camada Gold estão concluídas e validadas individualmente e em conjunto.
+A validação global retornou `MODELO DIMENSIONAL GOLD: OK`. A camada Gold está pronta para ser consumida pelo Power BI.
 
 
 | Componente | Situação |
@@ -1366,3 +1608,8 @@ A presença de `⏳` nesta seção representa trabalho realmente ainda não exec
 | 19/08/2026 | `FATO_PND` executada e validada com 759.140 registros; resultados Gold = Silver e integridade referencial confirmados; resultado `FATO_PND GOLD: OK` |
 | 19/08/2026 | Classificação oficial da PND validada: 265.932 não proficientes, 304.638 no Padrão 1, 188.570 no Padrão 2 e 493.208 proficientes (64,97%) |
 | 19/08/2026 | Concluídas e validadas todas as cinco tabelas fato da camada Gold; próxima etapa definida como validação referencial global do modelo dimensional |
+| 19/08/2026 | Implementado `src/gold/validar_gold.py` para validação transversal das cinco dimensões e cinco fatos antes do consumo no Power BI |
+| 19/08/2026 | Documentada a distinção entre validação individual das tabelas e validação global do modelo dimensional |
+| 19/08/2026 | Definido que a Gold só será considerada integralmente pronta para o Power BI após o retorno `MODELO DIMENSIONAL GOLD: OK` |
+| 19/08/2026 | Executada a validação global da camada Gold; todas as dimensões, fatos, domínios e relacionamentos foram aprovados |
+| 19/08/2026 | Confirmado `MODELO DIMENSIONAL GOLD: OK`; camada Gold concluída e liberada para consumo no Power BI |
