@@ -969,6 +969,97 @@ Status:
 
 ---
 
+## 13.5 Implementação da FATO_SAEB
+
+Arquivos implementados:
+
+`src/gold/saeb/transformar_saeb.py`
+
+`src/gold/saeb/validar_fato_saeb.py`
+
+Saída:
+
+`data/gold/fatos/fato_saeb.parquet`
+
+A transformação lê exclusivamente:
+
+`data/silver/saeb/saeb_2007_2023.parquet`
+
+e mantém as colunas analíticas:
+
+```text
+ANO
+UF
+ETAPA
+REDE
+DISCIPLINA
+PROFICIENCIA
+```
+
+Nenhuma proficiência é recalculada ou recomposta.
+
+A Gold preserva diretamente os valores oficiais já selecionados e validados na Silver.
+
+### Regra metodológica crítica
+
+Não são criadas colunas como:
+
+```text
+SOMA_PESO
+SOMA_VALOR_PONDERADO
+```
+
+e não é aplicada média ponderada a partir dos microdados escolares.
+
+Essa decisão é deliberada. A auditoria do SAEB 2023 demonstrou que a recomposição escolar ponderada por participantes não reproduz o agregado oficial de UF. Por isso, a Gold utiliza a Silver como referência semântica definitiva.
+
+A política histórica de rede pública também é herdada da Silver. A Gold não tenta recompor redes administrativas por conta própria.
+
+A validação implementada verifica:
+
+- 972 registros;
+- grão único `ANO + UF + ETAPA + REDE + DISCIPLINA`;
+- nove edições;
+- 27 UFs;
+- duas etapas;
+- duas disciplinas: `LP` e `MT`;
+- rede única `PUBLICA`;
+- ausência de proficiências nulas;
+- domínio da proficiência entre 0 e 500;
+- igualdade das 972 proficiências Gold ↔ Silver;
+- inexistência de UFs órfãs em `DIM_UF`;
+- inexistência de anos órfãos em `DIM_TEMPO`;
+- inexistência de etapas órfãs em `DIM_ETAPA`.
+
+Não será criada `DIM_DISCIPLINA` nesta versão da Gold. O domínio possui somente duas categorias e é utilizado apenas pela FATO_SAEB.
+
+A transformação e a validação independente foram executadas com sucesso.
+
+Resultados confirmados:
+
+- 972 registros;
+- 9 edições;
+- 27 UFs;
+- 2 etapas;
+- 2 disciplinas: `LP` e `MT`;
+- rede única `PUBLICA`;
+- zero valores ausentes;
+- grão `ANO + UF + ETAPA + REDE + DISCIPLINA` único;
+- 972 registros comparados diretamente com a Silver;
+- proficiências Gold = Silver;
+- domínio da proficiência entre 0 e 500;
+- zero chaves órfãs em `DIM_UF`, `DIM_TEMPO` e `DIM_ETAPA`.
+
+Resultado final:
+
+`FATO_SAEB GOLD: OK`
+
+Status:
+
+`FATO_SAEB ✅ concluída e validada`
+
+---
+
 ## 14. Situação atual
 
 | Componente | Situação |
@@ -978,7 +1069,7 @@ Status:
 | FATO_RENDIMENTO | ✅ concluída e validada |
 | FATO_TDI | ✅ concluída e validada |
 | FATO_IDEB | ✅ concluída e validada |
-| FATO_SAEB | ⏳ não implementada |
+| FATO_SAEB | ✅ concluída e validada |
 | FATO_PND | ⏳ não implementada |
 | Validação referencial global | ⏳ não implementada |
 | Power BI sobre Gold | ⏳ não migrado |
@@ -1011,3 +1102,5 @@ A presença de `⏳` nesta seção representa trabalho realmente ainda não exec
 | 19/08/2026 | `FATO_TDI` executada e validada com 918 registros; igualdade Gold ↔ Silver e integridade referencial confirmadas; resultado `FATO_TDI GOLD: OK` |
 | 19/08/2026 | Implementados transformador e validador independente da `FATO_IDEB`, preservando as nove edições 2007–2023, os 486 valores da Silver e a integridade referencial com as dimensões |
 | 19/08/2026 | `FATO_IDEB` executada e validada com 486 registros e 9 edições; igualdade Gold ↔ Silver e integridade referencial confirmadas; resultado `FATO_IDEB GOLD: OK` |
+| 19/08/2026 | Implementados transformador e validador independente da `FATO_SAEB`, preservando as 972 proficiências oficiais da Silver, sem ponderação escolar ou recomposição, e validando integridade com as dimensões |
+| 19/08/2026 | `FATO_SAEB` executada e validada com 972 registros e 9 edições; proficiências Gold = Silver, domínio 0–500 e integridade referencial confirmados; resultado `FATO_SAEB GOLD: OK` |
