@@ -749,14 +749,157 @@ Status:
 
 ---
 
+## 13.2 Implementação da FATO_RENDIMENTO
+
+Arquivos implementados:
+
+`src/gold/rendimento/transformar_rendimento.py`
+
+`src/gold/rendimento/validar_fato_rendimento.py`
+
+Saída:
+
+`data/gold/fatos/fato_rendimento.parquet`
+
+A transformação lê exclusivamente:
+
+`data/silver/rendimento/rendimento_2007_2023.parquet`
+
+e mantém apenas as colunas analíticas:
+
+```text
+ANO
+UF
+ETAPA
+REDE
+INDICADOR
+VALOR
+```
+
+Nenhuma taxa é recalculada.
+
+A validação implementada verifica:
+
+- 2.754 registros;
+- grão único `ANO + UF + ETAPA + REDE + INDICADOR`;
+- 17 anos;
+- 27 UFs;
+- duas etapas;
+- rede única `PUBLICA`;
+- três indicadores: `APROVACAO`, `REPROVACAO`, `ABANDONO`;
+- ausência de valores nulos;
+- domínio de taxas entre 0 e 100;
+- igualdade dos 2.754 valores Gold ↔ Silver;
+- inexistência de UFs órfãs em `DIM_UF`;
+- inexistência de anos órfãos em `DIM_TEMPO`;
+- inexistência de etapas órfãs em `DIM_ETAPA`.
+
+A transformação e a validação independente foram executadas com sucesso.
+
+Resultados confirmados:
+
+- 2.754 registros;
+- 17 anos;
+- 27 UFs;
+- 2 etapas;
+- 3 indicadores;
+- rede única `PUBLICA`;
+- zero valores ausentes;
+- grão `ANO + UF + ETAPA + REDE + INDICADOR` único;
+- 2.754 registros comparados diretamente com a Silver;
+- valores Gold = Silver;
+- domínio das taxas 0–100;
+- zero chaves órfãs em `DIM_UF`, `DIM_TEMPO` e `DIM_ETAPA`.
+
+Resultado final:
+
+`FATO_RENDIMENTO GOLD: OK`
+
+Status:
+
+`FATO_RENDIMENTO ✅ concluída e validada`
+
+---
+
+## 13.3 Implementação da FATO_TDI
+
+Arquivos implementados:
+
+`src/gold/tdi/transformar_tdi.py`
+
+`src/gold/tdi/validar_fato_tdi.py`
+
+Saída:
+
+`data/gold/fatos/fato_tdi.parquet`
+
+A transformação lê exclusivamente:
+
+`data/silver/tdi/tdi_2007_2023.parquet`
+
+e mantém as colunas analíticas:
+
+```text
+ANO
+UF
+ETAPA
+REDE
+TDI
+```
+
+Nenhuma taxa é recalculada.
+
+A coluna `TDI` é preservada com o valor analítico definido na Silver.
+
+A validação implementada verifica:
+
+- 918 registros;
+- grão único `ANO + UF + ETAPA + REDE`;
+- 17 anos;
+- 27 UFs;
+- duas etapas;
+- rede única `PUBLICA`;
+- ausência de valores nulos;
+- domínio da TDI entre 0 e 100;
+- igualdade dos 918 valores Gold ↔ Silver;
+- inexistência de UFs órfãs em `DIM_UF`;
+- inexistência de anos órfãos em `DIM_TEMPO`;
+- inexistência de etapas órfãs em `DIM_ETAPA`.
+
+A transformação e a validação independente foram executadas com sucesso.
+
+Resultados confirmados:
+
+- 918 registros;
+- 17 anos;
+- 27 UFs;
+- 2 etapas;
+- rede única `PUBLICA`;
+- zero valores ausentes;
+- grão `ANO + UF + ETAPA + REDE` único;
+- 918 registros comparados diretamente com a Silver;
+- valores Gold = Silver;
+- domínio da TDI entre 0 e 100;
+- zero chaves órfãs em `DIM_UF`, `DIM_TEMPO` e `DIM_ETAPA`.
+
+Resultado final:
+
+`FATO_TDI GOLD: OK`
+
+Status:
+
+`FATO_TDI ✅ concluída e validada`
+
+---
+
 ## 14. Situação atual
 
 | Componente | Situação |
 |---|---|
 | Modelo dimensional | ✅ definido |
 | Dimensões | ✅ concluídas e validadas |
-| FATO_RENDIMENTO | ⏳ não implementada |
-| FATO_TDI | ⏳ não implementada |
+| FATO_RENDIMENTO | ✅ concluída e validada |
+| FATO_TDI | ✅ concluída e validada |
 | FATO_IDEB | ⏳ não implementada |
 | FATO_SAEB | ⏳ não implementada |
 | FATO_PND | ⏳ não implementada |
@@ -785,3 +928,7 @@ A presença de `⏳` nesta seção representa trabalho realmente ainda não exec
 | 19/08/2026 | Implementados transformador e validador independente das cinco dimensões Gold; conclusão depende da execução e validação contra as Silvers |
 | 19/08/2026 | Transformação das dimensões Gold executada com sucesso: 27 UFs, 18 anos, 2 etapas, 17 áreas PND e 750 municípios |
 | 19/08/2026 | Validação independente das dimensões concluída; chaves únicas, reprodução das Silvers e domínios dimensionais confirmados; resultado `DIMENSÕES GOLD: OK` |
+| 19/08/2026 | Implementados transformador e validador independente da `FATO_RENDIMENTO`, preservando os 2.754 valores da Silver sem recálculo e com validação referencial contra `DIM_UF`, `DIM_TEMPO` e `DIM_ETAPA` |
+| 19/08/2026 | `FATO_RENDIMENTO` executada e validada com 2.754 registros; igualdade Gold ↔ Silver e integridade referencial confirmadas; resultado `FATO_RENDIMENTO GOLD: OK` |
+| 19/08/2026 | Implementados transformador e validador independente da `FATO_TDI`, preservando 918 valores da Silver sem recálculo e validando `DIM_UF`, `DIM_TEMPO` e `DIM_ETAPA` |
+| 19/08/2026 | `FATO_TDI` executada e validada com 918 registros; igualdade Gold ↔ Silver e integridade referencial confirmadas; resultado `FATO_TDI GOLD: OK` |

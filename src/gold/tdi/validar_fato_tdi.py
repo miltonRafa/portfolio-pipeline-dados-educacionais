@@ -1,0 +1,484 @@
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+
+SILVER_FILE = Path(
+    "data/silver/tdi/tdi_2007_2023.parquet"
+)
+
+GOLD_FILE = Path(
+    "data/gold/fatos/fato_tdi.parquet"
+)
+
+DIM_FILES = {
+    "uf": Path(
+        "data/gold/dimensoes/dim_uf.parquet"
+    ),
+    "tempo": Path(
+        "data/gold/dimensoes/dim_tempo.parquet"
+    ),
+    "etapa": Path(
+        "data/gold/dimensoes/dim_etapa.parquet"
+    ),
+}
+
+COLUNAS = [
+    "ANO",
+    "UF",
+    "ETAPA",
+    "REDE",
+    "TDI",
+]
+
+TOTAL_ESPERADO = 918
+
+
+def texto_limpo(
+    serie,
+):
+    return (
+        serie
+        .astype("string")
+        .str.strip()
+    )
+
+
+def carregar_referencia_silver():
+    silver = pd.read_parquet(
+        SILVER_FILE,
+        columns=COLUNAS,
+    ).copy()
+
+    silver[
+        "ANO"
+    ] = pd.to_numeric(
+        silver[
+            "ANO"
+        ],
+        errors="raise",
+    ).astype(
+        "int64"
+    )
+
+    for coluna in [
+        "UF",
+        "ETAPA",
+        "REDE",
+    ]:
+        silver[
+            coluna
+        ] = texto_limpo(
+            silver[
+                coluna
+            ]
+        )
+
+    silver[
+        "TDI"
+    ] = pd.to_numeric(
+        silver[
+            "TDI"
+        ],
+        errors="coerce",
+    ).astype(
+        "Float64"
+    )
+
+    return (
+        silver
+        .sort_values(
+            [
+                "ANO",
+                "UF",
+                "ETAPA",
+            ]
+        )
+        .reset_index(
+            drop=True
+        )
+    )
+
+
+def validar_estrutura_gold(
+    gold,
+):
+    if list(
+        gold.columns
+    ) != COLUNAS:
+        raise RuntimeError(
+            "Esquema da FATO_TDI diferente do esperado.\n"
+            f"Esperado={COLUNAS}\n"
+            f"Atual={list(gold.columns)}"
+        )
+
+    if len(
+        gold
+    ) != TOTAL_ESPERADO:
+        raise RuntimeError(
+            f"Linhas Gold={len(gold):,}; "
+            f"esperado={TOTAL_ESPERADO:,}."
+        )
+
+    duplicadas = gold.duplicated(
+        subset=[
+            "ANO",
+            "UF",
+            "ETAPA",
+            "REDE",
+        ],
+        keep=False,
+    )
+
+    if duplicadas.any():
+        raise RuntimeError(
+            "O grão da FATO_TDI possui duplicidades."
+        )
+
+    if gold[
+        "TDI"
+    ].isna().any():
+        raise RuntimeError(
+            "A Gold contém TDI ausente."
+        )
+
+    fora = (
+        (
+            gold[
+                "TDI"
+            ] < 0
+        )
+        | (
+            gold[
+                "TDI"
+            ] > 100
+        )
+    )
+
+    if fora.any():
+        raise RuntimeError(
+            "A Gold contém TDI fora do domínio 0–100."
+        )
+
+
+def comparar_com_silver(
+    gold,
+    referencia,
+):
+    atual = (
+        gold[
+            COLUNAS
+        ]
+        .sort_values(
+            [
+                "ANO",
+                "UF",
+                "ETAPA",
+            ]
+        )
+        .reset_index(
+            drop=True
+        )
+    )
+
+    for coluna in [
+        "ANO",
+        "UF",
+        "ETAPA",
+        "REDE",
+    ]:
+        a = (
+            atual[
+                coluna
+            ]
+            .astype("string")
+            .fillna(
+                "__AUSENTE__"
+            )
+        )
+
+        b = (
+            referencia[
+                coluna
+            ]
+            .astype("string")
+            .fillna(
+                "__AUSENTE__"
+            )
+        )
+
+        if not a.equals(
+            b
+        ):
+            raise RuntimeError(
+                f"Divergência Gold ↔ Silver na coluna {coluna}."
+            )
+
+    a = pd.to_numeric(
+        atual[
+            "TDI"
+        ],
+        errors="coerce",
+    ).to_numpy(
+        dtype=float
+    )
+
+    b = pd.to_numeric(
+        referencia[
+            "TDI"
+        ],
+        errors="coerce",
+    ).to_numpy(
+        dtype=float
+    )
+
+    iguais = np.isclose(
+        a,
+        b,
+        rtol=0.0,
+        atol=1e-12,
+        equal_nan=True,
+    )
+
+    if not bool(
+        np.all(
+            iguais
+        )
+    ):
+        indices = np.flatnonzero(
+            ~iguais
+        )[:20]
+
+        exemplos = []
+
+        for i in indices:
+            exemplos.append(
+                {
+                    "ANO": atual.iloc[
+                        i
+                    ][
+                        "ANO"
+                    ],
+                    "UF": atual.iloc[
+                        i
+                    ][
+                        "UF"
+                    ],
+                    "ETAPA": atual.iloc[
+                        i
+                    ][
+                        "ETAPA"
+                    ],
+                    "GOLD": atual.iloc[
+                        i
+                    ][
+                        "TDI"
+                    ],
+                    "SILVER": referencia.iloc[
+                        i
+                    ][
+                        "TDI"
+                    ],
+                }
+            )
+
+        raise RuntimeError(
+            "Foram encontrados valores Gold diferentes da Silver: "
+            f"{exemplos}"
+        )
+
+
+def validar_integridade_dimensional(
+    gold,
+):
+    dim_uf = pd.read_parquet(
+        DIM_FILES[
+            "uf"
+        ]
+    )
+
+    dim_tempo = pd.read_parquet(
+        DIM_FILES[
+            "tempo"
+        ]
+    )
+
+    dim_etapa = pd.read_parquet(
+        DIM_FILES[
+            "etapa"
+        ]
+    )
+
+    chaves_uf = set(
+        texto_limpo(
+            dim_uf[
+                "UF"
+            ]
+        )
+    )
+
+    chaves_ano = set(
+        pd.to_numeric(
+            dim_tempo[
+                "ANO"
+            ],
+            errors="raise",
+        ).astype(
+            int
+        )
+    )
+
+    chaves_etapa = set(
+        texto_limpo(
+            dim_etapa[
+                "ETAPA"
+            ]
+        )
+    )
+
+    orfas_uf = set(
+        texto_limpo(
+            gold[
+                "UF"
+            ]
+        )
+    ) - chaves_uf
+
+    orfas_ano = set(
+        pd.to_numeric(
+            gold[
+                "ANO"
+            ],
+            errors="raise",
+        ).astype(
+            int
+        )
+    ) - chaves_ano
+
+    orfas_etapa = set(
+        texto_limpo(
+            gold[
+                "ETAPA"
+            ]
+        )
+    ) - chaves_etapa
+
+    if orfas_uf:
+        raise RuntimeError(
+            f"UFs órfãs na FATO_TDI: {sorted(orfas_uf)}"
+        )
+
+    if orfas_ano:
+        raise RuntimeError(
+            f"Anos órfãos na FATO_TDI: {sorted(orfas_ano)}"
+        )
+
+    if orfas_etapa:
+        raise RuntimeError(
+            f"Etapas órfãs na FATO_TDI: {sorted(orfas_etapa)}"
+        )
+
+
+def main():
+    print("=" * 110)
+    print(
+        "VALIDAÇÃO INDEPENDENTE — FATO_TDI GOLD"
+    )
+    print("=" * 110)
+    print()
+
+    arquivos = [
+        SILVER_FILE,
+        GOLD_FILE,
+        *DIM_FILES.values(),
+    ]
+
+    ausentes = [
+        str(
+            caminho
+        )
+        for caminho in arquivos
+        if not caminho.exists()
+    ]
+
+    if ausentes:
+        raise FileNotFoundError(
+            "Arquivos ausentes:\n"
+            + "\n".join(
+                ausentes
+            )
+        )
+
+    print(
+        "1/4 Lendo e validando a Gold..."
+    )
+
+    gold = pd.read_parquet(
+        GOLD_FILE
+    )
+
+    validar_estrutura_gold(
+        gold
+    )
+
+    print(
+        "2/4 Reconstruindo referência diretamente da Silver..."
+    )
+
+    referencia = carregar_referencia_silver()
+
+    print(
+        "3/4 Comparando Gold ↔ Silver..."
+    )
+
+    comparar_com_silver(
+        gold,
+        referencia,
+    )
+
+    print(
+        "4/4 Validando integridade referencial com as dimensões..."
+    )
+
+    validar_integridade_dimensional(
+        gold
+    )
+
+    print()
+    print(
+        f"Arquivo Gold: {GOLD_FILE}"
+    )
+    print(
+        f"Linhas: {len(gold):,}"
+    )
+    print(
+        "Grão único ANO + UF + ETAPA + REDE: OK"
+    )
+    print(
+        f"Registros comparados diretamente com a Silver: {len(referencia):,}"
+    )
+    print(
+        "Valores Gold = Silver: OK"
+    )
+    print(
+        "Domínio da TDI 0–100: OK"
+    )
+    print(
+        "Chaves órfãs em DIM_UF: 0"
+    )
+    print(
+        "Chaves órfãs em DIM_TEMPO: 0"
+    )
+    print(
+        "Chaves órfãs em DIM_ETAPA: 0"
+    )
+    print()
+    print(
+        "FATO_TDI GOLD: OK"
+    )
+    print("=" * 110)
+
+
+if __name__ == "__main__":
+    main()
