@@ -1,4 +1,4 @@
-﻿# Auditoria das Fontes — Taxa de Distorcao Idade-Serie (TDI)
+# Auditoria das Fontes — Taxa de Distorcao Idade-Serie (TDI)
 
 ## 1. Objetivo
 

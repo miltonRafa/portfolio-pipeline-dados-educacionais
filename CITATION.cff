@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Se você utilizar este projeto em trabalhos acadêmicos, pesquisas, publicações ou projetos derivados, cite-o conforme os dados de autoria abaixo."
+type: software
+title: "Pipeline de Dados Educacionais"
+authors:
+  - family-names: "Garcia"
+    given-names: "Milton Rafael De Souza"
+version: "1.0.0"
+date-released: "2026-08-21"
+repository-code: "https://github.com/miltonRafa/portfolio-pipeline-dados-educacionais"

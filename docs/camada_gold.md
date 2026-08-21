@@ -1,4 +1,4 @@
-﻿# Camada Gold
+# Camada Gold
 
 ## 1. Objetivo
 

@@ -1,4 +1,4 @@
-﻿# Auditoria das Fontes — SAEB
+# Auditoria das Fontes — SAEB
 
 ## 1. Objetivo
 

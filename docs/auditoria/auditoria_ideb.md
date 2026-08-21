@@ -1,4 +1,4 @@
-﻿# Auditoria das Fontes — IDEB
+# Auditoria das Fontes — IDEB
 
 ## 1. Objetivo
 

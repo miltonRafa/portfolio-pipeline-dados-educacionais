@@ -1,4 +1,4 @@
-﻿# Definicao Metodologica — Rede Publica
+# Definicao Metodologica — Rede Publica
 
 ## 1. Objetivo
 

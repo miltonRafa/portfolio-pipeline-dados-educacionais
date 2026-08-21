@@ -1,4 +1,4 @@
-﻿# Camada Bronze — Ingestao dos Dados Educacionais
+# Camada Bronze — Ingestao dos Dados Educacionais
 
 ## 1. Objetivo
 

@@ -1,4 +1,4 @@
-﻿# Auditoria das Fontes — Prova Nacional Docente (PND) 2025
+# Auditoria das Fontes — Prova Nacional Docente (PND) 2025
 
 ## 1. Objetivo
 

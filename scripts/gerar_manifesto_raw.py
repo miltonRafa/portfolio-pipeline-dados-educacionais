@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import argparse
 import csv
 import hashlib
+import re
+import sys
+from collections import Counter
 from pathlib import Path
 
 
@@ -439,7 +443,7 @@ def inventory_with_hashes() -> list[dict[str, str]]:
 def write_csv(rows: list[dict[str, str]]) -> None:
     path = DOCS_DIR / "fontes_dados.csv"
     with path.open("w", encoding="utf-8", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=FIELDS)
+        writer = csv.DictWriter(file, fieldnames=FIELDS, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -749,10 +753,109 @@ Atribuição-SemDerivações 3.0 Não Adaptada.
 Mesmo assim, a cópia no Drive é documentada apenas como conveniência de
 reprodução. A referência oficial e primária permanece sendo o Inep/MEC.
 """
-    path.write_text(content, encoding="utf-8")
+    path.write_text(content.replace("\r\n", "\n"), encoding="utf-8")
+
+
+def read_manifest() -> list[dict[str, str]]:
+    path = DOCS_DIR / "fontes_dados.csv"
+    if not path.is_file():
+        raise FileNotFoundError(
+            "Manifesto não encontrado: docs/fontes_dados.csv\n"
+            "Gere o manifesto com: python scripts/gerar_manifesto_raw.py"
+        )
+
+    with path.open("r", encoding="utf-8-sig", newline="") as file:
+        return list(csv.DictReader(file))
+
+
+def check_manifest() -> int:
+    rows = read_manifest()
+    paths = [row["caminho_local"] for row in rows]
+    duplicates = sorted(path for path, count in Counter(paths).items() if count > 1)
+
+    missing: list[str] = []
+    divergent: list[str] = []
+    invalid_hashes: list[str] = []
+    found = 0
+
+    for row in rows:
+        expected_hash = row.get("sha256", "")
+        local_path = row["caminho_local"]
+
+        if not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
+            invalid_hashes.append(local_path)
+
+        full_path = ROOT / local_path
+        if not full_path.is_file():
+            missing.append(local_path)
+            continue
+
+        found += 1
+        if sha256(full_path) != expected_hash:
+            divergent.append(local_path)
+
+    print("RAW — VERIFICAÇÃO DE INTEGRIDADE")
+    print()
+    print(f"Arquivos esperados: {len(rows)}")
+    print(f"Arquivos encontrados: {found}")
+    print(f"Arquivos ausentes: {len(missing)}")
+    print(f"Hashes divergentes: {len(divergent)}")
+    print(f"Hashes inválidos: {len(invalid_hashes)}")
+    print(f"Caminhos duplicados: {len(duplicates)}")
+    print()
+
+    if missing:
+        print("Arquivos ausentes:")
+        for path in missing:
+            print(f"- {path}")
+        print()
+        print(
+            "Obtenha os arquivos Raw pelas fontes oficiais ou pela cópia de "
+            "conveniência documentada em docs/fontes_dados.md."
+        )
+
+    if divergent:
+        print("Hashes divergentes:")
+        for path in divergent:
+            print(f"- {path}")
+
+    if invalid_hashes:
+        print("Hashes inválidos no manifesto:")
+        for path in invalid_hashes:
+            print(f"- {path}")
+
+    if duplicates:
+        print("Caminhos duplicados no manifesto:")
+        for path in duplicates:
+            print(f"- {path}")
+
+    if missing or divergent or invalid_hashes or duplicates:
+        print()
+        print("RAW: FALHA")
+        return 1
+
+    print("RAW: OK")
+    return 0
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Gera ou verifica o manifesto dos arquivos Raw.",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Verifica integridade sem reescrever os arquivos de documentação.",
+    )
+    return parser.parse_args()
 
 
 def main() -> None:
+    args = parse_args()
+
+    if args.check:
+        sys.exit(check_manifest())
+
     DOCS_DIR.mkdir(exist_ok=True)
     rows = inventory_with_hashes()
     write_csv(rows)

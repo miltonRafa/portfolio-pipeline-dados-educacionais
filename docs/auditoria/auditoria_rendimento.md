@@ -1,4 +1,4 @@
-﻿# Auditoria das Fontes — Rendimento Escolar
+# Auditoria das Fontes — Rendimento Escolar
 
 ## 1. Objetivo
 

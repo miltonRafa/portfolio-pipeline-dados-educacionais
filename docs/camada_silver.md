@@ -1,4 +1,4 @@
-﻿# Camada Silver — Pipeline de Dados Educacionais
+# Camada Silver — Pipeline de Dados Educacionais
 
 ## 1. Objetivo
 
