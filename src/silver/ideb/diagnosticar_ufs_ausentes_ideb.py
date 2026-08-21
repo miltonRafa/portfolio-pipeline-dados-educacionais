@@ -41,9 +41,24 @@ def normalizar(valor):
 
 
 def linha_tecnica(df):
-    linha = df[df["_linha_origem"] == 10]
+    indices = (
+        df["_indice_cabecalho_origem"]
+        .dropna()
+        .unique()
+    )
+
+    if len(indices) != 1:
+        raise RuntimeError(
+            f"_indice_cabecalho_origem não é único: {indices.tolist()}"
+        )
+
+    linha_origem = int(indices[0]) + 1
+    linha = df[df["_linha_origem"] == linha_origem]
     if len(linha) != 1:
-        raise RuntimeError("Linha técnica _linha_origem=10 não encontrada de forma única.")
+        raise RuntimeError(
+            f"Linha técnica _linha_origem={linha_origem} "
+            "não encontrada de forma única."
+        )
     return linha.iloc[0]
 
 

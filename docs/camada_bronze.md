@@ -216,7 +216,7 @@ A Bronze também preservará a linha de origem para permitir rastreabilidade at�
 
 O arquivo de origem utilizado é:
 
-`divulgacao_regioes_ufs_ideb_2023.xlsx`
+`divulgacao_regioes_ufs_ideb.xlsx`
 
 Ele possui três abas correspondentes às etapas:
 
@@ -265,9 +265,9 @@ A estrutura auditada utiliza:
 
 A Bronze preserva todas essas linhas.
 
-Para fins de rastreabilidade técnica, `_indice_cabecalho_origem = 9` registra a linha utilizada como referência técnica pelo código.
+Para fins de rastreabilidade técnica, `_indice_cabecalho_origem` registra a linha identificada no workbook como referência técnica, localizada pela presença única de variáveis `VL_OBSERVADO_YYYY`.
 
-Como `_linha_origem` utiliza numeração iniciada em um, o índice interno `9` corresponde à linha de origem `10`.
+Como `_linha_origem` utiliza numeração iniciada em um, o valor de `_indice_cabecalho_origem` corresponde ao índice interno zero-based da linha técnica detectada.
 
 Esse registro não significa que as linhas anteriores do cabeçalho sejam descartadas.
 
@@ -279,7 +279,7 @@ No IDEB:
 
 `_ano_referencia = 2023`
 
-representa a edição do arquivo de divulgação utilizada na ingestão.
+representa a maior edição observada no arquivo físico utilizado na ingestão, detectada a partir das variáveis `VL_OBSERVADO_YYYY`.
 
 Esse campo não significa que todas as observações armazenadas sejam referentes a 2023.
 
@@ -1097,7 +1097,7 @@ Status:
 
 A ingestão Bronze do Índice de Desenvolvimento da Educação Básica foi realizada a partir do arquivo:
 
-`divulgacao_regioes_ufs_ideb_2023.xlsx`
+`divulgacao_regioes_ufs_ideb.xlsx`
 
 Foram preservadas integralmente as três abas existentes no arquivo:
 
@@ -1146,7 +1146,7 @@ O SHA-256 confirmado para o arquivo de origem foi:
 
 ### Preservação da estrutura histórica
 
-O workbook contém informações anteriores ao período analítico definido para o projeto, incluindo dados de 2005.
+O workbook contém informações fora do período analítico definido para o projeto, podendo incluir dados anteriores a 2007 e edições posteriores preservadas na fonte física.
 
 Essas informações foram mantidas na Bronze.
 

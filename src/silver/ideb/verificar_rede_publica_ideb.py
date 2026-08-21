@@ -71,18 +71,35 @@ def normalizar(valor):
     return texto.casefold()
 
 
-def localizar_colunas_ideb(df, etapa):
+def localizar_linha_tecnica(df, etapa):
+    indices = (
+        df["_indice_cabecalho_origem"]
+        .dropna()
+        .unique()
+    )
+
+    if len(indices) != 1:
+        raise RuntimeError(
+            f"{etapa}: _indice_cabecalho_origem não é único: "
+            f"{indices.tolist()}"
+        )
+
+    linha_origem = int(indices[0]) + 1
     tecnica = df[
-        df["_linha_origem"] == 10
+        df["_linha_origem"] == linha_origem
     ]
 
     if len(tecnica) != 1:
         raise RuntimeError(
             f"{etapa}: esperada exatamente uma linha técnica "
-            f"com _linha_origem=10; encontradas {len(tecnica)}."
+            f"com _linha_origem={linha_origem}; encontradas {len(tecnica)}."
         )
 
-    linha = tecnica.iloc[0]
+    return tecnica.iloc[0]
+
+
+def localizar_colunas_ideb(df, etapa):
+    linha = localizar_linha_tecnica(df, etapa)
     mapa = {}
 
     for ano in ANOS:

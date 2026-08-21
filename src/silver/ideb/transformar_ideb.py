@@ -68,6 +68,8 @@ UFS = {
 
 REDE_PUBLICA_ORIGEM = "publica (4)"
 
+PADRAO_OBSERVADO = re.compile(r"^VL_OBSERVADO_(\d{4})$")
+
 COLUNAS_SILVER = [
     "ANO",
     "UF",
@@ -110,18 +112,40 @@ def converter_uf(valor):
     )
 
 
-def localizar_colunas_ideb(df, etapa):
+def localizar_linha_tecnica(df, etapa):
+    if "_indice_cabecalho_origem" not in df.columns:
+        raise RuntimeError(
+            f"{etapa}: metadado _indice_cabecalho_origem ausente."
+        )
+
+    indices = (
+        df["_indice_cabecalho_origem"]
+        .dropna()
+        .unique()
+    )
+
+    if len(indices) != 1:
+        raise RuntimeError(
+            f"{etapa}: _indice_cabecalho_origem deveria ser "
+            f"único; encontrado={indices.tolist()}."
+        )
+
+    linha_origem = int(indices[0]) + 1
     tecnica = df[
-        df["_linha_origem"] == 10
+        df["_linha_origem"] == linha_origem
     ]
 
     if len(tecnica) != 1:
         raise RuntimeError(
             f"{etapa}: esperada exatamente uma linha técnica "
-            f"com _linha_origem=10; encontradas {len(tecnica)}."
+            f"com _linha_origem={linha_origem}; encontradas {len(tecnica)}."
         )
 
-    linha = tecnica.iloc[0]
+    return tecnica.iloc[0]
+
+
+def localizar_colunas_ideb(df, etapa):
+    linha = localizar_linha_tecnica(df, etapa)
     mapa = {}
 
     for ano in ANOS:
@@ -143,6 +167,20 @@ def localizar_colunas_ideb(df, etapa):
             )
 
         mapa[ano] = encontradas[0]
+
+    observados_disponiveis = sorted(
+        int(PADRAO_OBSERVADO.fullmatch(str(linha[coluna]).strip()).group(1))
+        for coluna in df.columns
+        if str(coluna).startswith("col_")
+        and PADRAO_OBSERVADO.fullmatch(str(linha[coluna]).strip())
+    )
+
+    extras_no_recorte = sorted(set(ANOS).difference(observados_disponiveis))
+    if extras_no_recorte:
+        raise RuntimeError(
+            f"{etapa}: anos analíticos ausentes nas variáveis observadas: "
+            f"{extras_no_recorte}"
+        )
 
     return mapa
 

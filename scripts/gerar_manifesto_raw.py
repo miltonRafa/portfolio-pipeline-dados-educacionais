@@ -52,6 +52,10 @@ FIELDS = [
     "finalidade",
     "dicionario_associado",
     "url_oficial",
+    "url_historica_download",
+    "edicao_fonte",
+    "anos_disponiveis",
+    "observacao",
     "sha256",
 ]
 
@@ -65,6 +69,10 @@ def item(
     url: str,
     dicionario: str = "não utilizado",
     nome_original: str = "não registrado no repositório",
+    url_historica_download: str = "",
+    edicao_fonte: str = "",
+    anos_disponiveis: str = "",
+    observacao: str = "",
 ) -> dict[str, str]:
     return {
         "indicador": indicador,
@@ -76,6 +84,10 @@ def item(
         "finalidade": finalidade,
         "dicionario_associado": dicionario,
         "url_oficial": url,
+        "url_historica_download": url_historica_download,
+        "edicao_fonte": edicao_fonte,
+        "anos_disponiveis": anos_disponiveis,
+        "observacao": observacao,
         "sha256": "",
     }
 
@@ -226,10 +238,20 @@ INVENTORY = [
     item(
         "IDEB",
         "2007-2023",
-        "data/raw/ideb/divulgacao_regioes_ufs_ideb_2023.xlsx",
+        "data/raw/ideb/divulgacao_regioes_ufs_ideb.xlsx",
         "resultado agregado",
-        "workbook oficial que concentra a série histórica usada no projeto",
+        "workbook oficial com nome local estavel; fonte fisica identificada por SHA-256",
         URLS["ideb"],
+        url_historica_download=(
+            "https://download.inep.gov.br/ideb/resultados/"
+            "divulgacao_regioes_ufs_ideb_2023.zip"
+        ),
+        edicao_fonte="arquivo fisico atual contem VL_OBSERVADO_2025",
+        anos_disponiveis="2005, 2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021, 2023, 2025",
+        observacao=(
+            "A pagina oficial pode apontar para edicao posterior; "
+            "a reproducao exata usa o arquivo local estavel e seu SHA-256."
+        ),
     ),
 ]
 
@@ -491,6 +513,30 @@ inventariados abaixo, identificados pelos respectivos hashes SHA-256.
 A edição SAEB 2025 não foi incorporada nesta versão do projeto. Uma atualização
 futura para incluir nova edição deverá ser tratada como nova versão, com
 revisão coordenada das fontes, auditorias, pipeline, Gold, validações e Power BI.
+
+### Observação sobre a página atual do IDEB
+
+A página oficial de Resultados do IDEB é atualizada pelo Inep conforme novas
+edições são divulgadas. A obtenção da versão mais recente no Inep e a
+reprodução exata desta versão do projeto não são a mesma operação.
+
+O arquivo local do IDEB usa o nome estável
+`data/raw/ideb/divulgacao_regioes_ufs_ideb.xlsx` porque o workbook concentra a
+série histórica em colunas identificadas por variáveis técnicas
+`VL_OBSERVADO_YYYY`. O ano da edição física não deve ser inferido pelo nome do
+arquivo local.
+
+Nesta revisão, o arquivo físico canônico contém dados observados até 2025
+(`VL_OBSERVADO_2025`). O recorte analítico adotado por esta versão do projeto
+permanece 2007-2023.
+
+Para reprodução exata, utilize o arquivo local estável identificado no manifesto
+pelo hash SHA-256. Para atualizar a fonte em uma execução futura, substitua
+deliberadamente esse arquivo local por uma nova versão oficial antes de executar
+o pipeline; a Bronze detectará a estrutura e os anos observados disponíveis,
+enquanto a Silver manterá o recorte analítico declarado de 2007 a 2023 até que o
+projeto seja versionado para incorporar nova edição. Substituir o arquivo-fonte
+não altera automaticamente o escopo analítico.
 
 ## Inventário dos arquivos
 

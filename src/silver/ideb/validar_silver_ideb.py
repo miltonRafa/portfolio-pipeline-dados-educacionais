@@ -33,6 +33,8 @@ ETAPAS = {
     "ANOS_FINAIS",
 }
 
+PADRAO_OBSERVADO = re.compile(r"^VL_OBSERVADO_(\d{4})$")
+
 UF_MAP = {
     "acre": "AC",
     "alagoas": "AL",
@@ -130,17 +132,38 @@ def converter_valor_bronze(valor):
     return round(numero, 1)
 
 
-def localizar_colunas_ideb(df, etapa):
-    tecnica = df[
-        df["_linha_origem"] == 10
-    ]
-
-    if len(tecnica) != 1:
+def localizar_linha_tecnica(df, etapa):
+    if "_indice_cabecalho_origem" not in df.columns:
         raise RuntimeError(
-            f"{etapa}: linha técnica 10 não é única."
+            f"{etapa}: metadado _indice_cabecalho_origem ausente."
         )
 
-    linha = tecnica.iloc[0]
+    indices = (
+        df["_indice_cabecalho_origem"]
+        .dropna()
+        .unique()
+    )
+
+    if len(indices) != 1:
+        raise RuntimeError(
+            f"{etapa}: _indice_cabecalho_origem não é único: "
+            f"{indices.tolist()}"
+        )
+
+    linha_origem = int(indices[0]) + 1
+    linha = df[df["_linha_origem"] == linha_origem]
+
+    if len(linha) != 1:
+        raise RuntimeError(
+            f"{etapa}: linha técnica _linha_origem={linha_origem} "
+            "não encontrada de forma única."
+        )
+
+    return linha.iloc[0]
+
+
+def localizar_colunas_ideb(df, etapa):
+    linha = localizar_linha_tecnica(df, etapa)
     mapa = {}
 
     for ano in sorted(ANOS):
@@ -162,6 +185,19 @@ def localizar_colunas_ideb(df, etapa):
             )
 
         mapa[ano] = encontradas[0]
+
+    anos_disponiveis = sorted(
+        int(PADRAO_OBSERVADO.fullmatch(str(linha[coluna]).strip()).group(1))
+        for coluna in df.columns
+        if str(coluna).startswith("col_")
+        and PADRAO_OBSERVADO.fullmatch(str(linha[coluna]).strip())
+    )
+
+    if not set(ANOS).issubset(anos_disponiveis):
+        raise RuntimeError(
+            f"{etapa}: anos analíticos ausentes em VL_OBSERVADO_YYYY. "
+            f"Disponíveis: {anos_disponiveis}"
+        )
 
     return mapa
 

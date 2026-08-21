@@ -1,5 +1,6 @@
 from pathlib import Path
 import hashlib
+import re
 
 import pandas as pd
 
@@ -7,20 +8,19 @@ import pandas as pd
 RAW_DIR = Path("data/raw/ideb")
 BRONZE_DIR = Path("data/bronze/ideb")
 
-ARQUIVO_ORIGEM = "divulgacao_regioes_ufs_ideb_2023.xlsx"
+ARQUIVO_ORIGEM = "divulgacao_regioes_ufs_ideb.xlsx"
+
+PADRAO_OBSERVADO = re.compile(r"^VL_OBSERVADO_(\d{4})$")
 
 CONFIG_ABAS = {
     "AI": {
         "aba": "UF e Regiões (AI)",
-        "cabecalho_indice": 9,
     },
     "AF": {
         "aba": "UF e Regiões (AF)",
-        "cabecalho_indice": 9,
     },
     "EM": {
         "aba": "UF e Regiões (EM)",
-        "cabecalho_indice": 9,
     },
 }
 
@@ -60,40 +60,76 @@ def validar_abas(caminho):
         for configuracao in CONFIG_ABAS.values()
     ]
 
-    if abas_encontradas != abas_esperadas:
+    abas_ausentes = [
+        aba
+        for aba in abas_esperadas
+        if aba not in abas_encontradas
+    ]
+
+    if abas_ausentes:
         raise RuntimeError(
-            "\nEstrutura de abas diferente da auditada.\n"
+            "\nAbas obrigatórias do IDEB ausentes.\n"
             f"Esperadas: {abas_esperadas}\n"
+            f"Ausentes: {abas_ausentes}\n"
             f"Encontradas: {abas_encontradas}"
         )
 
     return abas_encontradas
 
 
-def validar_estrutura_aba(
+def localizar_cabecalho_tecnico(
     dados,
     aba,
-    cabecalho_indice,
 ):
     if dados.empty:
         raise RuntimeError(
             f"A aba {aba!r} está vazia."
         )
 
-    if len(dados) <= cabecalho_indice:
-        raise RuntimeError(
-            f"A aba {aba!r} não possui a linha "
-            f"técnica esperada no índice {cabecalho_indice}."
+    candidatos = []
+
+    for indice, linha in dados.iterrows():
+        valores = (
+            linha
+            .dropna()
+            .astype(str)
+            .str.strip()
+            .tolist()
         )
 
-    linha_tecnica = (
-        dados.iloc[cabecalho_indice]
-        .dropna()
-        .astype(str)
-        .tolist()
-    )
+        observados = [
+            valor
+            for valor in valores
+            if PADRAO_OBSERVADO.fullmatch(valor)
+        ]
 
-    texto_linha = " | ".join(linha_tecnica)
+        if observados:
+            candidatos.append((indice, observados))
+
+    if len(candidatos) != 1:
+        resumo = [
+            {
+                "indice": indice,
+                "quantidade_vl_observado": len(observados),
+                "primeiro": observados[0] if observados else None,
+                "ultimo": observados[-1] if observados else None,
+            }
+            for indice, observados in candidatos
+        ]
+
+        raise RuntimeError(
+            f"A aba {aba!r} deveria possuir exatamente uma linha "
+            "com variáveis VL_OBSERVADO_YYYY. "
+            f"Encontradas: {resumo}"
+        )
+
+    cabecalho_indice, observados = candidatos[0]
+    anos_observados = sorted(
+        {
+            int(PADRAO_OBSERVADO.fullmatch(valor).group(1))
+            for valor in observados
+        }
+    )
 
     marcadores_obrigatorios = [
         "VL_OBSERVADO_2007",
@@ -101,18 +137,13 @@ def validar_estrutura_aba(
     ]
 
     for marcador in marcadores_obrigatorios:
-        if marcador not in texto_linha:
+        if marcador not in observados:
             raise RuntimeError(
                 f"A aba {aba!r} não contém o marcador "
-                f"técnico esperado {marcador!r} "
-                f"na linha de índice {cabecalho_indice}."
+                f"técnico esperado {marcador!r}."
             )
 
-    if "VL_NOTA_MEDIA_2023" not in texto_linha:
-        raise RuntimeError(
-            f"A aba {aba!r} não contém "
-            "'VL_NOTA_MEDIA_2023' na linha técnica."
-        )
+    return cabecalho_indice, anos_observados
 
 
 def preparar_bronze(
@@ -122,6 +153,7 @@ def preparar_bronze(
     etapa,
     sha256_arquivo,
     cabecalho_indice,
+    ano_referencia,
 ):
     quantidade_colunas_fonte = len(dados.columns)
 
@@ -196,7 +228,7 @@ def preparar_bronze(
     dados.insert(
         5,
         "_ano_referencia",
-        2023,
+        ano_referencia,
     )
 
     dados.insert(
@@ -257,9 +289,6 @@ def processar_aba(
     sha256_arquivo,
 ):
     aba = configuracao["aba"]
-    cabecalho_indice = configuracao[
-        "cabecalho_indice"
-    ]
 
     dados = pd.read_excel(
         caminho_raw,
@@ -269,10 +298,9 @@ def processar_aba(
         dtype=object,
     )
 
-    validar_estrutura_aba(
+    cabecalho_indice, anos_observados = localizar_cabecalho_tecnico(
         dados=dados,
         aba=aba,
-        cabecalho_indice=cabecalho_indice,
     )
 
     quantidade_colunas_fonte = len(
@@ -286,6 +314,7 @@ def processar_aba(
         etapa=etapa,
         sha256_arquivo=sha256_arquivo,
         cabecalho_indice=cabecalho_indice,
+        ano_referencia=max(anos_observados),
     )
 
     destino = (
