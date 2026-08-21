@@ -37,6 +37,7 @@ UF_PARA_SIGLA = {
     "maranhao": "MA",
     "mato grosso": "MT",
     "mato grosso do sul": "MS",
+    "m. g. do sul": "MS",
     "minas gerais": "MG",
     "para": "PA",
     "paraiba": "PB",
@@ -45,7 +46,9 @@ UF_PARA_SIGLA = {
     "piaui": "PI",
     "rio de janeiro": "RJ",
     "rio grande do norte": "RN",
+    "r. g. do norte": "RN",
     "rio grande do sul": "RS",
+    "r. g. do sul": "RS",
     "rondonia": "RO",
     "roraima": "RR",
     "santa catarina": "SC",
@@ -124,7 +127,7 @@ def localizar_colunas_ideb(df, etapa):
     return mapa
 
 
-def converter_uf_exata(valor):
+def converter_uf(valor):
     return UF_PARA_SIGLA.get(
         normalizar(valor)
     )
@@ -158,7 +161,7 @@ def imprimir_geografias_nao_mapeadas(df):
         if not bruto:
             continue
 
-        if converter_uf_exata(bruto) is not None:
+        if converter_uf(bruto) is not None:
             continue
 
         normalizado = normalizar(bruto)
@@ -203,7 +206,7 @@ def imprimir_diagnostico_linhas(
     }
 
     print(
-        "DIAGNÓSTICO DAS UFs NÃO LOCALIZADAS POR CORRESPONDÊNCIA EXATA"
+        "DIAGNÓSTICO DAS UFs NÃO LOCALIZADAS PELO MAPEAMENTO CANÔNICO"
     )
     print("-" * 120)
 
@@ -277,7 +280,7 @@ def auditar_etapa(etapa, caminho):
     trabalho = df.copy()
     trabalho["_UF"] = trabalho[
         "col_001"
-    ].map(converter_uf_exata)
+    ].map(converter_uf)
 
     dados_uf = trabalho[
         trabalho["_UF"].notna()
@@ -311,7 +314,7 @@ def auditar_etapa(etapa, caminho):
 
     print()
     print(
-        f"UFs reconhecidas por correspondência exata: "
+        f"UFs reconhecidas pelo mapeamento canônico: "
         f"{len(ufs_localizadas)}/27"
     )
     print(
@@ -494,8 +497,8 @@ def main():
     )
     print()
     print(
-        "Esta versão também diagnostica UFs cuja grafia em col_001 não "
-        "corresponde exatamente ao mapeamento canônico."
+        "Esta versão também reconhece as abreviações do workbook para "
+        "RN, RS e MS, mantendo o mesmo mapeamento usado na Silver."
     )
     print()
 

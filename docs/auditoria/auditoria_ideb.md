@@ -37,7 +37,7 @@ e contempla somente:
 Arquivo original:
 
 ```text
-data/raw/ideb/divulgacao_regioes_ufs_ideb_2023.xlsx
+data/raw/ideb/divulgacao_regioes_ufs_ideb.xlsx
 ```
 
 O arquivo foi disponibilizado pelo **Ministério da Educação / Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (Inep)**.
@@ -650,7 +650,7 @@ A auditoria da fonte já confirmou a existência dos valores necessários para e
 A auditoria confirmou que o arquivo:
 
 ```text
-divulgacao_regioes_ufs_ideb_2023.xlsx
+divulgacao_regioes_ufs_ideb.xlsx
 ```
 
 é adequado como fonte histórica do IDEB para o projeto.

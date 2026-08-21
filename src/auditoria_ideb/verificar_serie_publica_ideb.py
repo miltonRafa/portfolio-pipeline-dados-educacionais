@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 
 arquivo = Path(
-    "data/raw/ideb/divulgacao_regioes_ufs_ideb_2023.xlsx"
+    "data/raw/ideb/divulgacao_regioes_ufs_ideb.xlsx"
 )
 
 abas = {

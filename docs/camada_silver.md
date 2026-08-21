@@ -915,7 +915,7 @@ O cabeçalho visual da planilha contém a grafia `20215` em posições correspon
 
 A Bronze preserva essa característica da fonte e não a corrige.
 
-Na Silver, a seleção do ano não será feita pelo texto visual do cabeçalho. Será usada a linha técnica `_linha_origem=10`, que contém os nomes oficiais das variáveis:
+Na Silver, a seleção do ano não será feita pelo texto visual do cabeçalho. Será usada a linha técnica identificada na Bronze por `_indice_cabecalho_origem`; como `_linha_origem` utiliza numeração iniciada em um, a linha de referência é calculada como `_linha_origem = _indice_cabecalho_origem + 1`. Essa linha contém os nomes oficiais das variáveis:
 
 `VL_OBSERVADO_2007`
 
