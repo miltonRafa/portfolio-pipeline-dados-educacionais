@@ -1,13 +1,17 @@
 # dados
 data/
 *.txt
+!requirements.txt
+!docs/raw_checksums_sha256.txt
 *.csv
+!docs/fontes_dados.csv
 *.xlsx
 *.xls
 *.parquet
+raw.zip
 
 # Power BI
-*.pbix
+# Arquivos .pbix podem ser versionados como entrega do portfolio.
 
 # Python
 __pycache__/

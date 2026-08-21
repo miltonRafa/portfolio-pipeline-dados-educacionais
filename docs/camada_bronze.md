@@ -26,15 +26,25 @@ Essas transformações pertencem às camadas posteriores.
 
 ### Raw
 
-A pasta:
+A camada Raw contém os arquivos obtidos das fontes oficiais e utilizados como
+insumos do pipeline.
 
-`data/raw/`
+Quando o nome original de um arquivo não identificava claramente o ano de
+referência, ele pôde ser renomeado localmente antes de sua incorporação à pasta
+`data/raw`, exclusivamente para padronização da nomenclatura e melhor
+organização temporal. Essa renomeação não altera o conteúdo, a estrutura ou os
+valores do arquivo.
 
-contém os arquivos originais obtidos das fontes.
+Uma vez incorporado à pasta `data/raw`, o arquivo passa a ser considerado
+imutável.
 
-Esses arquivos são considerados imutáveis.
+O pipeline pode ler os arquivos da camada Raw, mas não deve sobrescrevê-los,
+renomeá-los, excluí-los ou modificar seu conteúdo. As transformações realizadas
+pelo pipeline devem gerar novos artefatos nas camadas subsequentes, começando
+pela Bronze.
 
-O pipeline não deverá sobrescrevê-los, renomeá-los ou modificar seu conteúdo.
+A convenção de nomenclatura e o inventário canônico dos arquivos utilizados
+estão documentados em `docs/fontes_dados.md`.
 
 ### Bronze
 

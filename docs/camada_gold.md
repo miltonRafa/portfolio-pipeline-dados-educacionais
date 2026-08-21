@@ -1568,10 +1568,8 @@ A validação global retornou `MODELO DIMENSIONAL GOLD: OK`. A camada Gold está
 | FATO_IDEB | ✅ concluída e validada |
 | FATO_SAEB | ✅ concluída e validada |
 | FATO_PND | ✅ concluída e validada |
-| Validação referencial global | ⏳ não implementada |
-| Power BI sobre Gold | ⏳ não migrado |
-
-A presença de `⏳` nesta seção representa trabalho realmente ainda não executado na camada Gold.
+| Validação referencial global | ✅ implementada e validada |
+| Power BI sobre Gold | ✅ migrado, modelado e validado |
 
 ---
 
