@@ -1,18 +1,18 @@
-# Modelagem no Power BI
+﻿# Modelagem no Power BI
 
 ## 1. Objetivo
 
-Esta etapa documenta a conexão da camada Gold ao Power BI, os relacionamentos do modelo dimensional e as primeiras medidas DAX.
+Esta etapa documenta a conexao da camada Gold ao Power BI, os relacionamentos do modelo dimensional e as primeiras medidas DAX.
 
-O Power BI deverá consumir exclusivamente os arquivos Parquet localizados em:
+O Power BI devera consumir exclusivamente os arquivos Parquet localizados em:
 
 ```text
 data/gold/
 ```
 
-Nenhuma consulta do dashboard deverá ler diretamente as camadas Raw, Bronze ou Silver.
+Nenhuma consulta do dashboard devera ler diretamente as camadas Raw, Bronze ou Silver.
 
-Essa decisão preserva a separação arquitetural do pipeline:
+Essa decisao preserva a separacao arquitetural do pipeline:
 
 ```text
 RAW
@@ -26,7 +26,7 @@ GOLD
 POWER BI
 ```
 
-A Gold é a camada de consumo analítico do projeto.
+A Gold e a camada de consumo analitico do projeto.
 
 ---
 
@@ -40,7 +40,7 @@ gold
 fnParquetGold
 ```
 
-As tabelas carregadas no modelo são:
+As tabelas carregadas no modelo sao:
 
 ```text
 DIM_UF
@@ -56,20 +56,20 @@ FATO_SAEB
 FATO_PND
 ```
 
-A função `fnParquetGold` permite selecionar cada Parquet a partir da pasta Gold sem repetir o caminho completo em todas as consultas.
+A funcao `fnParquetGold` permite selecionar cada Parquet a partir da pasta Gold sem repetir o caminho completo em todas as consultas.
 
-Essa solução reduz duplicação de código no Power Query e facilita a alteração futura do diretório-base do projeto.
+Essa solucao reduz duplicacao de codigo no Power Query e facilita a alteracao futura do diretorio-base do projeto.
 
 ---
 
 ## 3. Relacionamentos do modelo
 
-Todos os relacionamentos do modelo seguem o padrão:
+Todos os relacionamentos do modelo seguem o padrao:
 
 ```text
 cardinalidade: 1:*
-direção de filtro: única
-sentido: dimensão → fato
+direcao de filtro: unica
+sentido: dimensao → fato
 relacionamento ativo: sim
 ```
 
@@ -105,7 +105,7 @@ DIM_ETAPA[ETAPA]
     → FATO_SAEB[ETAPA]
 ```
 
-A PND não possui relação com `DIM_ETAPA`, pois sua estrutura analítica é organizada por área da licenciatura, e não por etapa da Educação Básica.
+A PND nao possui relacao com `DIM_ETAPA`, pois sua estrutura analitica e organizada por area da licenciatura, e nao por etapa da Educacao Basica.
 
 ### 3.4 DIM_AREA_PND
 
@@ -123,9 +123,9 @@ DIM_MUNICIPIO[CO_MUNICIPIO]
 
 ---
 
-## 4. Decisão sobre DIM_UF e DIM_MUNICIPIO
+## 4. Decisao sobre DIM_UF e DIM_MUNICIPIO
 
-Não é criada relação direta entre:
+Nao e criada relacao direta entre:
 
 ```text
 DIM_UF
@@ -133,14 +133,14 @@ e
 DIM_MUNICIPIO
 ```
 
-A FATO_PND já possui:
+A FATO_PND ja possui:
 
 ```text
 UF_PROVA
 CO_MUNICIPIO_PROVA
 ```
 
-e se relaciona diretamente com as duas dimensões.
+e se relaciona diretamente com as duas dimensoes.
 
 Criar adicionalmente:
 
@@ -148,11 +148,11 @@ Criar adicionalmente:
 DIM_UF → DIM_MUNICIPIO
 ```
 
-introduziria um segundo caminho geográfico de filtragem até a FATO_PND.
+introduziria um segundo caminho geografico de filtragem ate a FATO_PND.
 
-Por isso, a relação é deliberadamente omitida para manter o modelo em estrela e evitar caminhos ambíguos de filtro.
+Por isso, a relacao e deliberadamente omitida para manter o modelo em estrela e evitar caminhos ambiguos de filtro.
 
-A coluna `UF` existente em `DIM_MUNICIPIO` permanece útil para validações de consistência territorial, mas não cria relacionamento físico no modelo.
+A coluna `UF` existente em `DIM_MUNICIPIO` permanece util para validacoes de consistencia territorial, mas nao cria relacionamento fisico no modelo.
 
 ---
 
@@ -167,99 +167,99 @@ UF → Texto
 ### DIM_TEMPO
 
 ```text
-ANO → Número inteiro
+ANO → Numero inteiro
 ```
 
 ### DIM_ETAPA
 
 ```text
 ETAPA → Texto
-ORDEM_ETAPA → Número inteiro
+ORDEM_ETAPA → Numero inteiro
 ```
 
 ### DIM_AREA_PND
 
 ```text
-CO_GRUPO → Número inteiro
+CO_GRUPO → Numero inteiro
 AREA_PROVA → Texto
 ```
 
 ### DIM_MUNICIPIO
 
 ```text
-CO_MUNICIPIO → Número inteiro
+CO_MUNICIPIO → Numero inteiro
 UF → Texto
 ```
 
 ### FATO_RENDIMENTO
 
 ```text
-ANO → Número inteiro
+ANO → Numero inteiro
 UF → Texto
 ETAPA → Texto
 REDE → Texto
 INDICADOR → Texto
-VALOR → Número decimal
+VALOR → Numero decimal
 ```
 
 ### FATO_TDI
 
 ```text
-ANO → Número inteiro
+ANO → Numero inteiro
 UF → Texto
 ETAPA → Texto
 REDE → Texto
-TDI → Número decimal
+TDI → Numero decimal
 ```
 
 ### FATO_IDEB
 
 ```text
-ANO → Número inteiro
+ANO → Numero inteiro
 UF → Texto
 ETAPA → Texto
 REDE → Texto
-IDEB → Número decimal
+IDEB → Numero decimal
 ```
 
 ### FATO_SAEB
 
 ```text
-ANO → Número inteiro
+ANO → Numero inteiro
 UF → Texto
 ETAPA → Texto
 REDE → Texto
 DISCIPLINA → Texto
-PROFICIENCIA → Número decimal
+PROFICIENCIA → Numero decimal
 ```
 
 ### FATO_PND
 
 ```text
-ANO → Número inteiro
+ANO → Numero inteiro
 UF_PROVA → Texto
-CO_MUNICIPIO_PROVA → Número inteiro
-CO_GRUPO → Número inteiro
-PROFICIENCIA → Número decimal
-NT_OBJ → Número decimal
-NT_DIS → Número decimal
-NT_GER → Número decimal
-QT_ACERTOS → Número inteiro
+CO_MUNICIPIO_PROVA → Numero inteiro
+CO_GRUPO → Numero inteiro
+PROFICIENCIA → Numero decimal
+NT_OBJ → Numero decimal
+NT_DIS → Numero decimal
+NT_GER → Numero decimal
+QT_ACERTOS → Numero inteiro
 PADRAO_DESEMPENHO → Texto
 ```
 
-Não devem ser adicionadas etapas de conversão no Power Query quando o Parquet já apresentar o tipo correto.
+Nao devem ser adicionadas etapas de conversao no Power Query quando o Parquet ja apresentar o tipo correto.
 
 ---
 
 ## 6. Medidas DAX iniciais
 
-As medidas abaixo formam a primeira camada semântica do dashboard.
+As medidas abaixo formam a primeira camada semantica do dashboard.
 
 ### 6.1 Rendimento Escolar
 
 ```DAX
-Taxa de Aprovação =
+Taxa de Aprovacao =
 CALCULATE(
     AVERAGE(FATO_RENDIMENTO[VALOR]),
     FATO_RENDIMENTO[INDICADOR] = "APROVACAO"
@@ -267,7 +267,7 @@ CALCULATE(
 ```
 
 ```DAX
-Taxa de Reprovação =
+Taxa de Reprovacao =
 CALCULATE(
     AVERAGE(FATO_RENDIMENTO[VALOR]),
     FATO_RENDIMENTO[INDICADOR] = "REPROVACAO"
@@ -282,14 +282,14 @@ CALCULATE(
 )
 ```
 
-Essas medidas utilizam média porque cada linha da fato representa um valor de indicador por UF, ano, etapa e rede. O contexto de filtro do Power BI determina quais registros entram no cálculo.
+Essas medidas utilizam media porque cada linha da fato representa um valor de indicador por UF, ano, etapa e rede. O contexto de filtro do Power BI determina quais registros entram no calculo.
 
 ---
 
 ### 6.2 TDI
 
 ```DAX
-TDI Média =
+TDI Media =
 AVERAGE(FATO_TDI[TDI])
 ```
 
@@ -298,7 +298,7 @@ AVERAGE(FATO_TDI[TDI])
 ### 6.3 IDEB
 
 ```DAX
-IDEB Médio =
+IDEB Medio =
 AVERAGE(FATO_IDEB[IDEB])
 ```
 
@@ -307,12 +307,12 @@ AVERAGE(FATO_IDEB[IDEB])
 ### 6.4 SAEB
 
 ```DAX
-Proficiência Média SAEB =
+Proficiencia Media SAEB =
 AVERAGE(FATO_SAEB[PROFICIENCIA])
 ```
 
 ```DAX
-Proficiência Média LP =
+Proficiencia Media LP =
 CALCULATE(
     AVERAGE(FATO_SAEB[PROFICIENCIA]),
     FATO_SAEB[DISCIPLINA] = "LP"
@@ -320,7 +320,7 @@ CALCULATE(
 ```
 
 ```DAX
-Proficiência Média MT =
+Proficiencia Media MT =
 CALCULATE(
     AVERAGE(FATO_SAEB[PROFICIENCIA]),
     FATO_SAEB[DISCIPLINA] = "MT"
@@ -331,9 +331,9 @@ CALCULATE(
 
 ### 6.5 PND 2025
 
-Cada linha da `FATO_PND` representa um registro individual válido da prova.
+Cada linha da `FATO_PND` representa um registro individual valido da prova.
 
-Por isso, a quantidade de participantes no contexto selecionado é calculada por contagem de linhas:
+Por isso, a quantidade de participantes no contexto selecionado e calculada por contagem de linhas:
 
 ```DAX
 Participantes PND =
@@ -341,26 +341,26 @@ COUNTROWS(FATO_PND)
 ```
 
 ```DAX
-Nota Objetiva Média =
+Nota Objetiva Media =
 AVERAGE(FATO_PND[NT_OBJ])
 ```
 
 ```DAX
-Nota Discursiva Média =
+Nota Discursiva Media =
 AVERAGE(FATO_PND[NT_DIS])
 ```
 
 ```DAX
-Nota Geral Média =
+Nota Geral Media =
 AVERAGE(FATO_PND[NT_GER])
 ```
 
 ```DAX
-Média de Acertos =
+Media de Acertos =
 AVERAGE(FATO_PND[QT_ACERTOS])
 ```
 
-### Padrão oficial de desempenho
+### Padrao oficial de desempenho
 
 A Gold materializa `PADRAO_DESEMPENHO` com base nos pontos de corte oficiais do Inep aplicados a `NT_OBJ`:
 
@@ -373,7 +373,7 @@ NT_OBJ >= 70          → PADRAO_2
 Assim:
 
 ```DAX
-Não Proficientes =
+Nao Proficientes =
 CALCULATE(
     COUNTROWS(FATO_PND),
     FATO_PND[PADRAO_DESEMPENHO] = "NAO_PROFICIENTE"
@@ -381,7 +381,7 @@ CALCULATE(
 ```
 
 ```DAX
-Padrão 1 =
+Padrao 1 =
 CALCULATE(
     COUNTROWS(FATO_PND),
     FATO_PND[PADRAO_DESEMPENHO] = "PADRAO_1"
@@ -389,7 +389,7 @@ CALCULATE(
 ```
 
 ```DAX
-Padrão 2 =
+Padrao 2 =
 CALCULATE(
     COUNTROWS(FATO_PND),
     FATO_PND[PADRAO_DESEMPENHO] = "PADRAO_2"
@@ -398,7 +398,7 @@ CALCULATE(
 
 ```DAX
 Proficientes =
-[Padrão 1] + [Padrão 2]
+[Padrao 1] + [Padrao 2]
 ```
 
 ```DAX
@@ -410,38 +410,56 @@ DIVIDE(
 ```
 
 ```DAX
-% Não Proficientes =
+% Nao Proficientes =
 DIVIDE(
-    [Não Proficientes],
+    [Nao Proficientes],
     [Participantes PND]
 )
 ```
 
-Os percentuais não são materializados na Gold porque dependem do contexto de filtro aplicado no Power BI.
+```DAX
+% Padrao 1 =
+DIVIDE(
+    [Padrao 1],
+    [Participantes PND]
+)
+```
+
+```DAX
+% Padrao 2 =
+DIVIDE(
+    [Padrao 2],
+    [Participantes PND]
+)
+```
+
+Os percentuais nao sao materializados na Gold porque dependem do contexto de filtro aplicado no Power BI.
 
 ---
 
-## 7. Formatação recomendada
+## 7. Formatacao recomendada
 
 Medidas percentuais:
 
 ```text
-Taxa de Aprovação
-Taxa de Reprovação
+Taxa de Aprovacao
+Taxa de Reprovacao
 Taxa de Abandono
-TDI Média
+TDI Media
 ```
 
-devem ser exibidas como número decimal com uma ou duas casas, e não como percentual do Power BI, porque os valores já estão armazenados na escala 0–100.
+devem ser exibidas como numero decimal com uma ou duas casas, e nao como percentual do Power BI, porque os valores ja estao armazenados na escala 0–100.
 
 As medidas:
 
 ```text
 % Proficientes
-% Não Proficientes
+% Nao Proficientes
+% Padrao 1
+% Padrao 2
 ```
 
-são razões entre 0 e 1 e devem ser formatadas no Power BI como percentual.
+sao razoes entre 0 e 1 e devem ser formatadas no Power BI como percentual.
 
 IDEB:
 
@@ -460,8 +478,8 @@ PND:
 ```text
 NT_OBJ / NT_GER → 1 ou 2 casas
 NT_DIS → 1 ou 2 casas
-Média de Acertos → 1 ou 2 casas
-Participantes → número inteiro com separador de milhar
+Media de Acertos → 1 ou 2 casas
+Participantes → numero inteiro com separador de milhar
 ```
 
 ---
@@ -480,27 +498,196 @@ deve ser classificada por:
 DIM_ETAPA[ORDEM_ETAPA]
 ```
 
-Isso garante a ordem analítica:
+Isso garante a ordem analitica:
 
 ```text
 ANOS_INICIAIS
 ANOS_FINAIS
 ```
 
-em segmentações e gráficos.
+em segmentacoes e graficos.
 
 ---
 
-## 9. Próxima etapa
+## 9. Medida de apoio
 
-Após criar e validar as medidas-base, serão implementadas separadamente as medidas de:
+A medida abaixo e usada em paginas que comparam IDEB e SAEB, restringindo a visualizacao aos anos em que os dois indicadores possuem dado no contexto selecionado:
 
-```text
-variação temporal
-primeiro e último ano selecionado
-diferença entre períodos
+```DAX
+Ano de Avaliacao Disponivel =
+VAR TemIDEB =
+    NOT ISBLANK([IDEB Medio])
+VAR TemSAEB =
+    NOT ISBLANK([Proficiencia Media SAEB])
+RETURN
+    IF(TemIDEB && TemSAEB, 1, 0)
 ```
 
-Essa etapa será documentada antes da implementação porque IDEB e SAEB possuem apenas anos bienais, enquanto Rendimento e TDI possuem séries anuais.
+## 10. Variacoes temporais
 
-A lógica temporal não deve assumir que todas as fatos possuem observação em todos os anos.
+As medidas de variacao temporal calculam a diferenca absoluta entre o ultimo e o primeiro ano com dado dentro do intervalo selecionado. A logica nao assume que todas as fatos possuem observacao em todos os anos.
+
+```DAX
+Variacao Aprovacao =
+VAR AnosComDados =
+    FILTER(
+        ALLSELECTED(DIM_TEMPO[ANO]),
+        NOT ISBLANK(CALCULATE([Taxa de Aprovacao]))
+    )
+VAR PrimeiroAno =
+    MINX(AnosComDados, DIM_TEMPO[ANO])
+VAR UltimoAno =
+    MAXX(AnosComDados, DIM_TEMPO[ANO])
+VAR ValorInicial =
+    CALCULATE(
+        [Taxa de Aprovacao],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = PrimeiroAno
+    )
+VAR ValorFinal =
+    CALCULATE(
+        [Taxa de Aprovacao],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = UltimoAno
+    )
+RETURN
+    IF(
+        ISBLANK(PrimeiroAno)
+            || ISBLANK(UltimoAno)
+            || PrimeiroAno = UltimoAno,
+        BLANK(),
+        ValorFinal - ValorInicial
+    )
+```
+
+```DAX
+Variacao IDEB =
+VAR AnosComDados =
+    FILTER(
+        ALLSELECTED(DIM_TEMPO[ANO]),
+        NOT ISBLANK(CALCULATE([IDEB Medio]))
+    )
+VAR PrimeiroAno =
+    MINX(AnosComDados, DIM_TEMPO[ANO])
+VAR UltimoAno =
+    MAXX(AnosComDados, DIM_TEMPO[ANO])
+VAR ValorInicial =
+    CALCULATE(
+        [IDEB Medio],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = PrimeiroAno
+    )
+VAR ValorFinal =
+    CALCULATE(
+        [IDEB Medio],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = UltimoAno
+    )
+RETURN
+    IF(
+        ISBLANK(PrimeiroAno)
+            || ISBLANK(UltimoAno)
+            || PrimeiroAno = UltimoAno,
+        BLANK(),
+        ValorFinal - ValorInicial
+    )
+```
+
+```DAX
+Variacao SAEB Matematica =
+VAR AnosComDados =
+    FILTER(
+        ALLSELECTED(DIM_TEMPO[ANO]),
+        NOT ISBLANK(CALCULATE([Proficiencia Media MT]))
+    )
+VAR PrimeiroAno =
+    MINX(AnosComDados, DIM_TEMPO[ANO])
+VAR UltimoAno =
+    MAXX(AnosComDados, DIM_TEMPO[ANO])
+VAR ValorInicial =
+    CALCULATE(
+        [Proficiencia Media MT],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = PrimeiroAno
+    )
+VAR ValorFinal =
+    CALCULATE(
+        [Proficiencia Media MT],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = UltimoAno
+    )
+RETURN
+    IF(
+        ISBLANK(PrimeiroAno)
+            || ISBLANK(UltimoAno)
+            || PrimeiroAno = UltimoAno,
+        BLANK(),
+        ValorFinal - ValorInicial
+    )
+```
+
+```DAX
+Variacao SAEB Portugues =
+VAR AnosComDados =
+    FILTER(
+        ALLSELECTED(DIM_TEMPO[ANO]),
+        NOT ISBLANK(CALCULATE([Proficiencia Media LP]))
+    )
+VAR PrimeiroAno =
+    MINX(AnosComDados, DIM_TEMPO[ANO])
+VAR UltimoAno =
+    MAXX(AnosComDados, DIM_TEMPO[ANO])
+VAR ValorInicial =
+    CALCULATE(
+        [Proficiencia Media LP],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = PrimeiroAno
+    )
+VAR ValorFinal =
+    CALCULATE(
+        [Proficiencia Media LP],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = UltimoAno
+    )
+RETURN
+    IF(
+        ISBLANK(PrimeiroAno)
+            || ISBLANK(UltimoAno)
+            || PrimeiroAno = UltimoAno,
+        BLANK(),
+        ValorFinal - ValorInicial
+    )
+```
+
+```DAX
+Variacao TDI =
+VAR AnosComDados =
+    FILTER(
+        ALLSELECTED(DIM_TEMPO[ANO]),
+        NOT ISBLANK(CALCULATE([TDI Media]))
+    )
+VAR PrimeiroAno =
+    MINX(AnosComDados, DIM_TEMPO[ANO])
+VAR UltimoAno =
+    MAXX(AnosComDados, DIM_TEMPO[ANO])
+VAR ValorInicial =
+    CALCULATE(
+        [TDI Media],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = PrimeiroAno
+    )
+VAR ValorFinal =
+    CALCULATE(
+        [TDI Media],
+        REMOVEFILTERS(DIM_TEMPO[ANO]),
+        DIM_TEMPO[ANO] = UltimoAno
+    )
+RETURN
+    IF(
+        ISBLANK(PrimeiroAno)
+            || ISBLANK(UltimoAno)
+            || PrimeiroAno = UltimoAno,
+        BLANK(),
+        ValorFinal - ValorInicial
+    )
+```

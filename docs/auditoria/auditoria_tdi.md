@@ -1,31 +1,31 @@
-# Auditoria das Fontes — Taxa de Distorção Idade-Série (TDI)
+﻿# Auditoria das Fontes — Taxa de Distorcao Idade-Serie (TDI)
 
 ## 1. Objetivo
 
-Este documento registra a auditoria técnica das fontes da Taxa de Distorção Idade-Série (TDI) utilizadas no projeto.
+Este documento registra a auditoria tecnica das fontes da Taxa de Distorcao Idade-Serie (TDI) utilizadas no projeto.
 
-A auditoria foi realizada antes da implementação definitiva do pipeline com os objetivos de:
+A auditoria foi realizada antes da implementacao definitiva do pipeline com os objetivos de:
 
-- identificar a estrutura histórica dos arquivos;
+- identificar a estrutura historica dos arquivos;
 - verificar a cobertura temporal;
-- confirmar a presença das 27 Unidades da Federação;
-- identificar as categorias de localização e dependência administrativa;
-- verificar a disponibilidade do agregado oficial da rede pública;
-- confirmar a existência de resultados consolidados para Anos Iniciais e Anos Finais;
-- identificar mudanças de nomenclatura e estrutura entre as diferentes edições;
+- confirmar a presenca das 27 Unidades da Federacao;
+- identificar as categorias de localizacao e dependencia administrativa;
+- verificar a disponibilidade do agregado oficial da rede publica;
+- confirmar a existencia de resultados consolidados para Anos Iniciais e Anos Finais;
+- identificar mudancas de nomenclatura e estrutura entre as diferentes edicoes;
 - verificar duplicidades e valores ausentes no recorte pretendido.
 
-O período considerado pelo projeto é:
+O periodo considerado pelo projeto e:
 
 2007–2023
 
-O recorte analítico pretendido considera:
+O recorte analitico pretendido considera:
 
 - Ensino Fundamental — Anos Iniciais;
 - Ensino Fundamental — Anos Finais;
-- nível geográfico de Unidade da Federação;
-- rede pública;
-- localização total.
+- nivel geografico de Unidade da Federacao;
+- rede publica;
+- localizacao total.
 
 ---
 
@@ -35,7 +35,7 @@ Foram identificados 17 arquivos, correspondentes aos anos de 2007 a 2023.
 
 Todos os arquivos apresentaram internamente o ano esperado.
 
-A série auditada compreende:
+A serie auditada compreende:
 
 2007
 2008
@@ -57,24 +57,24 @@ A série auditada compreende:
 
 ---
 
-## 3. Estrutura histórica das fontes
+## 3. Estrutura historica das fontes
 
-A estrutura dos arquivos sofreu alterações ao longo da série.
+A estrutura dos arquivos sofreu alteracoes ao longo da serie.
 
 ### 2007–2010
 
-Os arquivos apresentam dimensões como:
+Os arquivos apresentam dimensoes como:
 
 Ano
-Região
+Regiao
 UF
-Localização
+Localizacao
 Rede
 
-Nos anos iniciais, os agregados das etapas aparecem associados às denominações:
+Nos anos iniciais, os agregados das etapas aparecem associados as denominacoes:
 
-1ª a 4ª Série / 1º ao 5º Ano
-5ª a 8ª Série / 6º ao 9º Ano
+1ª a 4ª Serie / 1º ao 5º Ano
+5ª a 8ª Serie / 6º ao 9º Ano
 
 Esses campos correspondem, respectivamente, aos Anos Iniciais e aos Anos Finais do Ensino Fundamental.
 
@@ -85,40 +85,40 @@ Os arquivos passam a apresentar de forma mais direta os campos:
 1º ao 5º Ano
 6º ao 9º Ano
 
-Além dos resultados por ano escolar.
+Alem dos resultados por ano escolar.
 
 ### 2015
 
-O arquivo apresenta uma mudança específica na identificação geográfica, utilizando:
+O arquivo apresenta uma mudanca especifica na identificacao geografica, utilizando:
 
-Código da UF
+Codigo da UF
 Sigla da UF
 
-Para o projeto, a coluna de sigla da UF é a mais adequada para padronização geográfica.
+Para o projeto, a coluna de sigla da UF e a mais adequada para padronizacao geografica.
 
 ### 2016
 
-A identificação geográfica passa a utilizar o nome completo da UF.
+A identificacao geografica passa a utilizar o nome completo da UF.
 
-Também ocorre a substituição da dimensão:
+Tambem ocorre a substituicao da dimensao:
 
 Rede
 
 por:
 
-Dependência Administrativa
+Dependencia Administrativa
 
 ### 2017–2023
 
 Os arquivos passam a reunir em uma mesma planilha:
 
 Brasil
-Regiões Geográficas
-Unidades da Federação
+Regioes Geograficas
+Unidades da Federacao
 
-Consequentemente, o pipeline deverá realizar filtro explícito das 27 UFs.
+Consequentemente, o pipeline devera realizar filtro explicito das 27 UFs.
 
-A partir de 2019, também ocorre mudança nos nomes técnicos das colunas.
+A partir de 2019, tambem ocorre mudanca nos nomes tecnicos das colunas.
 
 Exemplos:
 
@@ -132,7 +132,7 @@ FUN_AF_CAT_0
 
 ---
 
-## 4. Localização
+## 4. Localizacao
 
 Em todos os anos foram encontradas as categorias:
 
@@ -140,15 +140,15 @@ Rural
 Total
 Urbana
 
-Para o recorte analítico do projeto será utilizada:
+Para o recorte analitico do projeto sera utilizada:
 
-Localização = Total
+Localizacao = Total
 
-Dessa forma, os resultados representam a totalidade da UF, sem restrição apenas às áreas urbanas ou rurais.
+Dessa forma, os resultados representam a totalidade da UF, sem restricao apenas as areas urbanas ou rurais.
 
 ---
 
-## 5. Dependência administrativa
+## 5. Dependencia administrativa
 
 As fontes apresentam categorias como:
 
@@ -156,10 +156,10 @@ Federal
 Estadual
 Municipal
 Privada / Particular
-Pública / Publico
+Publica / Publico
 Total
 
-A auditoria confirmou a existência de uma categoria agregada oficial de rede pública durante toda a série de 2007 a 2023.
+A auditoria confirmou a existencia de uma categoria agregada oficial de rede publica durante toda a serie de 2007 a 2023.
 
 Nos anos mais antigos aparece:
 
@@ -167,44 +167,44 @@ Publico
 
 Nos arquivos posteriores aparece:
 
-Pública
+Publica
 
-Essa diferença será tratada apenas na etapa de padronização.
+Essa diferenca sera tratada apenas na etapa de padronizacao.
 
-Os arquivos raw permanecerão inalterados.
+Os arquivos raw permanecerao inalterados.
 
 ---
 
-## 6. Cobertura das Unidades da Federação
+## 6. Cobertura das Unidades da Federacao
 
-Foi verificada a presença das 27 Unidades da Federação em todos os anos da série.
+Foi verificada a presenca das 27 Unidades da Federacao em todos os anos da serie.
 
 Resultado:
 
 2007–2023:
 27 / 27 UFs
 
-Não foram identificadas UFs ausentes no recorte analisado.
+Nao foram identificadas UFs ausentes no recorte analisado.
 
 ---
 
-## 7. Rede pública e localização total
+## 7. Rede publica e localizacao total
 
-Foi testada especificamente a combinação:
+Foi testada especificamente a combinacao:
 
-Rede = Pública
-Localização = Total
+Rede = Publica
+Localizacao = Total
 
-considerando as variações textuais:
+considerando as variacoes textuais:
 
 Publico
-Pública
+Publica
 
 Em todos os 17 anos foram encontrados:
 
 27 / 27 UFs
 
-Não foram identificadas duplicidades.
+Nao foram identificadas duplicidades.
 
 Portanto, existe exatamente um registro pertinente ao recorte para cada UF e ano.
 
@@ -217,55 +217,55 @@ A TDI disponibiliza resultados consolidados para:
 Anos Iniciais
 Anos Finais
 
-Nos arquivos mais antigos, essas etapas aparecem vinculadas às nomenclaturas históricas:
+Nos arquivos mais antigos, essas etapas aparecem vinculadas as nomenclaturas historicas:
 
-1ª a 4ª Série / 1º ao 5º Ano
+1ª a 4ª Serie / 1º ao 5º Ano
 
 e:
 
-5ª a 8ª Série / 6º ao 9º Ano
+5ª a 8ª Serie / 6º ao 9º Ano
 
 Nos arquivos posteriores, passam a ser apresentadas diretamente como:
 
 Anos Iniciais
 Anos Finais
 
-O pipeline deverá padronizar essas diferentes denominações em uma única dimensão de etapa de ensino.
+O pipeline devera padronizar essas diferentes denominacoes em uma unica dimensao de etapa de ensino.
 
 ---
 
 ## 9. Cobertura dos indicadores
 
-Para a combinação:
+Para a combinacao:
 
 27 UFs
-Rede Pública
-Localização Total
+Rede Publica
+Localizacao Total
 
-foram encontrados resultados válidos para as duas etapas em todos os anos entre 2007 e 2023.
+foram encontrados resultados validos para as duas etapas em todos os anos entre 2007 e 2023.
 
 Em todos os anos:
 
 Anos Iniciais:
-27 valores válidos
+27 valores validos
 0 ausentes
 
 Anos Finais:
-27 valores válidos
+27 valores validos
 0 ausentes
 
-Não foram identificadas lacunas na série utilizada pelo projeto.
+Nao foram identificadas lacunas na serie utilizada pelo projeto.
 
 ---
 
 ## 10. Duplicidades
 
-Foi verificada a existência de registros duplicados para a chave lógica:
+Foi verificada a existencia de registros duplicados para a chave logica:
 
 Ano
 UF
-Rede Pública
-Localização Total
+Rede Publica
+Localizacao Total
 
 Resultado:
 
@@ -275,66 +275,66 @@ Nenhuma duplicidade encontrada entre 2007 e 2023.
 
 ## 11. Valores ausentes
 
-Algumas categorias secundárias das fontes utilizam representações como:
+Algumas categorias secundarias das fontes utilizam representacoes como:
 
 --
 -
 
-para indicar ausência ou indisponibilidade de resultados.
+para indicar ausencia ou indisponibilidade de resultados.
 
-Esses valores não devem ser interpretados como zero.
+Esses valores nao devem ser interpretados como zero.
 
-Na transformação deverão ser convertidos para valores ausentes.
+Na transformacao deverao ser convertidos para valores ausentes.
 
 No recorte efetivamente utilizado pelo projeto:
 
-Rede Pública
-Localização Total
+Rede Publica
+Localizacao Total
 Anos Iniciais
 Anos Finais
 
-não foram encontrados valores ausentes.
+nao foram encontrados valores ausentes.
 
 ---
 
 ## 12. Faixa dos valores
 
-A auditoria também verificou os valores mínimos e máximos encontrados em cada edição.
+A auditoria tambem verificou os valores minimos e maximos encontrados em cada edicao.
 
 Os resultados permaneceram dentro da escala esperada para uma taxa percentual.
 
-Essa verificação funcionará futuramente como uma validação adicional do pipeline.
+Essa verificacao funcionara futuramente como uma validacao adicional do pipeline.
 
-A regra de qualidade poderá considerar:
+A regra de qualidade podera considerar:
 
 0 <= TDI <= 100
 
 ---
 
-## 13. Ausência de necessidade de reconstrução
+## 13. Ausencia de necessidade de reconstrucao
 
-A própria fonte disponibiliza diretamente os resultados consolidados para:
+A propria fonte disponibiliza diretamente os resultados consolidados para:
 
 UF
-Rede Pública
-Localização Total
+Rede Publica
+Localizacao Total
 Anos Iniciais
 Anos Finais
 
-Portanto, não será necessário:
+Portanto, nao sera necessario:
 
-- agregar municípios;
+- agregar municipios;
 - agregar escolas;
-- calcular médias das séries individuais;
-- reconstruir a rede pública a partir de Federal, Estadual e Municipal.
+- calcular medias das series individuais;
+- reconstruir a rede publica a partir de Federal, Estadual e Municipal.
 
-O pipeline utilizará diretamente o agregado oficial disponibilizado pela fonte.
+O pipeline utilizara diretamente o agregado oficial disponibilizado pela fonte.
 
 ---
 
 ## 14. Estrutura padronizada pretendida
 
-A tabela final da TDI poderá adotar a seguinte estrutura:
+A tabela final da TDI podera adotar a seguinte estrutura:
 
 ANO
 UF
@@ -353,11 +353,11 @@ Considerando:
 
 17 anos × 27 UFs × 2 etapas
 
-a tabela completa deverá possuir:
+a tabela completa devera possuir:
 
 918 registros
 
-caso o recorte definitivo permaneça inalterado.
+caso o recorte definitivo permaneca inalterado.
 
 ---
 
@@ -366,66 +366,66 @@ caso o recorte definitivo permaneça inalterado.
 A auditoria indica as seguintes regras futuras:
 
 1. Identificar e validar o ano interno de cada arquivo.
-2. Reconhecer as diferentes estruturas históricas.
-3. Identificar corretamente a coluna geográfica utilizada em cada edição.
+2. Reconhecer as diferentes estruturas historicas.
+3. Identificar corretamente a coluna geografica utilizada em cada edicao.
 4. Padronizar siglas e nomes completos das UFs.
-5. Selecionar somente as 27 Unidades da Federação.
-6. Excluir Brasil e regiões geográficas quando presentes.
-7. Selecionar Localização = Total.
-8. Selecionar Rede = Pública.
-9. Normalizar Publico/Pública.
+5. Selecionar somente as 27 Unidades da Federacao.
+6. Excluir Brasil e regioes geograficas quando presentes.
+7. Selecionar Localizacao = Total.
+8. Selecionar Rede = Publica.
+9. Normalizar Publico/Publica.
 10. Utilizar diretamente os agregados de Anos Iniciais e Anos Finais.
 11. Converter "-" e "--" em valores ausentes.
 12. Transformar os dados para formato longo.
-13. Validar presença das 27 UFs.
-14. Validar ausência de duplicidades.
-15. Validar ausência de valores ausentes no recorte esperado.
+13. Validar presenca das 27 UFs.
+14. Validar ausencia de duplicidades.
+15. Validar ausencia de valores ausentes no recorte esperado.
 16. Validar que os valores estejam entre 0 e 100.
 
-Essas regras somente serão incorporadas ao pipeline produtivo após a conclusão das auditorias restantes.
+Essas regras somente serao incorporadas ao pipeline produtivo apos a conclusao das auditorias restantes.
 
 ---
 
-## 16. Avisos técnicos de leitura
+## 16. Avisos tecnicos de leitura
 
 Alguns arquivos XLSX geraram o aviso do openpyxl:
 
 Cannot parse header or footer so it will be ignored
 
-O aviso está relacionado aos metadados de impressão das planilhas e não impediu a leitura das tabelas.
+O aviso esta relacionado aos metadados de impressao das planilhas e nao impediu a leitura das tabelas.
 
-Os dados, dimensões e valores utilizados pela auditoria foram carregados normalmente.
+Os dados, dimensoes e valores utilizados pela auditoria foram carregados normalmente.
 
 ---
 
-## 17. Conclusão
+## 17. Conclusao
 
-A auditoria confirmou que as fontes da Taxa de Distorção Idade-Série são adequadas para a série histórica proposta pelo projeto.
+A auditoria confirmou que as fontes da Taxa de Distorcao Idade-Serie sao adequadas para a serie historica proposta pelo projeto.
 
-Entre 2007 e 2023 existe cobertura completa das 27 Unidades da Federação para:
+Entre 2007 e 2023 existe cobertura completa das 27 Unidades da Federacao para:
 
-- rede pública;
-- localização total;
+- rede publica;
+- localizacao total;
 - Anos Iniciais;
 - Anos Finais.
 
-Não foram identificadas duplicidades nem valores ausentes no recorte utilizado.
+Nao foram identificadas duplicidades nem valores ausentes no recorte utilizado.
 
-Também não será necessário reconstruir o agregado público nem calcular resultados a partir de níveis geográficos ou séries individuais.
+Tambem nao sera necessario reconstruir o agregado publico nem calcular resultados a partir de niveis geograficos ou series individuais.
 
-A auditoria estrutural da TDI está, portanto, concluída.
+A auditoria estrutural da TDI esta, portanto, concluida.
 
-Permanece pendente apenas a definição metodológica transversal do conceito de rede pública, que será consolidada após a auditoria dos demais indicadores.
+Permanece pendente apenas a definicao metodologica transversal do conceito de rede publica, que sera consolidada apos a auditoria dos demais indicadores.
 
 ---
 
-## Histórico de atualização
+## Historico de atualizacao
 
-| Data | Alteração |
+| Data | Alteracao |
 |---|---|
-| 18/08/2026 | Primeira versão da auditoria técnica |
+| 18/08/2026 | Primeira versao da auditoria tecnica |
 | 18/08/2026 | Confirmada cobertura das 27 UFs entre 2007 e 2023 |
-| 18/08/2026 | Confirmado agregado oficial da rede pública |
+| 18/08/2026 | Confirmado agregado oficial da rede publica |
 | 18/08/2026 | Confirmada cobertura completa de Anos Iniciais e Anos Finais |
-| 18/08/2026 | Confirmada ausência de duplicidades e valores ausentes |
-| A definir | Atualização após definição metodológica conjunta da rede pública |
+| 18/08/2026 | Confirmada ausencia de duplicidades e valores ausentes |
+| A definir | Atualizacao apos definicao metodologica conjunta da rede publica |

@@ -1,21 +1,21 @@
-# Auditoria das Fontes — IDEB
+﻿# Auditoria das Fontes — IDEB
 
 ## 1. Objetivo
 
-Este documento registra a auditoria técnica da fonte do **Índice de Desenvolvimento da Educação Básica (IDEB)** utilizada no projeto.
+Este documento registra a auditoria tecnica da fonte do **Indice de Desenvolvimento da Educacao Basica (IDEB)** utilizada no projeto.
 
-A auditoria foi realizada antes da definição das regras finais de transformação do pipeline, com os seguintes objetivos:
+A auditoria foi realizada antes da definicao das regras finais de transformacao do pipeline, com os seguintes objetivos:
 
 * identificar a estrutura do arquivo oficial disponibilizado pelo Inep;
-* verificar o nível geográfico dos dados;
-* identificar as etapas de ensino disponíveis;
+* verificar o nivel geografico dos dados;
+* identificar as etapas de ensino disponiveis;
 * analisar as categorias de rede;
-* verificar a cobertura temporal da série histórica;
-* identificar particularidades metodológicas registradas pelo próprio Inep;
-* confirmar a presença das 27 Unidades da Federação;
-* verificar a existência de resultados da rede pública para todos os anos do recorte do projeto.
+* verificar a cobertura temporal da serie historica;
+* identificar particularidades metodologicas registradas pelo proprio Inep;
+* confirmar a presenca das 27 Unidades da Federacao;
+* verificar a existencia de resultados da rede publica para todos os anos do recorte do projeto.
 
-O projeto utiliza o período:
+O projeto utiliza o periodo:
 
 ```text
 2007–2023
@@ -25,14 +25,14 @@ e contempla somente:
 
 * Ensino Fundamental — Anos Iniciais;
 * Ensino Fundamental — Anos Finais;
-* resultados em nível de Unidade Federativa;
-* rede pública.
+* resultados em nivel de Unidade Federativa;
+* rede publica.
 
-> **Status deste documento:** auditoria estrutural concluída. A utilização definitiva da categoria de rede pública será consolidada após a auditoria conjunta de SAEB, Rendimento Escolar e TDI.
+> **Status deste documento:** auditoria estrutural concluida. A utilizacao definitiva da categoria de rede publica sera consolidada apos a auditoria conjunta de SAEB, Rendimento Escolar e TDI.
 
 ---
 
-# 2. Fonte disponível
+# 2. Fonte disponivel
 
 Arquivo original:
 
@@ -40,16 +40,16 @@ Arquivo original:
 data/raw/ideb/divulgacao_regioes_ufs_ideb.xlsx
 ```
 
-O arquivo foi disponibilizado pelo **Ministério da Educação / Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (Inep)**.
+O arquivo foi disponibilizado pelo **Ministerio da Educacao / Instituto Nacional de Estudos e Pesquisas Educacionais Anisio Teixeira (Inep)**.
 
-A planilha reúne resultados históricos do IDEB e seus componentes.
+A planilha reune resultados historicos do IDEB e seus componentes.
 
-Foram identificadas três abas:
+Foram identificadas tres abas:
 
 ```text
-UF e Regiões (AI)
-UF e Regiões (AF)
-UF e Regiões (EM)
+UF e Regioes (AI)
+UF e Regioes (AF)
+UF e Regioes (EM)
 ```
 
 Correspondentes a:
@@ -57,10 +57,10 @@ Correspondentes a:
 ```text
 AI → Ensino Fundamental Regular - Anos Iniciais
 AF → Ensino Fundamental Regular - Anos Finais
-EM → Ensino Médio Regular
+EM → Ensino Medio Regular
 ```
 
-A aba de Ensino Médio não integra o recorte deste projeto.
+A aba de Ensino Medio nao integra o recorte deste projeto.
 
 ---
 
@@ -81,13 +81,13 @@ O arquivo apresenta resultados para:
 2023
 ```
 
-Embora 2005 esteja disponível na fonte original, a série histórica adotada pelo projeto começa em:
+Embora 2005 esteja disponivel na fonte original, a serie historica adotada pelo projeto comeca em:
 
 ```text
 2007
 ```
 
-Portanto, os anos utilizados serão:
+Portanto, os anos utilizados serao:
 
 ```text
 2007
@@ -105,23 +105,23 @@ Portanto, os anos utilizados serão:
 
 # 4. Estrutura da fonte
 
-O arquivo possui cabeçalho multinível, seguido por uma linha com os nomes técnicos das variáveis.
+O arquivo possui cabecalho multinivel, seguido por uma linha com os nomes tecnicos das variaveis.
 
-Além do IDEB, a planilha disponibiliza seus componentes históricos.
+Alem do IDEB, a planilha disponibiliza seus componentes historicos.
 
 Entre eles:
 
 ```text
-Taxa de Aprovação
+Taxa de Aprovacao
 Indicador de Rendimento (P)
-Nota SAEB - Matemática
-Nota SAEB - Língua Portuguesa
-Nota Média Padronizada (N)
+Nota SAEB - Matematica
+Nota SAEB - Lingua Portuguesa
+Nota Media Padronizada (N)
 IDEB observado
 Metas do IDEB
 ```
 
-Os nomes técnicos incluem padrões como:
+Os nomes tecnicos incluem padroes como:
 
 ```text
 VL_APROVACAO_2007_*
@@ -136,7 +136,7 @@ VL_OBSERVADO_2007
 
 e equivalentes para os demais anos.
 
-Para a tabela de IDEB propriamente dita, as variáveis centrais do projeto são:
+Para a tabela de IDEB propriamente dita, as variaveis centrais do projeto sao:
 
 ```text
 VL_OBSERVADO_2007
@@ -159,7 +159,7 @@ VL_OBSERVADO_2023
 A aba:
 
 ```text
-UF e Regiões (AI)
+UF e Regioes (AI)
 ```
 
 corresponde a:
@@ -168,13 +168,13 @@ corresponde a:
 Ensino Fundamental Regular - Anos Iniciais
 ```
 
-A fonte apresenta taxas de aprovação do:
+A fonte apresenta taxas de aprovacao do:
 
 ```text
 1º ao 5º ano
 ```
 
-além do Indicador de Rendimento, das notas SAEB e do IDEB.
+alem do Indicador de Rendimento, das notas SAEB e do IDEB.
 
 ---
 
@@ -183,7 +183,7 @@ além do Indicador de Rendimento, das notas SAEB e do IDEB.
 A aba:
 
 ```text
-UF e Regiões (AF)
+UF e Regioes (AF)
 ```
 
 corresponde a:
@@ -192,24 +192,24 @@ corresponde a:
 Ensino Fundamental Regular - Anos Finais
 ```
 
-A fonte apresenta taxas de aprovação do:
+A fonte apresenta taxas de aprovacao do:
 
 ```text
 6º ao 9º ano
 ```
 
-além do Indicador de Rendimento, das notas SAEB e do IDEB.
+alem do Indicador de Rendimento, das notas SAEB e do IDEB.
 
 ---
 
-# 6. Nível geográfico
+# 6. Nivel geografico
 
 A primeira coluna da planilha combina:
 
-* regiões geográficas;
-* Unidades da Federação.
+* regioes geograficas;
+* Unidades da Federacao.
 
-Foram encontradas as cinco regiões:
+Foram encontradas as cinco regioes:
 
 ```text
 Norte
@@ -219,15 +219,15 @@ Sul
 Centro-Oeste
 ```
 
-e as 27 Unidades da Federação.
+e as 27 Unidades da Federacao.
 
-Portanto, o pipeline deverá filtrar explicitamente as UFs, impedindo que resultados regionais sejam incorporados à tabela estadual.
+Portanto, o pipeline devera filtrar explicitamente as UFs, impedindo que resultados regionais sejam incorporados a tabela estadual.
 
 ---
 
-# 7. Padronização dos nomes das UFs
+# 7. Padronizacao dos nomes das UFs
 
-Durante a auditoria foram encontradas três abreviações utilizadas no arquivo oficial:
+Durante a auditoria foram encontradas tres abreviacoes utilizadas no arquivo oficial:
 
 ```text
 R. G. do Norte
@@ -243,37 +243,37 @@ R. G. do Sul   → Rio Grande do Sul
 M. G. do Sul   → Mato Grosso do Sul
 ```
 
-Esses valores deverão ser padronizados na etapa de transformação.
+Esses valores deverao ser padronizados na etapa de transformacao.
 
-Após essa equivalência, foram identificadas corretamente as **27 Unidades da Federação**:
+Apos essa equivalencia, foram identificadas corretamente as **27 Unidades da Federacao**:
 
 ```text
 Acre
 Alagoas
-Amapá
+Amapa
 Amazonas
 Bahia
-Ceará
+Ceara
 Distrito Federal
-Espírito Santo
-Goiás
-Maranhão
+Espirito Santo
+Goias
+Maranhao
 Mato Grosso
 Mato Grosso do Sul
 Minas Gerais
-Paraná
-Paraíba
-Pará
+Parana
+Paraiba
+Para
 Pernambuco
-Piauí
+Piaui
 Rio de Janeiro
 Rio Grande do Norte
 Rio Grande do Sul
-Rondônia
+Rondonia
 Roraima
 Santa Catarina
 Sergipe
-São Paulo
+Sao Paulo
 Tocantins
 ```
 
@@ -281,81 +281,81 @@ Tocantins
 
 # 8. Categorias de rede
 
-A inspeção inicial encontrou os seguintes rótulos nas abas de Anos Iniciais e Anos Finais:
+A inspecao inicial encontrou os seguintes rotulos nas abas de Anos Iniciais e Anos Finais:
 
 ```text
 Total
-Pública
+Publica
 Privada
 Estadual
 
 Total (3)(4)
-Pública (4)
+Publica (4)
 Privada (2)
 Total (4)
 ```
 
-Os rótulos entre parênteses não representam necessariamente redes distintas.
+Os rotulos entre parenteses nao representam necessariamente redes distintas.
 
-Eles remetem às **notas metodológicas registradas pelo Inep no final da planilha**.
+Eles remetem as **notas metodologicas registradas pelo Inep no final da planilha**.
 
-Nas linhas referentes às Unidades da Federação, a categoria de interesse do projeto aparece como:
+Nas linhas referentes as Unidades da Federacao, a categoria de interesse do projeto aparece como:
 
 ```text
-Pública (4)
+Publica (4)
 ```
 
 ---
 
-# 9. Notas metodológicas da fonte
+# 9. Notas metodologicas da fonte
 
-A auditoria das notas de rodapé identificou particularidades relevantes.
+A auditoria das notas de rodape identificou particularidades relevantes.
 
 ## Nota (1)
 
-A fonte informa que determinadas médias do SAEB e resultados do IDEB de 2009 foram calculados somente com escolas urbanas.
+A fonte informa que determinadas medias do SAEB e resultados do IDEB de 2009 foram calculados somente com escolas urbanas.
 
-Essa observação aparece especialmente relacionada a determinados resultados da edição de 2009.
+Essa observacao aparece especialmente relacionada a determinados resultados da edicao de 2009.
 
 ---
 
 ## Nota (2)
 
-A fonte informa que determinadas médias do SAEB e resultados do IDEB de 2009 não foram calculados em razão de perda amostral.
+A fonte informa que determinadas medias do SAEB e resultados do IDEB de 2009 nao foram calculados em razao de perda amostral.
 
-Portanto, eventuais valores ausentes ou marcados com `-` não devem ser convertidos artificialmente em zero.
+Portanto, eventuais valores ausentes ou marcados com `-` nao devem ser convertidos artificialmente em zero.
 
 ---
 
 ## Nota (3)
 
-A fonte informa que determinadas médias do SAEB e resultados do IDEB de 2009 foram calculados sem as escolas privadas.
+A fonte informa que determinadas medias do SAEB e resultados do IDEB de 2009 foram calculados sem as escolas privadas.
 
 ---
 
 ## Nota (4)
 
-A nota apresenta uma particularidade especialmente importante para a definição de rede:
+A nota apresenta uma particularidade especialmente importante para a definicao de rede:
 
-> Médias do SAEB 2011 e Ideb 2011 calculados sem as escolas federais.
+> Medias do SAEB 2011 e Ideb 2011 calculados sem as escolas federais.
 
 Portanto, a categoria:
 
 ```text
-Pública (4)
+Publica (4)
 ```
 
-não deve ser interpretada como uma nova categoria de rede.
+nao deve ser interpretada como uma nova categoria de rede.
 
-O `(4)` registra uma exceção metodológica referente à edição de **2011**, na qual o resultado não inclui escolas federais.
+O `(4)` registra uma excecao metodologica referente a edicao de **2011**, na qual o resultado nao inclui escolas federais.
 
-Essa característica deverá ser preservada e documentada no projeto, em vez de ser corrigida artificialmente.
+Essa caracteristica devera ser preservada e documentada no projeto, em vez de ser corrigida artificialmente.
 
 ---
 
 # 10. Particularidade do IDEB 2021
 
-A fonte também apresenta uma nota específica para a edição de 2021, remetendo à:
+A fonte tambem apresenta uma nota especifica para a edicao de 2021, remetendo a:
 
 ```text
 Nota Informativa do Ideb de 2021
@@ -364,31 +364,31 @@ Nota Informativa do Ideb de 2021
 e ao:
 
 ```text
-Relatório de Resultados do Saeb de 2021
+Relatorio de Resultados do Saeb de 2021
 ```
 
-para informações sobre os impactos da pandemia de COVID-19 nos indicadores.
+para informacoes sobre os impactos da pandemia de COVID-19 nos indicadores.
 
-Essa observação deverá ser mantida na documentação metodológica do projeto.
+Essa observacao devera ser mantida na documentacao metodologica do projeto.
 
-Não será realizada alteração artificial nos valores de 2021.
+Nao sera realizada alteracao artificial nos valores de 2021.
 
 ---
 
-# 11. Verificação da rede pública
+# 11. Verificacao da rede publica
 
-Após a padronização dos nomes das UFs e a exclusão das cinco regiões geográficas, foi realizada uma validação específica das linhas identificadas como rede pública.
+Apos a padronizacao dos nomes das UFs e a exclusao das cinco regioes geograficas, foi realizada uma validacao especifica das linhas identificadas como rede publica.
 
 O filtro considerou:
 
 ```text
-REDE iniciando por "Pública"
+REDE iniciando por "Publica"
 ```
 
 incluindo:
 
 ```text
-Pública (4)
+Publica (4)
 ```
 
 Foram encontradas:
@@ -401,13 +401,13 @@ tanto em Anos Iniciais quanto em Anos Finais.
 
 ---
 
-# 12. Verificação da série histórica
+# 12. Verificacao da serie historica
 
-Foi verificada a disponibilidade do `VL_OBSERVADO` da rede pública em cada edição.
+Foi verificada a disponibilidade do `VL_OBSERVADO` da rede publica em cada edicao.
 
 ## Anos Iniciais
 
-|  Ano | UFs com IDEB válido | UFs sem valor |
+|  Ano | UFs com IDEB valido | UFs sem valor |
 | ---: | ------------------: | ------------: |
 | 2007 |                  27 |             0 |
 | 2009 |                  27 |             0 |
@@ -421,7 +421,7 @@ Foi verificada a disponibilidade do `VL_OBSERVADO` da rede pública em cada edi�
 
 ## Anos Finais
 
-|  Ano | UFs com IDEB válido | UFs sem valor |
+|  Ano | UFs com IDEB valido | UFs sem valor |
 | ---: | ------------------: | ------------: |
 | 2007 |                  27 |             0 |
 | 2009 |                  27 |             0 |
@@ -433,31 +433,31 @@ Foi verificada a disponibilidade do `VL_OBSERVADO` da rede pública em cada edi�
 | 2021 |                  27 |             0 |
 | 2023 |                  27 |             0 |
 
-Portanto, a série utilizada pelo projeto possui cobertura completa das 27 UFs para o IDEB da rede pública nas duas etapas analisadas.
+Portanto, a serie utilizada pelo projeto possui cobertura completa das 27 UFs para o IDEB da rede publica nas duas etapas analisadas.
 
 ---
 
-# 13. Ausência de necessidade de agregação
+# 13. Ausencia de necessidade de agregacao
 
-Diferentemente de fontes em nível escolar, o arquivo do IDEB já disponibiliza o indicador no nível geográfico desejado pelo projeto.
+Diferentemente de fontes em nivel escolar, o arquivo do IDEB ja disponibiliza o indicador no nivel geografico desejado pelo projeto.
 
 Assim:
 
 ```text
-não será necessário calcular média estadual;
-não será necessário ponderar escolas;
-não será necessário reconstruir o IDEB;
+nao sera necessario calcular media estadual;
+nao sera necessario ponderar escolas;
+nao sera necessario reconstruir o IDEB;
 ```
 
-O projeto deverá utilizar diretamente os valores oficiais:
+O projeto devera utilizar diretamente os valores oficiais:
 
 ```text
 VL_OBSERVADO_<ANO>
 ```
 
-da linha correspondente à rede pública de cada UF.
+da linha correspondente a rede publica de cada UF.
 
-Essa escolha evita reconstruir um indicador que já foi oficialmente calculado e divulgado pelo Inep.
+Essa escolha evita reconstruir um indicador que ja foi oficialmente calculado e divulgado pelo Inep.
 
 ---
 
@@ -469,76 +469,76 @@ A fonte utiliza, em determinados pontos, o caractere:
 -
 ```
 
-para indicar ausência de resultado.
+para indicar ausencia de resultado.
 
-Esse símbolo não deverá ser interpretado como:
+Esse simbolo nao devera ser interpretado como:
 
 ```text
 0
 ```
 
-No processo de transformação, deverá ser convertido para valor ausente:
+No processo de transformacao, devera ser convertido para valor ausente:
 
 ```text
 null / NaN
 ```
 
-Embora a auditoria tenha confirmado que o IDEB observado da rede pública possui valores válidos para todas as 27 UFs no recorte 2007–2023, essa regra será mantida como validação geral da fonte.
+Embora a auditoria tenha confirmado que o IDEB observado da rede publica possui valores validos para todas as 27 UFs no recorte 2007–2023, essa regra sera mantida como validacao geral da fonte.
 
 ---
 
-# 15. Relação entre IDEB, SAEB e Rendimento
+# 15. Relacao entre IDEB, SAEB e Rendimento
 
-O arquivo do IDEB também contém informações referentes a:
+O arquivo do IDEB tambem contem informacoes referentes a:
 
 ```text
-Taxa de Aprovação
+Taxa de Aprovacao
 Indicador de Rendimento
 Notas SAEB
 ```
 
-Esses campos fazem parte da composição e documentação do IDEB.
+Esses campos fazem parte da composicao e documentacao do IDEB.
 
-Entretanto, o projeto possui fontes específicas para:
+Entretanto, o projeto possui fontes especificas para:
 
 ```text
 SAEB
 Rendimento Escolar
 ```
 
-Portanto, a existência dessas variáveis dentro da planilha do IDEB não implica automaticamente que elas substituirão as fontes específicas dos respectivos indicadores.
+Portanto, a existencia dessas variaveis dentro da planilha do IDEB nao implica automaticamente que elas substituirao as fontes especificas dos respectivos indicadores.
 
-A decisão sobre qual fonte alimentará cada tabela será realizada somente após a auditoria de todos os conjuntos de dados.
+A decisao sobre qual fonte alimentara cada tabela sera realizada somente apos a auditoria de todos os conjuntos de dados.
 
 ---
 
-# 16. Questão da rede pública
+# 16. Questao da rede publica
 
-A auditoria do IDEB trouxe uma informação relevante para a decisão metodológica geral do projeto.
+A auditoria do IDEB trouxe uma informacao relevante para a decisao metodologica geral do projeto.
 
-A série oficial utiliza a categoria:
+A serie oficial utiliza a categoria:
 
 ```text
-Pública
+Publica
 ```
 
-mas registra uma exceção explícita em 2011:
+mas registra uma excecao explicita em 2011:
 
 ```text
 resultados calculados sem as escolas federais
 ```
 
-Isso demonstra que o universo da série oficial não é necessariamente absolutamente idêntico entre todas as edições.
+Isso demonstra que o universo da serie oficial nao e necessariamente absolutamente identico entre todas as edicoes.
 
-Por essa razão, neste momento não será imposta artificialmente a regra:
+Por essa razao, neste momento nao sera imposta artificialmente a regra:
 
 ```text
-REDE PÚBLICA = FEDERAL + ESTADUAL + MUNICIPAL
+REDE PUBLICA = FEDERAL + ESTADUAL + MUNICIPAL
 ```
 
 para todos os indicadores e todos os anos.
 
-A definição final será realizada somente após a auditoria de:
+A definicao final sera realizada somente apos a auditoria de:
 
 ```text
 SAEB
@@ -547,13 +547,13 @@ Rendimento Escolar
 TDI
 ```
 
-A decisão deverá priorizar comparabilidade, transparência e fidelidade às fontes oficiais.
+A decisao devera priorizar comparabilidade, transparencia e fidelidade as fontes oficiais.
 
 ---
 
 # 17. Estrutura padronizada pretendida
 
-A tabela final de IDEB deverá apresentar uma estrutura longa e padronizada:
+A tabela final de IDEB devera apresentar uma estrutura longa e padronizada:
 
 ```text
 ANO
@@ -572,53 +572,53 @@ Exemplo:
 2009 | MG | PUBLICA | ANOS FINAIS   | ...
 ```
 
-Os nomes das UFs serão padronizados durante a transformação.
+Os nomes das UFs serao padronizados durante a transformacao.
 
 ---
 
 # 18. Regras preliminares identificadas para o futuro pipeline
 
-A auditoria indica que o tratamento do IDEB deverá contemplar:
+A auditoria indica que o tratamento do IDEB devera contemplar:
 
 ```text
 1. Ler somente as abas AI e AF.
 
-2. Ignorar a aba de Ensino Médio.
+2. Ignorar a aba de Ensino Medio.
 
-3. Utilizar a linha de nomes técnicos como cabeçalho.
+3. Utilizar a linha de nomes tecnicos como cabecalho.
 
 4. Padronizar:
    R. G. do Norte → Rio Grande do Norte
    R. G. do Sul   → Rio Grande do Sul
    M. G. do Sul   → Mato Grosso do Sul
 
-5. Excluir as cinco regiões geográficas.
+5. Excluir as cinco regioes geograficas.
 
 6. Manter somente as 27 UFs.
 
-7. Selecionar a rede pública.
+7. Selecionar a rede publica.
 
 8. Converter "-" para valor ausente.
 
 9. Utilizar VL_OBSERVADO_<ANO> como valor do IDEB.
 
-10. Transformar a estrutura horizontal histórica
+10. Transformar a estrutura horizontal historica
     em estrutura longa.
 
 11. Manter somente 2007–2023.
 
-12. Registrar a exceção metodológica de 2011.
+12. Registrar a excecao metodologica de 2011.
 
 13. Documentar a particularidade de 2021.
 ```
 
-Essas regras são preliminares e somente serão incorporadas definitivamente ao pipeline após a conclusão das demais auditorias.
+Essas regras sao preliminares e somente serao incorporadas definitivamente ao pipeline apos a conclusao das demais auditorias.
 
 ---
 
-# 19. Validações previstas
+# 19. Validacoes previstas
 
-Quando o pipeline for implementado, a tabela de IDEB deverá passar por validações automáticas.
+Quando o pipeline for implementado, a tabela de IDEB devera passar por validacoes automaticas.
 
 Entre elas:
 
@@ -627,10 +627,10 @@ Entre elas:
 27 UFs por ano
 2 etapas de ensino
 1 registro por ANO + UF + ETAPA
-ausência de duplicidades
-UF pertencente à lista oficial das 27 UFs
-IDEB dentro de intervalo plausível
-ausências preservadas como null
+ausencia de duplicidades
+UF pertencente a lista oficial das 27 UFs
+IDEB dentro de intervalo plausivel
+ausencias preservadas como null
 ```
 
 Considerando o recorte completo:
@@ -639,13 +639,13 @@ Considerando o recorte completo:
 9 anos × 27 UFs × 2 etapas = 486 registros esperados
 ```
 
-caso todos os valores permaneçam disponíveis após a transformação.
+caso todos os valores permanecam disponiveis apos a transformacao.
 
-A auditoria da fonte já confirmou a existência dos valores necessários para esse conjunto.
+A auditoria da fonte ja confirmou a existencia dos valores necessarios para esse conjunto.
 
 ---
 
-# 20. Conclusão
+# 20. Conclusao
 
 A auditoria confirmou que o arquivo:
 
@@ -653,33 +653,33 @@ A auditoria confirmou que o arquivo:
 divulgacao_regioes_ufs_ideb.xlsx
 ```
 
-é adequado como fonte histórica do IDEB para o projeto.
+e adequado como fonte historica do IDEB para o projeto.
 
-A planilha reúne toda a série necessária em um único arquivo oficial, possui resultados diretamente em nível de Unidade da Federação e apresenta valores da rede pública para todas as 27 UFs em Anos Iniciais e Anos Finais entre 2007 e 2023.
+A planilha reune toda a serie necessaria em um unico arquivo oficial, possui resultados diretamente em nivel de Unidade da Federacao e apresenta valores da rede publica para todas as 27 UFs em Anos Iniciais e Anos Finais entre 2007 e 2023.
 
-Foram identificadas particularidades que deverão ser preservadas no pipeline e na documentação:
+Foram identificadas particularidades que deverao ser preservadas no pipeline e na documentacao:
 
-* presença simultânea de regiões e UFs;
-* abreviações em três nomes de UFs;
-* rótulos de rede acompanhados de notas metodológicas;
-* exceções relativas aos resultados de 2009;
-* exclusão das escolas federais no cálculo de 2011, conforme nota da própria fonte;
-* observação metodológica específica para 2021;
-* representação de alguns valores ausentes por `-`.
+* presenca simultanea de regioes e UFs;
+* abreviacoes em tres nomes de UFs;
+* rotulos de rede acompanhados de notas metodologicas;
+* excecoes relativas aos resultados de 2009;
+* exclusao das escolas federais no calculo de 2011, conforme nota da propria fonte;
+* observacao metodologica especifica para 2021;
+* representacao de alguns valores ausentes por `-`.
 
-Não existe necessidade de reconstruir o IDEB a partir de suas componentes. O projeto poderá utilizar diretamente os valores oficiais observados publicados pelo Inep.
+Nao existe necessidade de reconstruir o IDEB a partir de suas componentes. O projeto podera utilizar diretamente os valores oficiais observados publicados pelo Inep.
 
-A auditoria estrutural do IDEB está, portanto, **concluída**.
+A auditoria estrutural do IDEB esta, portanto, **concluida**.
 
-Permanece pendente apenas a decisão metodológica transversal sobre o conceito de **rede pública**, que será tomada após a auditoria dos demais indicadores históricos.
+Permanece pendente apenas a decisao metodologica transversal sobre o conceito de **rede publica**, que sera tomada apos a auditoria dos demais indicadores historicos.
 
 ---
 
-## Histórico de atualização
+## Historico de atualizacao
 
-| Data       | Alteração                                                        |
+| Data       | Alteracao                                                        |
 | ---------- | ---------------------------------------------------------------- |
-| 18/08/2026 | Primeira versão da auditoria técnica do IDEB                     |
+| 18/08/2026 | Primeira versao da auditoria tecnica do IDEB                     |
 | 18/08/2026 | Confirmada cobertura das 27 UFs em AI e AF, 2007–2023            |
-| A definir  | Atualização após definição metodológica conjunta da rede pública |
+| A definir  | Atualizacao apos definicao metodologica conjunta da rede publica |
 | A definir  | Registro das regras definitivas incorporadas ao pipeline         |

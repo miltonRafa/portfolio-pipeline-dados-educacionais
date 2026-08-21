@@ -1,50 +1,50 @@
-# Camada Bronze — Ingestão dos Dados Educacionais
+﻿# Camada Bronze — Ingestao dos Dados Educacionais
 
 ## 1. Objetivo
 
-A camada Bronze é a primeira camada de dados processados do projeto.
+A camada Bronze e a primeira camada de dados processados do projeto.
 
-Sua função é transformar os arquivos originais armazenados em `data/raw/` em estruturas legíveis e reutilizáveis pelo pipeline, preservando o máximo possível da informação da fonte.
+Sua funcao e transformar os arquivos originais armazenados em `data/raw/` em estruturas legiveis e reutilizaveis pelo pipeline, preservando o maximo possivel da informacao da fonte.
 
-A Bronze não é responsável por harmonizar conceitos entre bases.
+A Bronze nao e responsavel por harmonizar conceitos entre bases.
 
-Portanto, nesta etapa não serão aplicadas decisões analíticas como:
+Portanto, nesta etapa nao serao aplicadas decisoes analiticas como:
 
-- seleção definitiva da rede pública;
-- padronização de etapas de ensino;
-- cálculo de médias por UF;
-- consolidação de categorias;
-- exclusão de registros apenas por não integrarem o recorte analítico final;
-- reconstrução de indicadores;
-- alteração dos valores publicados pela fonte.
+- selecao definitiva da rede publica;
+- padronizacao de etapas de ensino;
+- calculo de medias por UF;
+- consolidacao de categorias;
+- exclusao de registros apenas por nao integrarem o recorte analitico final;
+- reconstrucao de indicadores;
+- alteracao dos valores publicados pela fonte.
 
-Essas transformações pertencem às camadas posteriores.
+Essas transformacoes pertencem as camadas posteriores.
 
 ---
 
-## 2. Relação entre Raw e Bronze
+## 2. Relacao entre Raw e Bronze
 
 ### Raw
 
-A camada Raw contém os arquivos obtidos das fontes oficiais e utilizados como
+A camada Raw contem os arquivos obtidos das fontes oficiais e utilizados como
 insumos do pipeline.
 
-Quando o nome original de um arquivo não identificava claramente o ano de
-referência, ele pôde ser renomeado localmente antes de sua incorporação à pasta
-`data/raw`, exclusivamente para padronização da nomenclatura e melhor
-organização temporal. Essa renomeação não altera o conteúdo, a estrutura ou os
+Quando o nome original de um arquivo nao identificava claramente o ano de
+referencia, ele pode ser renomeado localmente antes de sua incorporacao a pasta
+`data/raw`, exclusivamente para padronizacao da nomenclatura e melhor
+organizacao temporal. Essa renomeacao nao altera o conteudo, a estrutura ou os
 valores do arquivo.
 
-Uma vez incorporado à pasta `data/raw`, o arquivo passa a ser considerado
-imutável.
+Uma vez incorporado a pasta `data/raw`, o arquivo passa a ser considerado
+imutavel.
 
-O pipeline pode ler os arquivos da camada Raw, mas não deve sobrescrevê-los,
-renomeá-los, excluí-los ou modificar seu conteúdo. As transformações realizadas
-pelo pipeline devem gerar novos artefatos nas camadas subsequentes, começando
+O pipeline pode ler os arquivos da camada Raw, mas nao deve sobrescreve-los,
+renomea-los, exclui-los ou modificar seu conteudo. As transformacoes realizadas
+pelo pipeline devem gerar novos artefatos nas camadas subsequentes, comecando
 pela Bronze.
 
-A convenção de nomenclatura e o inventário canônico dos arquivos utilizados
-estão documentados em `docs/fontes_dados.md`.
+A convencao de nomenclatura e o inventario canonico dos arquivos utilizados
+estao documentados em `docs/fontes_dados.md`.
 
 ### Bronze
 
@@ -52,19 +52,19 @@ A pasta:
 
 `data/bronze/`
 
-conterá representações estruturadas dos arquivos originais.
+contera representacoes estruturadas dos arquivos originais.
 
-A Bronze poderá:
+A Bronze podera:
 
 - ler XLS, XLSX, CSV e TXT;
 - identificar explicitamente a aba utilizada;
-- identificar a linha de cabeçalho ou referência estrutural;
+- identificar a linha de cabecalho ou referencia estrutural;
 - converter tecnicamente os dados para DataFrame;
 - remover apenas linhas completamente vazias produzidas pelo layout da planilha;
-- adicionar metadados técnicos de origem;
+- adicionar metadados tecnicos de origem;
 - persistir os resultados em Parquet.
 
-A informação substantiva da fonte deverá ser preservada.
+A informacao substantiva da fonte devera ser preservada.
 
 ---
 
@@ -77,30 +77,30 @@ Os arquivos originais apresentam diferentes formatos:
 - CSV;
 - TXT.
 
-A camada Bronze utilizará preferencialmente o formato:
+A camada Bronze utilizara preferencialmente o formato:
 
 `Parquet`
 
 porque ele:
 
 - preserva tipos de dados de forma mais eficiente que CSV;
-- possui leitura e escrita rápidas;
-- ocupa menos espaço em disco;
-- é adequado para pipelines analíticos;
+- possui leitura e escrita rapidas;
+- ocupa menos espaco em disco;
+- e adequado para pipelines analiticos;
 - funciona bem com Python, Pandas, DuckDB e ferramentas de engenharia de dados;
-- reduz problemas recorrentes de delimitador e codificação encontrados em CSV.
+- reduz problemas recorrentes de delimitador e codificacao encontrados em CSV.
 
-O uso de Parquet na Bronze não altera o significado dos dados.
+O uso de Parquet na Bronze nao altera o significado dos dados.
 
-Ele apenas padroniza o formato técnico de armazenamento.
+Ele apenas padroniza o formato tecnico de armazenamento.
 
 ---
 
 ## 4. Metadados de rastreabilidade
 
-Cada tabela Bronze deverá possuir, quando aplicável, metadados técnicos que permitam rastrear o registro até sua origem.
+Cada tabela Bronze devera possuir, quando aplicavel, metadados tecnicos que permitam rastrear o registro ate sua origem.
 
-Os campos adotados no projeto são:
+Os campos adotados no projeto sao:
 
 - `_fonte`;
 - `_sha256_arquivo`;
@@ -110,7 +110,7 @@ Os campos adotados no projeto são:
 - `_indice_cabecalho_origem`;
 - `_linha_origem`.
 
-Algumas fontes poderão exigir metadados adicionais.
+Algumas fontes poderao exigir metadados adicionais.
 
 No IDEB foi acrescentado:
 
@@ -120,26 +120,26 @@ No SAEB foi acrescentado:
 
 - `_granularidade_origem`.
 
-Na PND 2025 também será utilizado:
+Na PND 2025 tambem sera utilizado:
 
 - `_granularidade_origem`.
 
-No SAEB, esse campo registra a granularidade efetivamente preservada em cada tabela Bronze. Em 2023 coexistem duas tabelas oficiais preservadas separadamente: uma em nível de `ESCOLA` e outra em nível de `UF`.
+No SAEB, esse campo registra a granularidade efetivamente preservada em cada tabela Bronze. Em 2023 coexistem duas tabelas oficiais preservadas separadamente: uma em nivel de `ESCOLA` e outra em nivel de `UF`.
 
 Na PND, `_granularidade_origem = REGISTRO_INDIVIDUAL` registra que o arquivo principal preserva registros individuais da prova.
 
-O campo não harmoniza a granularidade; apenas torna explícita a granularidade efetivamente preservada na Bronze.
+O campo nao harmoniza a granularidade; apenas torna explicita a granularidade efetivamente preservada na Bronze.
 
-Esses campos não substituem variáveis originais da fonte.
+Esses campos nao substituem variaveis originais da fonte.
 
-Sua finalidade é:
+Sua finalidade e:
 
 - identificar a fonte e o arquivo exato utilizado;
-- registrar a aba de origem, quando aplicável;
-- registrar o ano ou edição técnica do arquivo;
-- permitir localização da linha original;
-- registrar a referência estrutural utilizada pela ingestão;
-- permitir verificação de integridade do RAW por SHA-256.
+- registrar a aba de origem, quando aplicavel;
+- registrar o ano ou edicao tecnica do arquivo;
+- permitir localizacao da linha original;
+- registrar a referencia estrutural utilizada pela ingestao;
+- permitir verificacao de integridade do RAW por SHA-256.
 
 Exemplo:
 
@@ -147,66 +147,66 @@ Exemplo:
 |---|---|---:|
 | RENDIMENTO | TX_REND_BRASIL_REGIOES_UFS_2023.xlsx | 2023 |
 
-O campo `_sha256_arquivo` registra o hash do arquivo de origem utilizado na ingestão.
+O campo `_sha256_arquivo` registra o hash do arquivo de origem utilizado na ingestao.
 
-A validação independente da Bronze deverá comparar esse valor com o hash calculado diretamente a partir do arquivo RAW.
+A validacao independente da Bronze devera comparar esse valor com o hash calculado diretamente a partir do arquivo RAW.
 
 ---
 
-## 5. O que não será feito na Bronze
+## 5. O que nao sera feito na Bronze
 
-A Bronze não deverá:
+A Bronze nao devera:
 
 1. substituir `Publico` por `PUBLICA`;
-2. transformar `Pública (4)` em `PUBLICA`;
+2. transformar `Publica (4)` em `PUBLICA`;
 3. agregar Federal, Estadual e Municipal;
 4. selecionar apenas Anos Iniciais ou Anos Finais;
 5. converter nomes de estados para siglas;
 6. excluir rede privada;
-7. remover registros apenas porque não serão utilizados no dashboard;
-8. calcular médias analíticas;
+7. remover registros apenas porque nao serao utilizados no dashboard;
+8. calcular medias analiticas;
 9. imputar valores ausentes;
 10. recalcular indicadores;
-11. aplicar a população analítica da PND;
+11. aplicar a populacao analitica da PND;
 12. alterar os arquivos originais.
 
-Essas operações pertencem principalmente à Silver ou à Gold.
+Essas operacoes pertencem principalmente a Silver ou a Gold.
 
 ---
 
 ## 6. Tratamento permitido
 
-Algumas operações técnicas são necessárias para tornar os arquivos utilizáveis.
+Algumas operacoes tecnicas sao necessarias para tornar os arquivos utilizaveis.
 
-São permitidas:
+Sao permitidas:
 
-- identificação da aba correta;
-- identificação da linha real de cabeçalho ou referência estrutural;
-- remoção de linhas completamente vazias geradas pela estrutura da planilha;
-- leitura correta de delimitador, decimal e codificação;
-- conversão técnica de arquivos para DataFrame;
-- criação de nomes técnicos temporários quando a biblioteca de leitura exigir;
-- conversão técnica de células para texto quando necessária à persistência estável da estrutura;
-- adição de metadados de origem;
-- persistência em Parquet.
+- identificacao da aba correta;
+- identificacao da linha real de cabecalho ou referencia estrutural;
+- remocao de linhas completamente vazias geradas pela estrutura da planilha;
+- leitura correta de delimitador, decimal e codificacao;
+- conversao tecnica de arquivos para DataFrame;
+- criacao de nomes tecnicos temporarios quando a biblioteca de leitura exigir;
+- conversao tecnica de celulas para texto quando necessaria a persistencia estavel da estrutura;
+- adicao de metadados de origem;
+- persistencia em Parquet.
 
-Essas operações devem permanecer distinguíveis de transformações semânticas.
+Essas operacoes devem permanecer distinguiveis de transformacoes semanticas.
 
-### 6.1 Tipagem técnica das células na Bronze
+### 6.1 Tipagem tecnica das celulas na Bronze
 
-Algumas planilhas de origem possuem títulos, cabeçalhos hierárquicos, códigos técnicos e valores numéricos ocupando as mesmas colunas.
+Algumas planilhas de origem possuem titulos, cabecalhos hierarquicos, codigos tecnicos e valores numericos ocupando as mesmas colunas.
 
-Por esse motivo, na ingestão de planilhas cuja estrutura completa é preservada, as células de origem poderão ser armazenadas como texto na camada Bronze.
+Por esse motivo, na ingestao de planilhas cuja estrutura completa e preservada, as celulas de origem poderao ser armazenadas como texto na camada Bronze.
 
-Essa conversão possui finalidade exclusivamente técnica: garantir que a estrutura heterogênea da planilha possa ser persistida de forma estável em Parquet sem perda dos valores publicados.
+Essa conversao possui finalidade exclusivamente tecnica: garantir que a estrutura heterogenea da planilha possa ser persistida de forma estavel em Parquet sem perda dos valores publicados.
 
-A conversão para tipos analíticos, como inteiro, decimal ou categoria, será realizada somente na camada Silver, após a identificação explícita da estrutura de cada fonte.
+A conversao para tipos analiticos, como inteiro, decimal ou categoria, sera realizada somente na camada Silver, apos a identificacao explicita da estrutura de cada fonte.
 
-Valores especiais existentes na fonte, como `--`, não serão convertidos automaticamente em nulos na Bronze.
+Valores especiais existentes na fonte, como `--`, nao serao convertidos automaticamente em nulos na Bronze.
 
-As células realmente vazias permanecerão como valores ausentes.
+As celulas realmente vazias permanecerao como valores ausentes.
 
-A Bronze também preservará a linha de origem para permitir rastreabilidade até a posição original da informação na planilha.
+A Bronze tambem preservara a linha de origem para permitir rastreabilidade ate a posicao original da informacao na planilha.
 
 ---
 
@@ -214,270 +214,270 @@ A Bronze também preservará a linha de origem para permitir rastreabilidade at�
 
 ### 7.1 IDEB
 
-O arquivo de origem utilizado é:
+O arquivo de origem utilizado e:
 
 `divulgacao_regioes_ufs_ideb.xlsx`
 
-Ele possui três abas correspondentes às etapas:
+Ele possui tres abas correspondentes as etapas:
 
-- `UF e Regiões (AI)`;
-- `UF e Regiões (AF)`;
-- `UF e Regiões (EM)`.
+- `UF e Regioes (AI)`;
+- `UF e Regioes (AF)`;
+- `UF e Regioes (EM)`.
 
-Diferentemente das bases anuais de Rendimento Escolar e TDI, o arquivo do IDEB concentra em um único workbook a série histórica de diferentes edições do indicador.
+Diferentemente das bases anuais de Rendimento Escolar e TDI, o arquivo do IDEB concentra em um unico workbook a serie historica de diferentes edicoes do indicador.
 
-As planilhas contêm informações anteriores ao recorte analítico do projeto, incluindo dados de 2005.
+As planilhas contem informacoes anteriores ao recorte analitico do projeto, incluindo dados de 2005.
 
-#### Decisão de ingestão
+#### Decisao de ingestao
 
-A Bronze preserva integralmente as três abas do arquivo de origem, inclusive os dados referentes a 2005 e a aba do Ensino Médio.
+A Bronze preserva integralmente as tres abas do arquivo de origem, inclusive os dados referentes a 2005 e a aba do Ensino Medio.
 
-Não são aplicados na Bronze:
+Nao sao aplicados na Bronze:
 
-- filtro do período 2007–2023;
-- exclusão do Ensino Médio;
-- seleção apenas dos Anos Iniciais e Anos Finais;
-- filtro da rede pública;
-- normalização de categorias como `Pública (4)`;
-- seleção exclusiva das colunas do IDEB;
-- remoção das colunas de aprovação, SAEB ou metas existentes no workbook.
+- filtro do periodo 2007–2023;
+- exclusao do Ensino Medio;
+- selecao apenas dos Anos Iniciais e Anos Finais;
+- filtro da rede publica;
+- normalizacao de categorias como `Publica (4)`;
+- selecao exclusiva das colunas do IDEB;
+- remocao das colunas de aprovacao, SAEB ou metas existentes no workbook.
 
-A justificativa é que essas operações modificariam semanticamente o conteúdo publicado e pertencem às etapas posteriores do pipeline.
+A justificativa e que essas operacoes modificariam semanticamente o conteudo publicado e pertencem as etapas posteriores do pipeline.
 
-A Silver será responsável por aplicar o recorte analítico do projeto, selecionando:
+A Silver sera responsavel por aplicar o recorte analitico do projeto, selecionando:
 
-- período de 2007 a 2023;
+- periodo de 2007 a 2023;
 - Anos Iniciais e Anos Finais;
-- definição metodológica de rede pública registrada em `docs/definicao_rede_publica.md`.
+- definicao metodologica de rede publica registrada em `docs/definicao_rede_publica.md`.
 
-Na Bronze, cada aba é persistida separadamente em Parquet, preservando sua estrutura e sua identificação de origem.
+Na Bronze, cada aba e persistida separadamente em Parquet, preservando sua estrutura e sua identificacao de origem.
 
-#### Cabeçalho hierárquico do IDEB
+#### Cabecalho hierarquico do IDEB
 
-As planilhas do IDEB não possuem um cabeçalho simples em uma única linha.
+As planilhas do IDEB nao possuem um cabecalho simples em uma unica linha.
 
 A estrutura auditada utiliza:
 
-- índice 6: identificação dos grandes blocos de indicadores;
-- índice 7: subdivisões das notas do SAEB;
-- índice 8: séries ou anos escolares e demais subdivisões;
-- índice 9: nomes técnicos das variáveis disponibilizados pelo Inep.
+- indice 6: identificacao dos grandes blocos de indicadores;
+- indice 7: subdivisoes das notas do SAEB;
+- indice 8: series ou anos escolares e demais subdivisoes;
+- indice 9: nomes tecnicos das variaveis disponibilizados pelo Inep.
 
 A Bronze preserva todas essas linhas.
 
-Para fins de rastreabilidade técnica, `_indice_cabecalho_origem` registra a linha identificada no workbook como referência técnica, localizada pela presença única de variáveis `VL_OBSERVADO_YYYY`.
+Para fins de rastreabilidade tecnica, `_indice_cabecalho_origem` registra a linha identificada no workbook como referencia tecnica, localizada pela presenca unica de variaveis `VL_OBSERVADO_YYYY`.
 
-Como `_linha_origem` utiliza numeração iniciada em um, o valor de `_indice_cabecalho_origem` corresponde ao índice interno zero-based da linha técnica detectada.
+Como `_linha_origem` utiliza numeracao iniciada em um, o valor de `_indice_cabecalho_origem` corresponde ao indice interno zero-based da linha tecnica detectada.
 
-Esse registro não significa que as linhas anteriores do cabeçalho sejam descartadas.
+Esse registro nao significa que as linhas anteriores do cabecalho sejam descartadas.
 
-A interpretação e reconstrução semântica do cabeçalho ocorrerão somente na Silver.
+A interpretacao e reconstrucao semantica do cabecalho ocorrerao somente na Silver.
 
-#### Ano de referência técnico
+#### Ano de referencia tecnico
 
 No IDEB:
 
 `_ano_referencia = 2023`
 
-representa a maior edição observada no arquivo físico utilizado na ingestão, detectada a partir das variáveis `VL_OBSERVADO_YYYY`.
+representa a maior edicao observada no arquivo fisico utilizado na ingestao, detectada a partir das variaveis `VL_OBSERVADO_YYYY`.
 
-Esse campo não significa que todas as observações armazenadas sejam referentes a 2023.
+Esse campo nao significa que todas as observacoes armazenadas sejam referentes a 2023.
 
-Os anos substantivos da série histórica permanecem nas células da fonte e serão transformados em dimensão temporal analítica na Silver.
+Os anos substantivos da serie historica permanecem nas celulas da fonte e serao transformados em dimensao temporal analitica na Silver.
 
 ---
 
 ### 7.2 SAEB
 
-A estrutura do SAEB varia significativamente entre as edições.
+A estrutura do SAEB varia significativamente entre as edicoes.
 
 No conjunto RAW utilizado pelo projeto existem:
 
-- arquivos agregados por Unidade da Federação;
-- arquivos em nível escolar;
+- arquivos agregados por Unidade da Federacao;
+- arquivos em nivel escolar;
 - arquivos XLSX;
 - arquivos CSV;
 - arquivo XLSB de resultados oficiais agregados;
-- dicionários de dados auxiliares.
+- dicionarios de dados auxiliares.
 
-A Bronze respeita a estrutura e a granularidade de cada fonte selecionada, sem harmonização forçada.
+A Bronze respeita a estrutura e a granularidade de cada fonte selecionada, sem harmonizacao forcada.
 
-#### Decisão de seleção das fontes
+#### Decisao de selecao das fontes
 
-Quando o Inep disponibiliza resultado oficial agregado por Unidade da Federação, essa tabela é preferida para representar o resultado estadual publicado.
+Quando o Inep disponibiliza resultado oficial agregado por Unidade da Federacao, essa tabela e preferida para representar o resultado estadual publicado.
 
-A estrutura RAW utilizada inicialmente permitiu empregar fontes agregadas por UF em todas as edições de 2007 a 2021. Em 2023, a primeira fonte ingerida foi `TS_ESCOLA_2023.csv`, em nível escolar.
+A estrutura RAW utilizada inicialmente permitiu empregar fontes agregadas por UF em todas as edicoes de 2007 a 2021. Em 2023, a primeira fonte ingerida foi `TS_ESCOLA_2023.csv`, em nivel escolar.
 
-Durante a construção da Silver, a tentativa de reproduzir os resultados estaduais de 2023 a partir das médias escolares ponderadas por `NU_PRESENTES` não reproduziu os valores oficiais: foram obtidas `0/108` coincidências após arredondamento para duas casas decimais.
+Durante a construcao da Silver, a tentativa de reproduzir os resultados estaduais de 2023 a partir das medias escolares ponderadas por `NU_PRESENTES` nao reproduziu os valores oficiais: foram obtidas `0/108` coincidencias apos arredondamento para duas casas decimais.
 
-Como consequência, foi incorporada ao RAW uma segunda fonte oficial de 2023:
+Como consequencia, foi incorporada ao RAW uma segunda fonte oficial de 2023:
 
 `data/raw/saeb/Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb`
 
-A aba utilizada é:
+A aba utilizada e:
 
 `Estados`
 
-Essa fonte foi ingerida como uma Bronze adicional, preservando o resultado agregado oficial de UF sem substituir nem alterar a Bronze escolar já existente.
+Essa fonte foi ingerida como uma Bronze adicional, preservando o resultado agregado oficial de UF sem substituir nem alterar a Bronze escolar ja existente.
 
-A configuração final do SAEB na Bronze é:
+A configuracao final do SAEB na Bronze e:
 
 | Ano | Arquivo de origem | Aba | Granularidade | Papel |
 |---:|---|---|---|---|
 | 2007 | `MEDIA_UF_2007.xlsx` | `MEDIA_ESTADOS` | UF | resultado oficial agregado |
 | 2009 | `MEDIA_UF_2009.xlsx` | `MEDIA_ESTADOS` | UF | resultado oficial agregado |
-| 2011 | `TS_RESULTADO_UF_2011.csv` | não se aplica | UF | resultado oficial agregado |
+| 2011 | `TS_RESULTADO_UF_2011.csv` | nao se aplica | UF | resultado oficial agregado |
 | 2013 | `TS_UF_2013.xlsx` | `UF` | UF | resultado oficial agregado |
 | 2015 | `TS_UF_2015.xlsx` | `UFs` | UF | resultado oficial agregado |
 | 2017 | `TS_UF_2017.xlsx` | `TS_UF` | UF | resultado oficial agregado |
 | 2019 | `TS_UF_2019.xlsx` | `Estados` | UF | resultado oficial agregado |
 | 2021 | `TS_UF_2021.xlsx` | `Estados` | UF | resultado oficial agregado |
-| 2023 | `TS_ESCOLA_2023.csv` | não se aplica | ESCOLA | microdados escolares preservados |
+| 2023 | `TS_ESCOLA_2023.csv` | nao se aplica | ESCOLA | microdados escolares preservados |
 | 2023 | `Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb` | `Estados` | UF | resultado oficial agregado preservado |
 
-A existência de duas tabelas Bronze em 2023 é deliberada.
+A existencia de duas tabelas Bronze em 2023 e deliberada.
 
-A Bronze escolar preserva o arquivo oficial em nível de escola. A Bronze agregada preserva outra publicação oficial do Inep em nível de UF. Nenhuma delas é derivada da outra dentro da camada Bronze.
+A Bronze escolar preserva o arquivo oficial em nivel de escola. A Bronze agregada preserva outra publicacao oficial do Inep em nivel de UF. Nenhuma delas e derivada da outra dentro da camada Bronze.
 
-A decisão não representa uma agregação realizada na Bronze. Trata-se da ingestão separada de duas fontes oficiais com granularidades distintas.
+A decisao nao representa uma agregacao realizada na Bronze. Trata-se da ingestao separada de duas fontes oficiais com granularidades distintas.
 
 #### Arquivos escolares de 2007 e 2009
 
-Também existem no RAW:
+Tambem existem no RAW:
 
 - `TS_ESCOLA_2007.csv`;
 - `TS_ESCOLA_2009.csv`.
 
-Esses arquivos não são utilizados como fonte principal da série analítica porque os respectivos anos já possuem os arquivos oficiais agregados:
+Esses arquivos nao sao utilizados como fonte principal da serie analitica porque os respectivos anos ja possuem os arquivos oficiais agregados:
 
 - `MEDIA_UF_2007.xlsx`;
 - `MEDIA_UF_2009.xlsx`.
 
-Os arquivos escolares permanecem preservados na camada Raw e não são alterados ou excluídos.
+Os arquivos escolares permanecem preservados na camada Raw e nao sao alterados ou excluidos.
 
-#### Dicionários de dados
+#### Dicionarios de dados
 
-Os seguintes arquivos de dicionário também estão preservados no RAW:
+Os seguintes arquivos de dicionario tambem estao preservados no RAW:
 
 - `Dicionario_SAEB_2007.xlsx`;
 - `Dicionario_SAEB_2009.xlsx`;
 - `Dicionario_SAEB_2011.xlsx`;
 - `Dicionario_Saeb_2023.xlsx`.
 
-Eles são fontes auxiliares de documentação e interpretação estrutural.
+Eles sao fontes auxiliares de documentacao e interpretacao estrutural.
 
-Não constituem tabelas de resultados do indicador e, por isso, não são tratados como fatos da Bronze do SAEB.
+Nao constituem tabelas de resultados do indicador e, por isso, nao sao tratados como fatos da Bronze do SAEB.
 
-Seu conteúdo pode ser consultado pelo pipeline ou pela documentação sempre que necessário para interpretar códigos, campos e categorias.
+Seu conteudo pode ser consultado pelo pipeline ou pela documentacao sempre que necessario para interpretar codigos, campos e categorias.
 
 #### Estruturas confirmadas nas fontes agregadas
 
-Para 2007 e 2009, os arquivos `MEDIA_UF_*.xlsx` utilizam a aba `MEDIA_ESTADOS` e apresentam diretamente variáveis como `ANO_SAEB`, `CO_UF`, `NO_UF`, `DEPENDENCIA_ADM`, `LOCALIZACAO`, `CAPITAL` e médias de Língua Portuguesa e Matemática.
+Para 2007 e 2009, os arquivos `MEDIA_UF_*.xlsx` utilizam a aba `MEDIA_ESTADOS` e apresentam diretamente variaveis como `ANO_SAEB`, `CO_UF`, `NO_UF`, `DEPENDENCIA_ADM`, `LOCALIZACAO`, `CAPITAL` e medias de Lingua Portuguesa e Matematica.
 
-Em 2011, `TS_RESULTADO_UF_2011.csv` possui estrutura tabular em CSV e utiliza códigos como `ID_UF`, `ID_SERIE`, `ID_TIPO_REDE`, `ID_LOCALIZACAO`, `ID_CAPITAL`, `NU_PARTICIPANTES`, `MEDIA_LP` e `MEDIA_MT`.
+Em 2011, `TS_RESULTADO_UF_2011.csv` possui estrutura tabular em CSV e utiliza codigos como `ID_UF`, `ID_SERIE`, `ID_TIPO_REDE`, `ID_LOCALIZACAO`, `ID_CAPITAL`, `NU_PARTICIPANTES`, `MEDIA_LP` e `MEDIA_MT`.
 
-Para 2013 e 2015, o cabeçalho é hierárquico e ocupa múltiplas linhas. A auditoria confirmou:
+Para 2013 e 2015, o cabecalho e hierarquico e ocupa multiplas linhas. A auditoria confirmou:
 
-- em 2013, a primeira linha semântica do cabeçalho está no índice `3`, correspondente à linha de origem `4`;
-- em 2015, a primeira linha semântica do cabeçalho está no índice `2`, correspondente à linha de origem `3`.
+- em 2013, a primeira linha semantica do cabecalho esta no indice `3`, correspondente a linha de origem `4`;
+- em 2015, a primeira linha semantica do cabecalho esta no indice `2`, correspondente a linha de origem `3`.
 
-A estrutura analítica preservada nessas duas edições foi confirmada nas posições:
+A estrutura analitica preservada nessas duas edicoes foi confirmada nas posicoes:
 
 - `col_001`: UF;
 - `col_002`: rede;
-- `col_003`: localização;
+- `col_003`: localizacao;
 - `col_004`: capital;
-- `col_005`: Anos Iniciais / Língua Portuguesa;
-- `col_006`: Anos Iniciais / Matemática;
-- `col_007`: Anos Finais / Língua Portuguesa;
-- `col_008`: Anos Finais / Matemática.
+- `col_005`: Anos Iniciais / Lingua Portuguesa;
+- `col_006`: Anos Iniciais / Matematica;
+- `col_007`: Anos Finais / Lingua Portuguesa;
+- `col_008`: Anos Finais / Matematica.
 
-Essa diferença estrutural é preservada explicitamente e não é substituída por nomes técnicos inexistentes na fonte.
+Essa diferenca estrutural e preservada explicitamente e nao e substituida por nomes tecnicos inexistentes na fonte.
 
-Para 2017, 2019 e 2021, os arquivos de UF utilizam cabeçalhos técnicos próprios das respectivas edições. Em 2019 e 2021, a aba é `Estados` e as fontes incluem, além das médias de proficiência, variáveis de níveis de proficiência e outras etapas avaliadas.
+Para 2017, 2019 e 2021, os arquivos de UF utilizam cabecalhos tecnicos proprios das respectivas edicoes. Em 2019 e 2021, a aba e `Estados` e as fontes incluem, alem das medias de proficiencia, variaveis de niveis de proficiencia e outras etapas avaliadas.
 
 Na nova fonte agregada de 2023, a aba `Estados` possui 177 colunas, entre elas `ANO_SAEB`, `CO_UF`, `NO_UF`, `DEPENDENCIA_ADM`, `LOCALIZACAO`, `CAPITAL`, `MEDIA_5_LP`, `MEDIA_5_MT`, `MEDIA_9_LP` e `MEDIA_9_MT`.
 
-A primeira linha física contém os nomes técnicos das variáveis e é preservada na Bronze.
+A primeira linha fisica contem os nomes tecnicos das variaveis e e preservada na Bronze.
 
 #### Tipagem da fonte agregada de 2023
 
-Na primeira tentativa de persistência da aba `Estados` de 2023, o PyArrow identificou tipos heterogêneos nas mesmas colunas, pois a primeira linha contém nomes técnicos e as linhas seguintes contêm números ou categorias.
+Na primeira tentativa de persistencia da aba `Estados` de 2023, o PyArrow identificou tipos heterogeneos nas mesmas colunas, pois a primeira linha contem nomes tecnicos e as linhas seguintes contem numeros ou categorias.
 
-Por isso, as 177 colunas de origem são persistidas como texto anulável na Bronze agregada de 2023.
+Por isso, as 177 colunas de origem sao persistidas como texto anulavel na Bronze agregada de 2023.
 
-Essa decisão é exclusivamente técnica:
+Essa decisao e exclusivamente tecnica:
 
-- preserva a linha de cabeçalho;
-- evita coerção indevida entre texto e número;
-- mantém células realmente vazias como `null`;
-- adia a tipagem analítica para a Silver.
+- preserva a linha de cabecalho;
+- evita coercao indevida entre texto e numero;
+- mantem celulas realmente vazias como `null`;
+- adia a tipagem analitica para a Silver.
 
-#### Preservação da granularidade
+#### Preservacao da granularidade
 
-A Bronze não força uma única granularidade para o SAEB.
+A Bronze nao forca uma unica granularidade para o SAEB.
 
-A configuração final é:
+A configuracao final e:
 
-- 2007 a 2021: tabelas principais em nível de UF;
-- 2023: uma tabela em nível de ESCOLA e uma tabela oficial adicional em nível de UF.
+- 2007 a 2021: tabelas principais em nivel de UF;
+- 2023: uma tabela em nivel de ESCOLA e uma tabela oficial adicional em nivel de UF.
 
-O arquivo escolar de 2023 não é agregado pela Bronze.
+O arquivo escolar de 2023 nao e agregado pela Bronze.
 
-O arquivo de UF de 2023 também não é calculado pela Bronze: ele é uma publicação oficial independente do Inep e é apenas estruturado e rastreado em Parquet.
+O arquivo de UF de 2023 tambem nao e calculado pela Bronze: ele e uma publicacao oficial independente do Inep e e apenas estruturado e rastreado em Parquet.
 
-Na Silver histórica, o resultado estadual de 2023 utiliza a Bronze oficial de UF porque a reconstrução a partir das escolas por `NU_PRESENTES` não reproduziu os resultados publicados.
+Na Silver historica, o resultado estadual de 2023 utiliza a Bronze oficial de UF porque a reconstrucao a partir das escolas por `NU_PRESENTES` nao reproduziu os resultados publicados.
 
-#### Rede pública
+#### Rede publica
 
-Nenhum filtro de rede é aplicado na Bronze.
+Nenhum filtro de rede e aplicado na Bronze.
 
-São preservados, conforme a estrutura de cada edição:
+Sao preservados, conforme a estrutura de cada edicao:
 
 - categorias de `DEPENDENCIA_ADM`;
-- códigos de `ID_TIPO_REDE`;
+- codigos de `ID_TIPO_REDE`;
 - o indicador `IN_PUBLICA`;
 - demais categorias originais de rede.
 
-A definição canônica `REDE = PUBLICA` é aplicada somente na Silver, seguindo `docs/definicao_rede_publica.md`.
+A definicao canonica `REDE = PUBLICA` e aplicada somente na Silver, seguindo `docs/definicao_rede_publica.md`.
 
-A Bronze não transforma o agregado geral que inclui rede privada em rede pública e não calcula média simples entre redes Federal, Estadual e Municipal.
+A Bronze nao transforma o agregado geral que inclui rede privada em rede publica e nao calcula media simples entre redes Federal, Estadual e Municipal.
 
-#### Proficiências, etapas e variáveis adicionais
+#### Proficiencias, etapas e variaveis adicionais
 
-A Bronze não seleciona exclusivamente Anos Iniciais, Anos Finais, Língua Portuguesa ou Matemática.
+A Bronze nao seleciona exclusivamente Anos Iniciais, Anos Finais, Lingua Portuguesa ou Matematica.
 
-Quando a fonte possui 2º ano, Ensino Médio, Ciências Humanas, Ciências da Natureza, níveis de proficiência, participação, erros-padrão ou outras variáveis publicadas, essas informações permanecem preservadas na estrutura Bronze correspondente.
+Quando a fonte possui 2º ano, Ensino Medio, Ciencias Humanas, Ciencias da Natureza, niveis de proficiencia, participacao, erros-padrao ou outras variaveis publicadas, essas informacoes permanecem preservadas na estrutura Bronze correspondente.
 
-A seleção das medidas necessárias ao modelo analítico é responsabilidade da Silver.
+A selecao das medidas necessarias ao modelo analitico e responsabilidade da Silver.
 
-#### CSV, delimitador e codificação
+#### CSV, delimitador e codificacao
 
-Os CSV do SAEB não têm sua codificação presumida silenciosamente.
+Os CSV do SAEB nao tem sua codificacao presumida silenciosamente.
 
 Para `TS_RESULTADO_UF_2011.csv`, foi confirmado:
 
-- codificação: `utf-8`;
+- codificacao: `utf-8`;
 - delimitador: `;`;
-- 12 delimitadores na linha de cabeçalho;
+- 12 delimitadores na linha de cabecalho;
 - 13 campos na estrutura tabular.
 
 Para `TS_ESCOLA_2023.csv`, foi confirmado:
 
 - falha de leitura com `utf-8`;
 - falha de leitura com `utf-8-sig`;
-- leitura válida com `cp1252`;
+- leitura valida com `cp1252`;
 - delimitador: `;`;
-- 136 delimitadores na linha de cabeçalho;
+- 136 delimitadores na linha de cabecalho;
 - 137 campos na estrutura tabular.
 
-A configuração da ingestão utiliza diretamente esses parâmetros. Se a estrutura esperada mudar, a execução deve falhar explicitamente.
+A configuracao da ingestao utiliza diretamente esses parametros. Se a estrutura esperada mudar, a execucao deve falhar explicitamente.
 
-#### Situação da ingestão
+#### Situacao da ingestao
 
-A Bronze do SAEB está concluída e validada.
+A Bronze do SAEB esta concluida e validada.
 
-A extensão oficial agregada de 2023 é reproduzida por:
+A extensao oficial agregada de 2023 e reproduzida por:
 
 `src/bronze/saeb/ingest_saeb_resultados_2023.py`
 
@@ -485,7 +485,7 @@ e validada independentemente por:
 
 `src/bronze/saeb/validar_bronze_saeb_resultados_2023.py`
 
-A nova tabela produzida é:
+A nova tabela produzida e:
 
 `data/bronze/saeb/saeb_2023_resultados_uf.parquet`
 
@@ -499,59 +499,59 @@ que preserva os registros escolares.
 
 ### 7.3 Rendimento Escolar
 
-Os arquivos de Taxas de Rendimento Escolar apresentam mudanças estruturais ao longo da série de 2007 a 2023.
+Os arquivos de Taxas de Rendimento Escolar apresentam mudancas estruturais ao longo da serie de 2007 a 2023.
 
-Foram identificadas alterações relacionadas a:
+Foram identificadas alteracoes relacionadas a:
 
 - formato dos arquivos, entre XLS e XLSX;
 - nomes das abas;
-- posição do cabeçalho;
+- posicao do cabecalho;
 - quantidade de colunas;
 - nomenclatura das redes de ensino;
-- organização das dimensões geográficas;
-- existência de espaços finais em nomes de determinadas abas.
+- organizacao das dimensoes geograficas;
+- existencia de espacos finais em nomes de determinadas abas.
 
-Por esse motivo, a ingestão não utiliza uma rotina que tente descobrir automaticamente qual aba ou estrutura deve ser utilizada.
+Por esse motivo, a ingestao nao utiliza uma rotina que tente descobrir automaticamente qual aba ou estrutura deve ser utilizada.
 
-Cada edição possui configuração explícita, definida a partir da auditoria realizada anteriormente.
+Cada edicao possui configuracao explicita, definida a partir da auditoria realizada anteriormente.
 
-#### Decisão de ingestão
+#### Decisao de ingestao
 
-A Bronze preserva a estrutura completa da planilha correspondente à Unidade da Federação em cada edição.
+A Bronze preserva a estrutura completa da planilha correspondente a Unidade da Federacao em cada edicao.
 
-Os arquivos são lidos com `header=None`, de forma que títulos, cabeçalhos, subcabeçalhos e registros publicados na planilha sejam mantidos.
+Os arquivos sao lidos com `header=None`, de forma que titulos, cabecalhos, subcabecalhos e registros publicados na planilha sejam mantidos.
 
-Não ocorre promoção automática de uma linha para cabeçalho analítico na Bronze.
+Nao ocorre promocao automatica de uma linha para cabecalho analitico na Bronze.
 
-A linha identificada durante a auditoria como referência estrutural é registrada apenas no metadado `_indice_cabecalho_origem`.
+A linha identificada durante a auditoria como referencia estrutural e registrada apenas no metadado `_indice_cabecalho_origem`.
 
-A reconstrução do cabeçalho analítico será responsabilidade da Silver.
+A reconstrucao do cabecalho analitico sera responsabilidade da Silver.
 
-#### Preservação das células
+#### Preservacao das celulas
 
-As colunas provenientes da planilha recebem nomes técnicos neutros:
+As colunas provenientes da planilha recebem nomes tecnicos neutros:
 
 `col_001`, `col_002`, `col_003`, etc.
 
-Essa nomenclatura não representa alteração semântica da fonte.
+Essa nomenclatura nao representa alteracao semantica da fonte.
 
-Ela é utilizada porque a planilha contém títulos, cabeçalhos e valores ocupando as mesmas posições físicas ao longo das linhas.
+Ela e utilizada porque a planilha contem titulos, cabecalhos e valores ocupando as mesmas posicoes fisicas ao longo das linhas.
 
-As células de origem são persistidas como texto para permitir armazenamento estável em Parquet.
+As celulas de origem sao persistidas como texto para permitir armazenamento estavel em Parquet.
 
-Valores especiais publicados pela fonte, como `--`, são preservados.
+Valores especiais publicados pela fonte, como `--`, sao preservados.
 
-A conversão para números, categorias ou outros tipos analíticos será realizada somente na Silver.
+A conversao para numeros, categorias ou outros tipos analiticos sera realizada somente na Silver.
 
 #### Linhas vazias
 
-Durante a ingestão são removidas apenas linhas em que todas as células da planilha estão efetivamente vazias.
+Durante a ingestao sao removidas apenas linhas em que todas as celulas da planilha estao efetivamente vazias.
 
-Nenhum registro é removido por pertencer a uma rede, localização, etapa ou categoria que não será utilizada posteriormente no dashboard.
+Nenhum registro e removido por pertencer a uma rede, localizacao, etapa ou categoria que nao sera utilizada posteriormente no dashboard.
 
-#### Rede e localização
+#### Rede e localizacao
 
-Nenhum filtro analítico de rede ou localização é aplicado na Bronze.
+Nenhum filtro analitico de rede ou localizacao e aplicado na Bronze.
 
 Permanecem preservadas categorias como:
 
@@ -559,24 +559,24 @@ Permanecem preservadas categorias como:
 - Estadual;
 - Municipal;
 - Particular ou Privada;
-- `Publico` ou `Pública`;
+- `Publico` ou `Publica`;
 - Total;
 - Rural;
 - Urbana.
 
-A seleção do agregado oficial da rede pública combinado com `Localização = Total` será realizada somente na Silver, conforme a decisão registrada em `docs/definicao_rede_publica.md`.
+A selecao do agregado oficial da rede publica combinado com `Localizacao = Total` sera realizada somente na Silver, conforme a decisao registrada em `docs/definicao_rede_publica.md`.
 
-A Bronze não reconstrói a rede pública a partir de médias das redes Federal, Estadual e Municipal.
+A Bronze nao reconstroi a rede publica a partir de medias das redes Federal, Estadual e Municipal.
 
 #### Etapas e indicadores
 
-A Bronze não seleciona apenas Anos Iniciais e Anos Finais.
+A Bronze nao seleciona apenas Anos Iniciais e Anos Finais.
 
-Também não seleciona previamente apenas aprovação, reprovação ou abandono.
+Tambem nao seleciona previamente apenas aprovacao, reprovacao ou abandono.
 
-Toda a estrutura publicada na aba utilizada é preservada.
+Toda a estrutura publicada na aba utilizada e preservada.
 
-O recorte de etapa e a identificação das colunas correspondentes aos indicadores serão realizados na Silver.
+O recorte de etapa e a identificacao das colunas correspondentes aos indicadores serao realizados na Silver.
 
 #### Estruturas auditadas e utilizadas
 
@@ -600,9 +600,9 @@ O recorte de etapa e a identificação das colunas correspondentes aos indicador
 | 2022 | `BRASIL_REGIOES_UFS ` |
 | 2023 | `BRASIL_REGIOES_UFS ` |
 
-#### Espaços finais em nomes de abas
+#### Espacos finais em nomes de abas
 
-Durante a implementação da Bronze foram identificados espaços finais existentes nos próprios nomes das abas dos arquivos de origem.
+Durante a implementacao da Bronze foram identificados espacos finais existentes nos proprios nomes das abas dos arquivos de origem.
 
 Foram confirmados:
 
@@ -611,17 +611,17 @@ Foram confirmados:
 - 2016: `UF `;
 - 2017 a 2023: `BRASIL_REGIOES_UFS `.
 
-Esses espaços fazem parte dos nomes efetivamente armazenados nos workbooks, embora sejam pouco perceptíveis visualmente no Excel.
+Esses espacos fazem parte dos nomes efetivamente armazenados nos workbooks, embora sejam pouco perceptiveis visualmente no Excel.
 
-A ingestão utiliza os nomes exatos encontrados na fonte.
+A ingestao utiliza os nomes exatos encontrados na fonte.
 
-Não foi utilizado `.strip()` para corrigir automaticamente esses nomes.
+Nao foi utilizado `.strip()` para corrigir automaticamente esses nomes.
 
-Essa escolha é deliberada: uma alteração inesperada na estrutura da fonte deve provocar falha explícita no pipeline, em vez de ser silenciosamente normalizada.
+Essa escolha e deliberada: uma alteracao inesperada na estrutura da fonte deve provocar falha explicita no pipeline, em vez de ser silenciosamente normalizada.
 
 #### Rastreabilidade
 
-Cada registro produzido na Bronze do Rendimento possui metadados que permitem retornar à sua origem:
+Cada registro produzido na Bronze do Rendimento possui metadados que permitem retornar a sua origem:
 
 - `_fonte`;
 - `_sha256_arquivo`;
@@ -631,52 +631,52 @@ Cada registro produzido na Bronze do Rendimento possui metadados que permitem re
 - `_indice_cabecalho_origem`;
 - `_linha_origem`.
 
-O campo `_sha256_arquivo` identifica a versão exata do arquivo RAW utilizada na geração do Parquet.
+O campo `_sha256_arquivo` identifica a versao exata do arquivo RAW utilizada na geracao do Parquet.
 
-O campo `_linha_origem` registra a posição da linha na planilha original.
+O campo `_linha_origem` registra a posicao da linha na planilha original.
 
-O campo `_indice_cabecalho_origem` registra a referência estrutural identificada durante a auditoria, sem transformar essa linha em cabeçalho analítico da Bronze.
+O campo `_indice_cabecalho_origem` registra a referencia estrutural identificada durante a auditoria, sem transformar essa linha em cabecalho analitico da Bronze.
 
-#### Resultado metodológico
+#### Resultado metodologico
 
-A Bronze do Rendimento Escolar representa uma cópia estruturada e rastreável das planilhas de origem.
+A Bronze do Rendimento Escolar representa uma copia estruturada e rastreavel das planilhas de origem.
 
-Nenhuma decisão de seleção da população analítica é aplicada nessa camada.
+Nenhuma decisao de selecao da populacao analitica e aplicada nessa camada.
 
-O fluxo adotado é:
+O fluxo adotado e:
 
 ```text
 RAW
 planilha original
     ↓
 BRONZE
-estrutura integral e rastreável
+estrutura integral e rastreavel
     ↓
 SILVER
-seleção de UF + rede pública + localização total + AI/AF
-e reconstrução dos indicadores
+selecao de UF + rede publica + localizacao total + AI/AF
+e reconstrucao dos indicadores
 ```
 
 ---
 
 ### 7.4 TDI
 
-A Taxa de Distorção Idade-Série apresenta mudanças estruturais entre os períodos, incluindo variação entre formatos XLS e XLSX, nomes de abas e quantidade de colunas.
+A Taxa de Distorcao Idade-Serie apresenta mudancas estruturais entre os periodos, incluindo variacao entre formatos XLS e XLSX, nomes de abas e quantidade de colunas.
 
-Assim como no Rendimento Escolar, a ingestão utiliza configuração explícita por edição e não tenta selecionar automaticamente uma aba semelhante.
+Assim como no Rendimento Escolar, a ingestao utiliza configuracao explicita por edicao e nao tenta selecionar automaticamente uma aba semelhante.
 
-#### Decisão de ingestão
+#### Decisao de ingestao
 
-A Bronze preserva a estrutura integral da aba de UF identificada na auditoria para cada edição.
+A Bronze preserva a estrutura integral da aba de UF identificada na auditoria para cada edicao.
 
-Não são aplicados na Bronze:
+Nao sao aplicados na Bronze:
 
-- filtro de rede pública;
-- filtro de `Localização = Total`;
-- seleção apenas de AI/AF;
-- normalização de rede;
-- normalização de UF;
-- reconstrução ou recálculo da TDI.
+- filtro de rede publica;
+- filtro de `Localizacao = Total`;
+- selecao apenas de AI/AF;
+- normalizacao de rede;
+- normalizacao de UF;
+- reconstrucao ou recalculo da TDI.
 
 #### Estruturas utilizadas
 
@@ -692,72 +692,72 @@ Não são aplicados na Bronze:
 | 2014 | `TDI UFS` |
 | 2015 | `UF` |
 | 2016 | `UF` |
-| 2017 | `BRASIL_REGIÕES_UFS` |
-| 2018 | `BRASIL_REGIÕES_UFS` |
-| 2019 | `BRASIL_REGIÕES_UFS` |
-| 2020 | `BRASIL_REGIÕES_UFS` |
-| 2021 | `BRASIL_REGIÕES_UFS` |
-| 2022 | `BRASIL_REGIÕES_UFS` |
-| 2023 | `BRASIL_REGIÕES_UFS` |
+| 2017 | `BRASIL_REGIOES_UFS` |
+| 2018 | `BRASIL_REGIOES_UFS` |
+| 2019 | `BRASIL_REGIOES_UFS` |
+| 2020 | `BRASIL_REGIOES_UFS` |
+| 2021 | `BRASIL_REGIOES_UFS` |
+| 2022 | `BRASIL_REGIOES_UFS` |
+| 2023 | `BRASIL_REGIOES_UFS` |
 
 Durante a leitura dos arquivos XLSX de 2015 a 2023, o `openpyxl` emitiu o aviso:
 
 `Cannot parse header or footer so it will be ignored`
 
-O aviso se refere ao cabeçalho ou rodapé de impressão do workbook e não impediu a leitura das células utilizadas na ingestão.
+O aviso se refere ao cabecalho ou rodape de impressao do workbook e nao impediu a leitura das celulas utilizadas na ingestao.
 
-A validação independente posterior confirmou os Parquets produzidos, inclusive quanto à rastreabilidade e à correspondência do SHA-256 com os arquivos RAW.
+A validacao independente posterior confirmou os Parquets produzidos, inclusive quanto a rastreabilidade e a correspondencia do SHA-256 com os arquivos RAW.
 
-#### Rede e localização
+#### Rede e localizacao
 
-Embora a auditoria tenha confirmado a existência do agregado `Pública + Localização Total`, essa seleção não é aplicada na Bronze.
+Embora a auditoria tenha confirmado a existencia do agregado `Publica + Localizacao Total`, essa selecao nao e aplicada na Bronze.
 
-Ela será aplicada somente na Silver, conforme `docs/definicao_rede_publica.md`.
+Ela sera aplicada somente na Silver, conforme `docs/definicao_rede_publica.md`.
 
 ---
 
 ### 7.5 PND 2025
 
-A PND 2025 está representada no RAW por três arquivos:
+A PND 2025 esta representada no RAW por tres arquivos:
 
-- `Dicionário_arquivos_variáveis_PND_2025.xlsx`;
+- `Dicionario_arquivos_variaveis_PND_2025.xlsx`;
 - `microdados2025_parametros_itens.xlsx`;
 - `microdados2025_pnd_arq1.txt`.
 
-#### Seleção da fonte principal
+#### Selecao da fonte principal
 
-O arquivo `microdados2025_pnd_arq1.txt` é a tabela principal de registros individuais utilizada para a ingestão Bronze.
+O arquivo `microdados2025_pnd_arq1.txt` e a tabela principal de registros individuais utilizada para a ingestao Bronze.
 
-Os dois arquivos XLSX permanecem no RAW como fontes auxiliares de documentação e parâmetros:
+Os dois arquivos XLSX permanecem no RAW como fontes auxiliares de documentacao e parametros:
 
-- o dicionário apoia a interpretação das variáveis;
-- a planilha de parâmetros de itens preserva informações técnicas de calibração e itens.
+- o dicionario apoia a interpretacao das variaveis;
+- a planilha de parametros de itens preserva informacoes tecnicas de calibracao e itens.
 
-Eles não serão convertidos, nesta etapa, em tabelas factuais da Bronze porque a ingestão analítica principal da PND utiliza o arquivo individual. Permanecem preservados integralmente no RAW e poderão ser utilizados em etapas posteriores se alguma transformação exigir essas informações.
+Eles nao serao convertidos, nesta etapa, em tabelas factuais da Bronze porque a ingestao analitica principal da PND utiliza o arquivo individual. Permanecem preservados integralmente no RAW e poderao ser utilizados em etapas posteriores se alguma transformacao exigir essas informacoes.
 
-Essa decisão evita criar tabelas Bronze sem uso definido apenas por existirem no pacote de microdados, sem perder a rastreabilidade ou a disponibilidade dos arquivos originais.
+Essa decisao evita criar tabelas Bronze sem uso definido apenas por existirem no pacote de microdados, sem perder a rastreabilidade ou a disponibilidade dos arquivos originais.
 
-#### Estrutura técnica confirmada do TXT
+#### Estrutura tecnica confirmada do TXT
 
-A verificação técnica do arquivo `microdados2025_pnd_arq1.txt` confirmou:
+A verificacao tecnica do arquivo `microdados2025_pnd_arq1.txt` confirmou:
 
 - tamanho: `371.539.465 bytes`;
-- codificação: `utf-8`;
+- codificacao: `utf-8`;
 - delimitador: `;`;
 - 26 colunas;
-- 1.087.360 linhas físicas;
-- 1.087.359 registros de dados, descontada a linha de cabeçalho;
+- 1.087.360 linhas fisicas;
+- 1.087.359 registros de dados, descontada a linha de cabecalho;
 - SHA-256: `b15968a19e309bca6b63c6f6d7af094efdc13d900645dc7385872a6a50dd7baf`.
 
-O cabeçalho possui, na ordem original:
+O cabecalho possui, na ordem original:
 
 `NU_ANO;CO_GRUPO;CO_MUNICIPIO_PROVA;SG_UF_MUNICIPIO_PROVA;TP_INSCRICAO_PND;IN_REAPLICACAO;CO_CADERNO;DS_VT_GAB_OBJ;DS_VT_ESC_OBJ;DS_VT_ACE_OBJ;TP_PRES;TP_SIT_DISC;PROFICIENCIA;NT_OBJ;NT_DIS;NT_GER;QT_ACERTOS;CO_RS_I1;CO_RS_I2;CO_RS_I3;CO_RS_I4;CO_RS_I5;CO_RS_I6;CO_RS_I7;CO_RS_I8;CO_RS_I9`
 
-#### Preservação do cabeçalho
+#### Preservacao do cabecalho
 
-Para manter a mesma lógica de rastreabilidade adotada nas demais fontes Bronze, o TXT será lido com `header=None`.
+Para manter a mesma logica de rastreabilidade adotada nas demais fontes Bronze, o TXT sera lido com `header=None`.
 
-Assim, a linha física do cabeçalho será preservada como a primeira linha da Bronze:
+Assim, a linha fisica do cabecalho sera preservada como a primeira linha da Bronze:
 
 - `_indice_cabecalho_origem = 0`;
 - `_linha_origem = 1`.
@@ -765,73 +765,73 @@ Assim, a linha física do cabeçalho será preservada como a primeira linha da B
 Consequentemente:
 
 - registros substantivos de dados: `1.087.359`;
-- linhas Bronze esperadas, incluindo o cabeçalho preservado: `1.087.360`.
+- linhas Bronze esperadas, incluindo o cabecalho preservado: `1.087.360`.
 
-Essa diferença de uma linha não representa criação de um participante adicional. Ela decorre exclusivamente da preservação da linha física de cabeçalho como parte da rastreabilidade da fonte.
+Essa diferenca de uma linha nao representa criacao de um participante adicional. Ela decorre exclusivamente da preservacao da linha fisica de cabecalho como parte da rastreabilidade da fonte.
 
 #### Tipagem e valores especiais
 
-As 26 colunas da fonte serão armazenadas como texto técnico na Bronze, utilizando `col_001` a `col_026`.
+As 26 colunas da fonte serao armazenadas como texto tecnico na Bronze, utilizando `col_001` a `col_026`.
 
 O uso de texto evita interpretar semanticamente, nesta camada:
 
-- números com vírgula decimal;
-- códigos;
+- numeros com virgula decimal;
+- codigos;
 - vetores de respostas;
-- indicadores de presença;
+- indicadores de presenca;
 - notas;
-- proficiência.
+- proficiencia.
 
-O literal `NA` será preservado como texto quando estiver presente na fonte.
+O literal `NA` sera preservado como texto quando estiver presente na fonte.
 
-Somente campos realmente vazios serão representados como valores ausentes.
+Somente campos realmente vazios serao representados como valores ausentes.
 
-A conversão de `PROFICIENCIA`, `NT_OBJ`, `NT_DIS`, `NT_GER`, `QT_ACERTOS` e demais variáveis para tipos analíticos ocorrerá na Silver.
+A conversao de `PROFICIENCIA`, `NT_OBJ`, `NT_DIS`, `NT_GER`, `QT_ACERTOS` e demais variaveis para tipos analiticos ocorrera na Silver.
 
 #### Leitura em blocos
 
-Como o TXT possui aproximadamente 371,5 MB e mais de um milhão de registros, a ingestão será realizada em blocos (`chunks`), e não por carregamento integral do arquivo em memória.
+Como o TXT possui aproximadamente 371,5 MB e mais de um milhao de registros, a ingestao sera realizada em blocos (`chunks`), e nao por carregamento integral do arquivo em memoria.
 
-Essa é uma decisão de eficiência operacional e não altera a informação substantiva.
+Essa e uma decisao de eficiencia operacional e nao altera a informacao substantiva.
 
-Cada bloco será convertido para o mesmo esquema Bronze e escrito sequencialmente em um único arquivo Parquet com compressão Snappy.
+Cada bloco sera convertido para o mesmo esquema Bronze e escrito sequencialmente em um unico arquivo Parquet com compressao Snappy.
 
-Como o `pandas.read_csv(..., chunksize=...)` preserva no índice interno de cada bloco a posição acumulada do arquivo, cada chunk será submetido a `reset_index(drop=True)` antes da criação dos metadados técnicos. Além disso, as `Series` utilizadas na inserção dos metadados serão criadas com o mesmo índice do chunk.
+Como o `pandas.read_csv(..., chunksize=...)` preserva no indice interno de cada bloco a posicao acumulada do arquivo, cada chunk sera submetido a `reset_index(drop=True)` antes da criacao dos metadados tecnicos. Alem disso, as `Series` utilizadas na insercao dos metadados serao criadas com o mesmo indice do chunk.
 
-Essa regra evita o alinhamento automático por índice do pandas, que poderia produzir valores ausentes nos metadados a partir do segundo bloco mesmo quando os valores atribuídos estivessem corretos. Trata-se exclusivamente de uma correção técnica de escrita por blocos; não altera nenhuma variável substantiva da PND.
+Essa regra evita o alinhamento automatico por indice do pandas, que poderia produzir valores ausentes nos metadados a partir do segundo bloco mesmo quando os valores atribuidos estivessem corretos. Trata-se exclusivamente de uma correcao tecnica de escrita por blocos; nao altera nenhuma variavel substantiva da PND.
 
-#### População preservada
+#### Populacao preservada
 
-Na Bronze serão preservados todos os registros do arquivo principal.
+Na Bronze serao preservados todos os registros do arquivo principal.
 
-Não será aplicada nessa camada a população analítica de 759.140 participantes.
+Nao sera aplicada nessa camada a populacao analitica de 759.140 participantes.
 
-Também não serão removidos:
+Tambem nao serao removidos:
 
 - registros `TP_PRES = 888`;
 - registros `TP_PRES = 555` sem resultados completos;
-- registros apenas por não integrarem posteriormente a população analítica.
+- registros apenas por nao integrarem posteriormente a populacao analitica.
 
-A Bronze preservará a granularidade individual da prova.
+A Bronze preservara a granularidade individual da prova.
 
-A definição da população analítica será aplicada somente na Silver.
+A definicao da populacao analitica sera aplicada somente na Silver.
 
 ---
 
 ## 8. Granularidade
 
-A Bronze deverá manter a granularidade disponível na fonte selecionada.
+A Bronze devera manter a granularidade disponivel na fonte selecionada.
 
-Não será utilizada uma granularidade única artificial para todas as bases.
+Nao sera utilizada uma granularidade unica artificial para todas as bases.
 
 Exemplos:
 
-- SAEB pode possuir dados agregados por UF ou em nível escolar, conforme a edição;
+- SAEB pode possuir dados agregados por UF ou em nivel escolar, conforme a edicao;
 - IDEB possui tabelas agregadas;
-- Rendimento e TDI possuem agregados geográficos;
+- Rendimento e TDI possuem agregados geograficos;
 - PND possui registros individuais da prova.
 
-A harmonização de granularidade será feita somente quando necessária para a análise.
+A harmonizacao de granularidade sera feita somente quando necessaria para a analise.
 
 ---
 
@@ -854,34 +854,34 @@ data/
     └── pnd/
 ```
 
-Os arquivos Bronze serão preferencialmente armazenados como:
+Os arquivos Bronze serao preferencialmente armazenados como:
 
 `.parquet`
 
 ---
 
-## 10. Validações da Bronze
+## 10. Validacoes da Bronze
 
-Cada processo de ingestão deverá verificar pelo menos:
+Cada processo de ingestao devera verificar pelo menos:
 
-- existência do arquivo de origem;
-- existência de registros;
+- existencia do arquivo de origem;
+- existencia de registros;
 - quantidade de linhas lidas;
 - quantidade de colunas;
-- ano ou edição esperada, quando aplicável;
+- ano ou edicao esperada, quando aplicavel;
 - arquivo e aba de origem registrados;
-- presença das colunas técnicas obrigatórias;
-- consistência de `_linha_origem`, quando aplicável;
-- integridade do arquivo RAW por comparação do SHA-256;
-- sucesso da gravação e releitura do Parquet.
+- presenca das colunas tecnicas obrigatorias;
+- consistencia de `_linha_origem`, quando aplicavel;
+- integridade do arquivo RAW por comparacao do SHA-256;
+- sucesso da gravacao e releitura do Parquet.
 
-A Bronze não deverá considerar uma ingestão válida apenas porque o arquivo foi criado.
+A Bronze nao devera considerar uma ingestao valida apenas porque o arquivo foi criado.
 
-Sempre que aplicável, a validação final deverá ser executada por script independente do script de ingestão.
+Sempre que aplicavel, a validacao final devera ser executada por script independente do script de ingestao.
 
-Essa separação reduz o risco de a própria rotina que produziu o arquivo considerar automaticamente sua saída válida.
+Essa separacao reduz o risco de a propria rotina que produziu o arquivo considerar automaticamente sua saida valida.
 
-O pipeline deverá produzir mensagens de controle.
+O pipeline devera produzir mensagens de controle.
 
 Exemplo:
 
@@ -897,54 +897,54 @@ Destino: data/bronze/rendimento/rendimento_2023.parquet
 
 ## 11. Reprodutibilidade
 
-Nenhum arquivo da Bronze deverá depender de transformação manual em Excel ou Power BI.
+Nenhum arquivo da Bronze devera depender de transformacao manual em Excel ou Power BI.
 
 A partir dos arquivos existentes em:
 
 `data/raw/`
 
-todo o conteúdo de:
+todo o conteudo de:
 
 `data/bronze/`
 
-deverá poder ser reconstruído executando o pipeline.
+devera poder ser reconstruido executando o pipeline.
 
-Isso significa que a Bronze é descartável e reproduzível.
+Isso significa que a Bronze e descartavel e reproduzivel.
 
-A camada Raw não é descartável.
+A camada Raw nao e descartavel.
 
 ---
 
 ## 12. Regra de falha
 
-Se o pipeline não reconhecer corretamente:
+Se o pipeline nao reconhecer corretamente:
 
 - uma aba;
-- um cabeçalho ou estrutura;
+- um cabecalho ou estrutura;
 - um ano;
-- uma codificação;
+- uma codificacao;
 - um delimitador;
 - uma estrutura esperada;
 
-a execução deverá falhar de forma explícita.
+a execucao devera falhar de forma explicita.
 
-Não deverá selecionar silenciosamente outra aba, codificação ou estrutura semelhante.
+Nao devera selecionar silenciosamente outra aba, codificacao ou estrutura semelhante.
 
-É preferível interromper o pipeline do que produzir dados aparentemente válidos a partir de uma interpretação incorreta da fonte.
+E preferivel interromper o pipeline do que produzir dados aparentemente validos a partir de uma interpretacao incorreta da fonte.
 
 ---
 
-## 13. Separação de responsabilidades
+## 13. Separacao de responsabilidades
 
-O projeto adotará a seguinte divisão:
+O projeto adotara a seguinte divisao:
 
 ### RAW
 
-Arquivo original, imutável.
+Arquivo original, imutavel.
 
 ### BRONZE
 
-Arquivo original estruturado e rastreável, com mínima transformação técnica.
+Arquivo original estruturado e rastreavel, com minima transformacao tecnica.
 
 ### SILVER
 
@@ -952,7 +952,7 @@ Dados limpos, tipados, normalizados e semanticamente harmonizados.
 
 ### GOLD
 
-Dados organizados para análise, indicadores, modelo dimensional e Power BI.
+Dados organizados para analise, indicadores, modelo dimensional e Power BI.
 
 A regra pode ser resumida como:
 
@@ -961,22 +961,22 @@ RAW
 arquivo como publicado
        ↓
 BRONZE
-arquivo estruturado e rastreável
+arquivo estruturado e rastreavel
        ↓
 SILVER
 dado limpo e harmonizado
        ↓
 GOLD
-dado analítico
+dado analitico
 ```
 
 ---
 
-## 14. Resultado da ingestão — Rendimento Escolar
+## 14. Resultado da ingestao — Rendimento Escolar
 
-A ingestão Bronze do Rendimento Escolar foi executada para as 17 edições compreendidas entre 2007 e 2023.
+A ingestao Bronze do Rendimento Escolar foi executada para as 17 edicoes compreendidas entre 2007 e 2023.
 
-Após a geração dos arquivos Parquet, foi realizada validação independente por meio de:
+Apos a geracao dos arquivos Parquet, foi realizada validacao independente por meio de:
 
 `src/bronze/validar_bronze_rendimento.py`
 
@@ -984,18 +984,18 @@ Após a geração dos arquivos Parquet, foi realizada validação independente p
 
 - arquivos RAW esperados: 17;
 - arquivos Parquet encontrados: 17;
-- período: 2007–2023;
+- periodo: 2007–2023;
 - total de linhas armazenadas na Bronze: 9.012;
 - arquivos vazios: nenhum;
-- divergências de ano de referência: nenhuma;
-- divergências no arquivo de origem: nenhuma;
-- ausência de colunas técnicas obrigatórias: nenhuma;
+- divergencias de ano de referencia: nenhuma;
+- divergencias no arquivo de origem: nenhuma;
+- ausencia de colunas tecnicas obrigatorias: nenhuma;
 - duplicidades em `_linha_origem`: nenhuma;
-- divergências entre o SHA-256 armazenado na Bronze e o arquivo RAW: nenhuma.
+- divergencias entre o SHA-256 armazenado na Bronze e o arquivo RAW: nenhuma.
 
-Todos os arquivos foram aprovados na validação independente.
+Todos os arquivos foram aprovados na validacao independente.
 
-### Quantidade de linhas por edição
+### Quantidade de linhas por edicao
 
 | Ano | Linhas | Colunas da fonte |
 |---:|---:|---:|
@@ -1017,11 +1017,11 @@ Todos os arquivos foram aprovados na validação independente.
 | 2022 | 595 | 58 |
 | 2023 | 596 | 58 |
 
-### Conclusão
+### Conclusao
 
-A camada Bronze do Rendimento Escolar foi considerada válida.
+A camada Bronze do Rendimento Escolar foi considerada valida.
 
-Os arquivos originais foram convertidos para Parquet sem aplicação de filtros analíticos ou harmonizações semânticas.
+Os arquivos originais foram convertidos para Parquet sem aplicacao de filtros analiticos ou harmonizacoes semanticas.
 
 A rastreabilidade foi preservada por arquivo, aba, ano, linha de origem e SHA-256.
 
@@ -1031,13 +1031,13 @@ Status:
 
 ---
 
-## 15. Resultado da ingestão — TDI
+## 15. Resultado da ingestao — TDI
 
-A ingestão Bronze da Taxa de Distorção Idade-Série foi executada para as 17 edições compreendidas entre 2007 e 2023 por meio de:
+A ingestao Bronze da Taxa de Distorcao Idade-Serie foi executada para as 17 edicoes compreendidas entre 2007 e 2023 por meio de:
 
 `src/bronze/ingest_tdi.py`
 
-Após a geração dos arquivos Parquet, foi realizada validação independente por meio de:
+Apos a geracao dos arquivos Parquet, foi realizada validacao independente por meio de:
 
 `src/bronze/validar_bronze_tdi.py`
 
@@ -1045,19 +1045,19 @@ Após a geração dos arquivos Parquet, foi realizada validação independente p
 
 - arquivos RAW esperados: 17;
 - arquivos Parquet encontrados: 17;
-- período: 2007–2023;
+- periodo: 2007–2023;
 - total de linhas armazenadas na Bronze: 8.989;
 - arquivos vazios: nenhum;
-- divergências de ano de referência: nenhuma;
-- divergências no arquivo de origem: nenhuma;
-- ausência de colunas técnicas obrigatórias: nenhuma;
+- divergencias de ano de referencia: nenhuma;
+- divergencias no arquivo de origem: nenhuma;
+- ausencia de colunas tecnicas obrigatorias: nenhuma;
 - duplicidades em `_linha_origem`: nenhuma;
-- divergências na sequência das colunas técnicas: nenhuma;
-- divergências entre o SHA-256 armazenado na Bronze e o arquivo RAW: nenhuma.
+- divergencias na sequencia das colunas tecnicas: nenhuma;
+- divergencias entre o SHA-256 armazenado na Bronze e o arquivo RAW: nenhuma.
 
-Todos os arquivos foram aprovados na validação independente.
+Todos os arquivos foram aprovados na validacao independente.
 
-### Quantidade de linhas por edição
+### Quantidade de linhas por edicao
 
 | Ano | Linhas | Colunas da fonte |
 |---:|---:|---:|
@@ -1079,11 +1079,11 @@ Todos os arquivos foram aprovados na validação independente.
 | 2022 | 594 | 21 |
 | 2023 | 595 | 21 |
 
-### Conclusão
+### Conclusao
 
-A camada Bronze da TDI foi considerada válida.
+A camada Bronze da TDI foi considerada valida.
 
-Os arquivos originais foram convertidos para Parquet sem aplicação do filtro analítico de rede pública, seleção de localização, harmonização das etapas ou alteração dos valores publicados.
+Os arquivos originais foram convertidos para Parquet sem aplicacao do filtro analitico de rede publica, selecao de localizacao, harmonizacao das etapas ou alteracao dos valores publicados.
 
 A rastreabilidade foi preservada por arquivo, aba, ano, linha de origem e SHA-256.
 
@@ -1093,21 +1093,21 @@ Status:
 
 ---
 
-## 16. Resultado da ingestão — IDEB
+## 16. Resultado da ingestao — IDEB
 
-A ingestão Bronze do Índice de Desenvolvimento da Educação Básica foi realizada a partir do arquivo:
+A ingestao Bronze do Indice de Desenvolvimento da Educacao Basica foi realizada a partir do arquivo:
 
 `divulgacao_regioes_ufs_ideb.xlsx`
 
-Foram preservadas integralmente as três abas existentes no arquivo:
+Foram preservadas integralmente as tres abas existentes no arquivo:
 
-- `UF e Regiões (AI)`;
-- `UF e Regiões (AF)`;
-- `UF e Regiões (EM)`.
+- `UF e Regioes (AI)`;
+- `UF e Regioes (AF)`;
+- `UF e Regioes (EM)`.
 
 Cada aba foi persistida separadamente em Parquet.
 
-Após a ingestão, foi realizada validação independente por meio de:
+Apos a ingestao, foi realizada validacao independente por meio de:
 
 `src/bronze/validar_bronze_ideb.py`
 
@@ -1115,11 +1115,11 @@ Após a ingestão, foi realizada validação independente por meio de:
 
 | Etapa de origem | Aba | Linhas Bronze | Colunas da fonte |
 |---|---|---:|---:|
-| AI | `UF e Regiões (AI)` | 150 | 120 |
-| AF | `UF e Regiões (AF)` | 149 | 110 |
-| EM | `UF e Regiões (EM)` | 117 | 110 |
+| AI | `UF e Regioes (AI)` | 150 | 120 |
+| AF | `UF e Regioes (AF)` | 149 | 110 |
+| EM | `UF e Regioes (EM)` | 117 | 110 |
 
-Foram encontrados os três arquivos Parquet esperados:
+Foram encontrados os tres arquivos Parquet esperados:
 
 - `ideb_ai.parquet`;
 - `ideb_af.parquet`;
@@ -1127,46 +1127,46 @@ Foram encontrados os três arquivos Parquet esperados:
 
 Nenhum dos arquivos estava vazio.
 
-A validação confirmou:
+A validacao confirmou:
 
-- identificação correta da fonte;
+- identificacao correta da fonte;
 - arquivo de origem correto;
 - aba de origem correta;
 - etapa de origem correta;
-- presença dos metadados técnicos;
-- consistência de `_linha_origem`;
+- presenca dos metadados tecnicos;
+- consistencia de `_linha_origem`;
 - quantidade esperada de colunas da fonte;
-- sequência das colunas técnicas `col_001`, `col_002`, etc.;
-- presença dos marcadores técnicos esperados na linha de cabeçalho;
-- correspondência entre o SHA-256 armazenado na Bronze e o arquivo RAW.
+- sequencia das colunas tecnicas `col_001`, `col_002`, etc.;
+- presenca dos marcadores tecnicos esperados na linha de cabecalho;
+- correspondencia entre o SHA-256 armazenado na Bronze e o arquivo RAW.
 
 O SHA-256 confirmado para o arquivo de origem foi:
 
 `e7cdb12afa3c0d2e4435aa914316d84e5ac1e31865fa56ad238ad48f778b1bd5`
 
-### Preservação da estrutura histórica
+### Preservacao da estrutura historica
 
-O workbook contém informações fora do período analítico definido para o projeto, podendo incluir dados anteriores a 2007 e edições posteriores preservadas na fonte física.
+O workbook contem informacoes fora do periodo analitico definido para o projeto, podendo incluir dados anteriores a 2007 e edicoes posteriores preservadas na fonte fisica.
 
-Essas informações foram mantidas na Bronze.
+Essas informacoes foram mantidas na Bronze.
 
-Também foi preservada a aba correspondente ao Ensino Médio, embora o recorte analítico posterior utilize apenas Anos Iniciais e Anos Finais do Ensino Fundamental.
+Tambem foi preservada a aba correspondente ao Ensino Medio, embora o recorte analitico posterior utilize apenas Anos Iniciais e Anos Finais do Ensino Fundamental.
 
-Não foram aplicados na Bronze:
+Nao foram aplicados na Bronze:
 
 - filtro de 2007–2023;
-- exclusão de 2005;
-- exclusão do Ensino Médio;
-- filtro da rede pública;
-- normalização de `Pública (4)` para `PUBLICA`;
-- remoção de informações de aprovação, SAEB ou metas;
-- transformação da estrutura histórica em formato analítico.
+- exclusao de 2005;
+- exclusao do Ensino Medio;
+- filtro da rede publica;
+- normalizacao de `Publica (4)` para `PUBLICA`;
+- remocao de informacoes de aprovacao, SAEB ou metas;
+- transformacao da estrutura historica em formato analitico.
 
-### Conclusão
+### Conclusao
 
-A camada Bronze do IDEB foi considerada válida.
+A camada Bronze do IDEB foi considerada valida.
 
-A estrutura original do workbook foi preservada em três arquivos Parquet rastreáveis até o arquivo, a aba e a linha de origem.
+A estrutura original do workbook foi preservada em tres arquivos Parquet rastreaveis ate o arquivo, a aba e a linha de origem.
 
 Status:
 
@@ -1174,13 +1174,13 @@ Status:
 
 ---
 
-## 17. Resultado da ingestão — SAEB
+## 17. Resultado da ingestao — SAEB
 
-A ingestão Bronze do Sistema de Avaliação da Educação Básica cobre 9 edições entre 2007 e 2023.
+A ingestao Bronze do Sistema de Avaliacao da Educacao Basica cobre 9 edicoes entre 2007 e 2023.
 
-Após a extensão metodológica de 2023, essas 9 edições são representadas por **10 arquivos Parquet**, porque 2023 possui duas fontes oficiais preservadas separadamente.
+Apos a extensao metodologica de 2023, essas 9 edicoes sao representadas por **10 arquivos Parquet**, porque 2023 possui duas fontes oficiais preservadas separadamente.
 
-A ingestão principal foi realizada por meio de:
+A ingestao principal foi realizada por meio de:
 
 `src/bronze/saeb/ingest_saeb.py`
 
@@ -1188,7 +1188,7 @@ e validada independentemente por:
 
 `src/bronze/saeb/validar_bronze_saeb.py`
 
-A fonte agregada adicional de 2023 é ingerida por:
+A fonte agregada adicional de 2023 e ingerida por:
 
 `src/bronze/saeb/ingest_saeb_resultados_2023.py`
 
@@ -1202,40 +1202,40 @@ e validada independentemente por:
 |---:|---|---|---|---:|---:|
 | 2007 | `MEDIA_UF_2007.xlsx` | `MEDIA_ESTADOS` | UF | 269 | 12 |
 | 2009 | `MEDIA_UF_2009.xlsx` | `MEDIA_ESTADOS` | UF | 269 | 12 |
-| 2011 | `TS_RESULTADO_UF_2011.csv` | não se aplica | UF | 4.375 | 13 |
+| 2011 | `TS_RESULTADO_UF_2011.csv` | nao se aplica | UF | 4.375 | 13 |
 | 2013 | `TS_UF_2013.xlsx` | `UF` | UF | 1.706 | 10 |
 | 2015 | `TS_UF_2015.xlsx` | `UFs` | UF | 1.706 | 10 |
 | 2017 | `TS_UF_2017.xlsx` | `TS_UF` | UF | 1.702 | 70 |
 | 2019 | `TS_UF_2019.xlsx` | `Estados` | UF | 1.551 | 156 |
 | 2021 | `TS_UF_2021.xlsx` | `Estados` | UF | 1.517 | 156 |
-| 2023 | `TS_ESCOLA_2023.csv` | não se aplica | ESCOLA | 70.152 | 137 |
+| 2023 | `TS_ESCOLA_2023.csv` | nao se aplica | ESCOLA | 70.152 | 137 |
 | 2023 | `Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb` | `Estados` | UF | 1.553 | 177 |
 
 O conjunto original das nove Bronzes totalizava `83.247 linhas`.
 
-A inclusão da Bronze agregada oficial de 2023 acrescentou 1.553 linhas.
+A inclusao da Bronze agregada oficial de 2023 acrescentou 1.553 linhas.
 
-O total atual das tabelas Bronze do SAEB é:
+O total atual das tabelas Bronze do SAEB e:
 
 `84.800 linhas`
 
-Esse total representa linhas físicas preservadas em 10 Parquets e não deve ser interpretado como quantidade de observações analíticas comparáveis entre si, pois as fontes possuem granularidades e estruturas distintas.
+Esse total representa linhas fisicas preservadas em 10 Parquets e nao deve ser interpretado como quantidade de observacoes analiticas comparaveis entre si, pois as fontes possuem granularidades e estruturas distintas.
 
-### Validação das nove Bronzes originais
+### Validacao das nove Bronzes originais
 
-A validação confirmou para as nove tabelas originais:
+A validacao confirmou para as nove tabelas originais:
 
-- presença dos Parquets esperados;
-- ausência de arquivos vazios;
+- presenca dos Parquets esperados;
+- ausencia de arquivos vazios;
 - quantidade esperada de linhas e colunas;
-- identificação correta do arquivo e da aba;
+- identificacao correta do arquivo e da aba;
 - granularidade de origem;
-- consistência de `_ano_referencia`, `_indice_cabecalho_origem` e `_linha_origem`;
-- sequência das colunas técnicas;
+- consistencia de `_ano_referencia`, `_indice_cabecalho_origem` e `_linha_origem`;
+- sequencia das colunas tecnicas;
 - marcadores estruturais esperados;
-- correspondência entre SHA-256 da Bronze e o RAW atual.
+- correspondencia entre SHA-256 da Bronze e o RAW atual.
 
-### Validação da Bronze agregada oficial de 2023
+### Validacao da Bronze agregada oficial de 2023
 
 A Bronze adicional:
 
@@ -1247,24 +1247,24 @@ foi comparada diretamente com:
 
 na aba `Estados`.
 
-A validação independente confirmou:
+A validacao independente confirmou:
 
 - SHA-256: `e593b547f608b2377ac3d90491d02097326d3b276d4539a93201922466207a01`;
 - 1.553 linhas RAW/Bronze;
 - 177 colunas de origem;
 - 177 colunas de origem persistidas como texto;
-- 274.881 células comparadas RAW ↔ Bronze;
-- reprodução integral do conteúdo da aba após normalização textual;
-- proveniência de arquivo, aba, linha, cabeçalho e granularidade;
+- 274.881 celulas comparadas RAW ↔ Bronze;
+- reproducao integral do conteudo da aba apos normalizacao textual;
+- proveniencia de arquivo, aba, linha, cabecalho e granularidade;
 - `_indice_cabecalho_origem = 0`;
 - `_linha_origem` de 1 a 1.553;
 - `_granularidade_origem = UF`.
 
-Também foi validado o estrato oficial `Total - Federal, Estadual e Municipal`, com `LOCALIZACAO = Total` e `CAPITAL = Total`:
+Tambem foi validado o estrato oficial `Total - Federal, Estadual e Municipal`, com `LOCALIZACAO = Total` e `CAPITAL = Total`:
 
 - 27 UFs;
 - nenhuma duplicidade;
-- nenhum valor ausente nas quatro proficiências utilizadas pela Silver.
+- nenhum valor ausente nas quatro proficiencias utilizadas pela Silver.
 
 Faixas observadas:
 
@@ -1277,40 +1277,40 @@ Resultado:
 
 `BRONZE SAEB 2023 RESULTADOS OFICIAIS DE UF: OK`
 
-### Justificativa da extensão de 2023
+### Justificativa da extensao de 2023
 
 A Bronze escolar de 2023 foi mantida intacta.
 
-Durante a auditoria da Silver, foi testada a hipótese de reproduzir os resultados estaduais utilizando as médias escolares ponderadas por `NU_PRESENTES`.
+Durante a auditoria da Silver, foi testada a hipotese de reproduzir os resultados estaduais utilizando as medias escolares ponderadas por `NU_PRESENTES`.
 
 Foram comparados `27 UFs × 2 etapas × 2 disciplinas = 108 valores`.
 
-A comparação apresentou:
+A comparacao apresentou:
 
-- `0/108` coincidências após arredondamento para duas casas;
-- diferença absoluta média: `1,389714`;
-- diferença absoluta mediana: `1,092905`;
-- maior diferença absoluta: `6,150034`.
+- `0/108` coincidencias apos arredondamento para duas casas;
+- diferenca absoluta media: `1,389714`;
+- diferenca absoluta mediana: `1,092905`;
+- maior diferenca absoluta: `6,150034`.
 
-Por isso, `NU_PRESENTES` foi rejeitado como regra de reconstrução do resultado estadual.
+Por isso, `NU_PRESENTES` foi rejeitado como regra de reconstrucao do resultado estadual.
 
-A solução adotada não foi agregar as escolas na Bronze, mas incorporar a publicação oficial agregada de UF como uma segunda fonte Bronze de 2023.
+A solucao adotada nao foi agregar as escolas na Bronze, mas incorporar a publicacao oficial agregada de UF como uma segunda fonte Bronze de 2023.
 
-### Diferença estrutural entre 2013 e 2015
+### Diferenca estrutural entre 2013 e 2015
 
 Em 2013:
 
 - `_indice_cabecalho_origem = 3`;
-- a primeira linha semântica do cabeçalho corresponde a `_linha_origem = 4`.
+- a primeira linha semantica do cabecalho corresponde a `_linha_origem = 4`.
 
 Em 2015:
 
 - `_indice_cabecalho_origem = 2`;
-- a primeira linha semântica do cabeçalho corresponde a `_linha_origem = 3`.
+- a primeira linha semantica do cabecalho corresponde a `_linha_origem = 3`.
 
-Essa diferença permanece explicitamente documentada e preservada.
+Essa diferenca permanece explicitamente documentada e preservada.
 
-### Codificação e delimitador dos CSV
+### Codificacao e delimitador dos CSV
 
 Foram utilizados:
 
@@ -1325,13 +1325,13 @@ A Bronze preserva as granularidades efetivamente publicadas:
 - 2023 escolar: ESCOLA;
 - 2023 agregado oficial: UF.
 
-A tabela escolar de 2023 não é agregada pela Bronze.
+A tabela escolar de 2023 nao e agregada pela Bronze.
 
-A tabela agregada de 2023 é outra publicação oficial, ingerida diretamente e sem reconstrução.
+A tabela agregada de 2023 e outra publicacao oficial, ingerida diretamente e sem reconstrucao.
 
-### Conclusão
+### Conclusao
 
-A camada Bronze do SAEB foi considerada válida após a extensão controlada de 2023.
+A camada Bronze do SAEB foi considerada valida apos a extensao controlada de 2023.
 
 A rastreabilidade foi preservada por arquivo, aba, ano, granularidade, linha de origem e SHA-256.
 
@@ -1341,13 +1341,13 @@ Status:
 
 ---
 
-## 18. Resultado da ingestão — PND 2025
+## 18. Resultado da ingestao — PND 2025
 
-A ingestão Bronze da PND 2025 foi executada por meio de:
+A ingestao Bronze da PND 2025 foi executada por meio de:
 
 `src/bronze/ingest_pnd.py`
 
-A validação independente foi executada por meio de:
+A validacao independente foi executada por meio de:
 
 `src/bronze/validar_bronze_pnd.py`
 
@@ -1359,24 +1359,24 @@ Foi utilizada como tabela factual da Bronze:
 
 Os arquivos auxiliares:
 
-- `Dicionário_arquivos_variáveis_PND_2025.xlsx`;
+- `Dicionario_arquivos_variaveis_PND_2025.xlsx`;
 - `microdados2025_parametros_itens.xlsx`;
 
-permanecem preservados no RAW como documentação e parâmetros técnicos.
+permanecem preservados no RAW como documentacao e parametros tecnicos.
 
-### Resultado da ingestão
+### Resultado da ingestao
 
-A execução confirmou:
+A execucao confirmou:
 
-- codificação: `utf-8`;
+- codificacao: `utf-8`;
 - delimitador: `;`;
 - 26 colunas na fonte;
 - 1.087.359 registros de dados;
-- 1.087.360 linhas Bronze, incluindo a linha física do cabeçalho preservada;
+- 1.087.360 linhas Bronze, incluindo a linha fisica do cabecalho preservada;
 - granularidade: `REGISTRO_INDIVIDUAL`;
 - SHA-256 do RAW: `b15968a19e309bca6b63c6f6d7af094efdc13d900645dc7385872a6a50dd7baf`.
 
-A ingestão foi processada em 11 chunks:
+A ingestao foi processada em 11 chunks:
 
 - 10 chunks de 100.000 linhas;
 - 1 chunk final de 87.360 linhas.
@@ -1385,15 +1385,15 @@ O arquivo produzido foi:
 
 `data/bronze/pnd/pnd_2025.parquet`
 
-### Validação independente
+### Validacao independente
 
-A validação confirmou:
+A validacao confirmou:
 
-- correspondência do SHA-256 com o arquivo RAW;
-- presença das 26 colunas esperadas;
-- preservação do cabeçalho físico;
-- sequência contígua de `_linha_origem`;
-- consistência dos metadados de rastreabilidade;
+- correspondencia do SHA-256 com o arquivo RAW;
+- presenca das 26 colunas esperadas;
+- preservacao do cabecalho fisico;
+- sequencia contigua de `_linha_origem`;
+- consistencia dos metadados de rastreabilidade;
 - granularidade `REGISTRO_INDIVIDUAL`;
 - total de 1.087.360 linhas na Bronze.
 
@@ -1401,26 +1401,26 @@ O resultado final foi:
 
 `BRONZE DA PND 2025: OK`
 
-### Correção técnica durante a implementação
+### Correcao tecnica durante a implementacao
 
-Na primeira execução da validação foi detectada inconsistência em `_fonte` a partir dos chunks posteriores ao primeiro.
+Na primeira execucao da validacao foi detectada inconsistencia em `_fonte` a partir dos chunks posteriores ao primeiro.
 
-A causa foi o alinhamento automático por índice do pandas durante a inserção das `Series` de metadados técnicos.
+A causa foi o alinhamento automatico por indice do pandas durante a insercao das `Series` de metadados tecnicos.
 
-A correção aplicada foi:
+A correcao aplicada foi:
 
-- `reset_index(drop=True)` em cada chunk antes da criação dos metadados;
-- criação das `Series` técnicas com `index=chunk.index`.
+- `reset_index(drop=True)` em cada chunk antes da criacao dos metadados;
+- criacao das `Series` tecnicas com `index=chunk.index`.
 
-Após a correção, a ingestão foi refeita integralmente e a validação independente passou em todos os controles.
+Apos a correcao, a ingestao foi refeita integralmente e a validacao independente passou em todos os controles.
 
-Essa correção não alterou nenhuma variável substantiva da PND; afetava exclusivamente o preenchimento técnico dos metadados da Bronze.
+Essa correcao nao alterou nenhuma variavel substantiva da PND; afetava exclusivamente o preenchimento tecnico dos metadados da Bronze.
 
-### Conclusão
+### Conclusao
 
-A camada Bronze da PND 2025 foi considerada válida.
+A camada Bronze da PND 2025 foi considerada valida.
 
-Todos os registros do arquivo principal foram preservados, sem aplicação da população analítica de 759.140 participantes e sem exclusão de registros por condição de presença ou completude dos resultados.
+Todos os registros do arquivo principal foram preservados, sem aplicacao da populacao analitica de 759.140 participantes e sem exclusao de registros por condicao de presenca ou completude dos resultados.
 
 Status:
 
@@ -1428,65 +1428,65 @@ Status:
 
 ---
 
-## 19. Situação atual da camada Bronze
+## 19. Situacao atual da camada Bronze
 
-Até esta atualização:
+Ate esta atualizacao:
 
-| Fonte | Ingestão | Validação independente |
+| Fonte | Ingestao | Validacao independente |
 |---|---|---|
-| Rendimento Escolar | ✅ concluída | ✅ concluída |
-| TDI | ✅ concluída | ✅ concluída |
-| IDEB | ✅ concluída | ✅ concluída |
-| SAEB | ✅ concluída | ✅ concluída |
-| PND 2025 | ✅ concluída | ✅ concluída |
+| Rendimento Escolar | ✅ concluida | ✅ concluida |
+| TDI | ✅ concluida | ✅ concluida |
+| IDEB | ✅ concluida | ✅ concluida |
+| SAEB | ✅ concluida | ✅ concluida |
+| PND 2025 | ✅ concluida | ✅ concluida |
 
-As decisões metodológicas documentadas nas auditorias e em `docs/definicao_rede_publica.md` são aplicadas na Silver. Na Bronze permanecem apenas transformações técnicas, preservação estrutural e metadados de rastreabilidade. A inclusão do resultado agregado oficial do SAEB 2023 não altera essa separação: trata-se de uma segunda fonte oficial, não de uma agregação calculada na Bronze.
+As decisoes metodologicas documentadas nas auditorias e em `docs/definicao_rede_publica.md` sao aplicadas na Silver. Na Bronze permanecem apenas transformacoes tecnicas, preservacao estrutural e metadados de rastreabilidade. A inclusao do resultado agregado oficial do SAEB 2023 nao altera essa separacao: trata-se de uma segunda fonte oficial, nao de uma agregacao calculada na Bronze.
 
 ---
 
-## 20. Conclusão
+## 20. Conclusao
 
-A camada Bronze funciona como fronteira entre os arquivos heterogêneos publicados pelas fontes e o pipeline analítico.
+A camada Bronze funciona como fronteira entre os arquivos heterogeneos publicados pelas fontes e o pipeline analitico.
 
-Seu principal compromisso é com:
+Seu principal compromisso e com:
 
 - fidelidade;
 - rastreabilidade;
 - reprodutibilidade;
-- mínima transformação semântica.
+- minima transformacao semantica.
 
-A Bronze não é a camada em que as diferentes fontes se tornam semanticamente iguais.
+A Bronze nao e a camada em que as diferentes fontes se tornam semanticamente iguais.
 
-Seu papel é produzir representações estruturadas, verificáveis e reconstruíveis a partir dos arquivos RAW.
+Seu papel e produzir representacoes estruturadas, verificaveis e reconstruiveis a partir dos arquivos RAW.
 
-Com a conclusão e validação independente de Rendimento Escolar, TDI, IDEB, SAEB e PND 2025, a camada Bronze do projeto encontra-se integralmente concluída.
+Com a conclusao e validacao independente de Rendimento Escolar, TDI, IDEB, SAEB e PND 2025, a camada Bronze do projeto encontra-se integralmente concluida.
 
-A etapa subsequente do pipeline é a camada Silver, responsável pelas harmonizações semânticas, recortes analíticos, normalizações de rede, etapa, indicadores e granularidade. A camada Bronze permanece encerrada e reproduzível, salvo a incorporação futura de nova fonte oficial que exija extensão documentada.
+A etapa subsequente do pipeline e a camada Silver, responsavel pelas harmonizacoes semanticas, recortes analiticos, normalizacoes de rede, etapa, indicadores e granularidade. A camada Bronze permanece encerrada e reproduzivel, salvo a incorporacao futura de nova fonte oficial que exija extensao documentada.
 
 ---
 
-## 21. Histórico de atualização
+## 21. Historico de atualizacao
 
-| Data | Alteração |
+| Data | Alteracao |
 |---|---|
-| 18/08/2026 | Definição inicial da arquitetura da camada Bronze |
+| 18/08/2026 | Definicao inicial da arquitetura da camada Bronze |
 | 18/08/2026 | Definidos limites entre Raw, Bronze, Silver e Gold |
-| 18/08/2026 | Definida adoção de Parquet e metadados de rastreabilidade |
-| 18/08/2026 | Documentada a tipagem técnica das células na Bronze |
+| 18/08/2026 | Definida adocao de Parquet e metadados de rastreabilidade |
+| 18/08/2026 | Documentada a tipagem tecnica das celulas na Bronze |
 | 18/08/2026 | Documentadas irregularidades nos nomes de abas do Rendimento Escolar |
-| 18/08/2026 | Concluída e validada independentemente a ingestão Bronze do Rendimento Escolar (2007–2023) |
-| 18/08/2026 | Concluída e validada independentemente a ingestão Bronze da TDI (2007–2023) |
-| 18/08/2026 | Concluída e validada independentemente a ingestão Bronze do IDEB |
-| 18/08/2026 | Reorganizada a documentação para separar decisões metodológicas, particularidades das fontes e resultados de execução |
-| 18/08/2026 | Corrigida a seleção das fontes SAEB: agregados oficiais por UF confirmados de 2007 a 2021 e fonte escolar apenas para 2023 |
-| 18/08/2026 | Confirmados delimitador e codificação dos CSV selecionados do SAEB: UTF-8/`;` em 2011 e CP1252/`;` em 2023 |
-| 18/08/2026 | Corrigida a referência estrutural do cabeçalho SAEB 2015 para índice 2 (linha de origem 3), conforme diferença auditada em relação a 2013 |
-| 18/08/2026 | Concluída e validada independentemente a ingestão Bronze do SAEB (2007–2023), com 9 edições e 83.247 linhas |
-| 18/08/2026 | Confirmada a estrutura técnica da PND 2025 e definida a ingestão Bronze em blocos do TXT principal: UTF-8, `;`, 26 colunas, 1.087.359 registros e preservação da linha física de cabeçalho |
-| 18/08/2026 | Corrigida a escrita em chunks da PND para resetar o índice de cada bloco e impedir alinhamento automático do pandas nos metadados técnicos |
-| 18/08/2026 | Concluída e validada independentemente a ingestão Bronze da PND 2025, com 1.087.359 registros de dados e 1.087.360 linhas Bronze incluindo o cabeçalho preservado |
-| 18/08/2026 | Camada Bronze concluída integralmente para Rendimento Escolar, TDI, IDEB, SAEB e PND 2025 |
-| 19/08/2026 | Comparação da Bronze escolar do SAEB 2023 com os resultados estaduais oficiais mostrou 0/108 coincidências quando as médias escolares foram ponderadas por `NU_PRESENTES`; a regra de agregação foi rejeitada |
+| 18/08/2026 | Concluida e validada independentemente a ingestao Bronze do Rendimento Escolar (2007–2023) |
+| 18/08/2026 | Concluida e validada independentemente a ingestao Bronze da TDI (2007–2023) |
+| 18/08/2026 | Concluida e validada independentemente a ingestao Bronze do IDEB |
+| 18/08/2026 | Reorganizada a documentacao para separar decisoes metodologicas, particularidades das fontes e resultados de execucao |
+| 18/08/2026 | Corrigida a selecao das fontes SAEB: agregados oficiais por UF confirmados de 2007 a 2021 e fonte escolar apenas para 2023 |
+| 18/08/2026 | Confirmados delimitador e codificacao dos CSV selecionados do SAEB: UTF-8/`;` em 2011 e CP1252/`;` em 2023 |
+| 18/08/2026 | Corrigida a referencia estrutural do cabecalho SAEB 2015 para indice 2 (linha de origem 3), conforme diferenca auditada em relacao a 2013 |
+| 18/08/2026 | Concluida e validada independentemente a ingestao Bronze do SAEB (2007–2023), com 9 edicoes e 83.247 linhas |
+| 18/08/2026 | Confirmada a estrutura tecnica da PND 2025 e definida a ingestao Bronze em blocos do TXT principal: UTF-8, `;`, 26 colunas, 1.087.359 registros e preservacao da linha fisica de cabecalho |
+| 18/08/2026 | Corrigida a escrita em chunks da PND para resetar o indice de cada bloco e impedir alinhamento automatico do pandas nos metadados tecnicos |
+| 18/08/2026 | Concluida e validada independentemente a ingestao Bronze da PND 2025, com 1.087.359 registros de dados e 1.087.360 linhas Bronze incluindo o cabecalho preservado |
+| 18/08/2026 | Camada Bronze concluida integralmente para Rendimento Escolar, TDI, IDEB, SAEB e PND 2025 |
+| 19/08/2026 | Comparacao da Bronze escolar do SAEB 2023 com os resultados estaduais oficiais mostrou 0/108 coincidencias quando as medias escolares foram ponderadas por `NU_PRESENTES`; a regra de agregacao foi rejeitada |
 | 19/08/2026 | Incorporado ao RAW `Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb` e criada uma segunda Bronze de 2023 em granularidade UF, preservando separadamente a Bronze escolar existente |
-| 19/08/2026 | Bronze agregada oficial do SAEB 2023 validada integralmente: 1.553 linhas, 177 colunas, 274.881 células RAW ↔ Bronze e SHA-256 `e593b547f608b2377ac3d90491d02097326d3b276d4539a93201922466207a01` |
-| 19/08/2026 | Atualizado o total do SAEB Bronze para 10 Parquets e 84.800 linhas físicas, mantendo 9 edições e duas fontes oficiais distintas em 2023 |
+| 19/08/2026 | Bronze agregada oficial do SAEB 2023 validada integralmente: 1.553 linhas, 177 colunas, 274.881 celulas RAW ↔ Bronze e SHA-256 `e593b547f608b2377ac3d90491d02097326d3b276d4539a93201922466207a01` |
+| 19/08/2026 | Atualizado o total do SAEB Bronze para 10 Parquets e 84.800 linhas fisicas, mantendo 9 edicoes e duas fontes oficiais distintas em 2023 |

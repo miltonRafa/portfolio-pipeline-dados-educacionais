@@ -1,22 +1,22 @@
-# Auditoria das Fontes — Rendimento Escolar
+﻿# Auditoria das Fontes — Rendimento Escolar
 
 ## 1. Objetivo
 
-Este documento registra a auditoria técnica das fontes de Taxas de Rendimento Escolar utilizadas no projeto.
+Este documento registra a auditoria tecnica das fontes de Taxas de Rendimento Escolar utilizadas no projeto.
 
-A auditoria foi realizada antes da implementação das regras definitivas do pipeline, com os objetivos de:
+A auditoria foi realizada antes da implementacao das regras definitivas do pipeline, com os objetivos de:
 
 - identificar a estrutura dos arquivos oficiais;
 - verificar a cobertura temporal;
-- confirmar a presença das 27 Unidades da Federação;
-- identificar as categorias de localização e dependência administrativa;
-- verificar a disponibilidade da rede pública agregada;
-- confirmar a existência das taxas de aprovação, reprovação e abandono;
+- confirmar a presenca das 27 Unidades da Federacao;
+- identificar as categorias de localizacao e dependencia administrativa;
+- verificar a disponibilidade da rede publica agregada;
+- confirmar a existencia das taxas de aprovacao, reprovacao e abandono;
 - verificar a disponibilidade dos resultados para Anos Iniciais e Anos Finais;
-- validar a consistência matemática das taxas;
-- identificar alterações estruturais ocorridas entre as diferentes edições.
+- validar a consistencia matematica das taxas;
+- identificar alteracoes estruturais ocorridas entre as diferentes edicoes.
 
-O período utilizado pelo projeto é:
+O periodo utilizado pelo projeto e:
 
 2007–2023
 
@@ -24,13 +24,13 @@ O recorte considera:
 
 - Ensino Fundamental — Anos Iniciais;
 - Ensino Fundamental — Anos Finais;
-- nível geográfico de Unidade da Federação;
-- rede pública;
-- localização total.
+- nivel geografico de Unidade da Federacao;
+- rede publica;
+- localizacao total.
 
 ---
 
-## 2. Organização dos arquivos
+## 2. Organizacao dos arquivos
 
 Foram identificados 17 arquivos, correspondentes aos anos de 2007 a 2023.
 
@@ -38,39 +38,39 @@ Os arquivos originais foram mantidos em:
 
 data/raw/rendimento/
 
-Para facilitar a identificação no repositório, o ano de referência foi acrescentado localmente aos nomes dos arquivos quando necessário.
+Para facilitar a identificacao no repositorio, o ano de referencia foi acrescentado localmente aos nomes dos arquivos quando necessario.
 
-Essa nomenclatura local não é utilizada como única fonte para determinação do período. Durante a auditoria, o ano indicado no nome de cada arquivo foi confrontado com o ano existente internamente nos dados.
+Essa nomenclatura local nao e utilizada como unica fonte para determinacao do periodo. Durante a auditoria, o ano indicado no nome de cada arquivo foi confrontado com o ano existente internamente nos dados.
 
-Todos os 17 arquivos passaram nessa validação.
+Todos os 17 arquivos passaram nessa validacao.
 
 ---
 
 ## 3. Particularidade do arquivo de 2008
 
-Foi identificada uma inconsistência de metadado no arquivo correspondente a 2008.
+Foi identificada uma inconsistencia de metadado no arquivo correspondente a 2008.
 
-O conteúdo interno identifica corretamente:
+O conteudo interno identifica corretamente:
 
-Taxas de Rendimento por Unidades da Federação - 2008
+Taxas de Rendimento por Unidades da Federacao - 2008
 
 e os registros possuem:
 
 Ano = 2008
 
-Entretanto, o nome da aba é:
+Entretanto, o nome da aba e:
 
 Rendimento por UF - 2009
 
-Como o conteúdo interno confirma inequivocamente o ano de 2008, o arquivo será tratado como fonte de 2008.
+Como o conteudo interno confirma inequivocamente o ano de 2008, o arquivo sera tratado como fonte de 2008.
 
-O arquivo bruto não será alterado.
+O arquivo bruto nao sera alterado.
 
 ---
 
 ## 4. Cobertura temporal
 
-A série auditada compreende:
+A serie auditada compreende:
 
 2007
 2008
@@ -90,22 +90,22 @@ A série auditada compreende:
 2022
 2023
 
-Todos os arquivos apresentaram internamente exclusivamente o ano esperado segundo a organização local.
+Todos os arquivos apresentaram internamente exclusivamente o ano esperado segundo a organizacao local.
 
 ---
 
-## 5. Mudanças estruturais
+## 5. Mudancas estruturais
 
-A auditoria identificou alterações na estrutura das planilhas ao longo da série.
+A auditoria identificou alteracoes na estrutura das planilhas ao longo da serie.
 
 ### 2007
 
-O arquivo apresenta dimensões como:
+O arquivo apresenta dimensoes como:
 
 Ano
-Região
+Regiao
 UF
-Localização
+Localizacao
 Rede
 
 ### 2008–2015
@@ -114,62 +114,62 @@ A estrutura passa a utilizar principalmente:
 
 Ano
 UF
-Localização
+Localizacao
 Rede
 
 ### 2016
 
-A fonte apresenta novamente a informação regional e utiliza:
+A fonte apresenta novamente a informacao regional e utiliza:
 
 Ano
-Região
+Regiao
 UF
-Localização
-Dependência Administrativa
+Localizacao
+Dependencia Administrativa
 
 ### 2017–2023
 
 Os arquivos passam a reunir:
 
 Brasil
-Regiões Geográficas
-Unidades da Federação
+Regioes Geograficas
+Unidades da Federacao
 
 no mesmo conjunto de dados.
 
-Consequentemente, o pipeline deverá selecionar explicitamente apenas as 27 UFs.
+Consequentemente, o pipeline devera selecionar explicitamente apenas as 27 UFs.
 
 ---
 
-## 6. Mudanças de nomenclatura
+## 6. Mudancas de nomenclatura
 
-Foram identificadas variações textuais nas categorias de rede.
+Foram identificadas variacoes textuais nas categorias de rede.
 
 Nos anos mais antigos aparecem formas como:
 
 Publico
 Particular
 
-Em outros períodos aparecem:
+Em outros periodos aparecem:
 
-Pública
+Publica
 Privada
 
-Também ocorre mudança do nome da dimensão:
+Tambem ocorre mudanca do nome da dimensao:
 
 Rede
 
 para:
 
-Dependência Administrativa
+Dependencia Administrativa
 
-Essas diferenças serão padronizadas apenas na etapa de transformação.
+Essas diferencas serao padronizadas apenas na etapa de transformacao.
 
-Os arquivos raw permanecerão inalterados.
+Os arquivos raw permanecerao inalterados.
 
 ---
 
-## 7. Localização
+## 7. Localizacao
 
 Em todos os 17 anos foram encontradas as categorias:
 
@@ -177,74 +177,74 @@ Rural
 Total
 Urbana
 
-Para o objetivo analítico do projeto será utilizada:
+Para o objetivo analitico do projeto sera utilizada:
 
-Localização = Total
+Localizacao = Total
 
-Dessa forma, o indicador representa o conjunto da UF sem restringir os resultados às áreas urbana ou rural.
+Dessa forma, o indicador representa o conjunto da UF sem restringir os resultados as areas urbana ou rural.
 
 ---
 
-## 8. Dependência administrativa
+## 8. Dependencia administrativa
 
 As fontes disponibilizam categorias como:
 
 Federal
 Estadual
 Municipal
-Pública / Publico
+Publica / Publico
 Privada / Particular
 Total
 
-A auditoria confirmou que a categoria agregada de rede pública está disponível diretamente na fonte durante toda a série histórica.
+A auditoria confirmou que a categoria agregada de rede publica esta disponivel diretamente na fonte durante toda a serie historica.
 
-Assim, não será necessário reconstruir a rede pública por meio da combinação de:
+Assim, nao sera necessario reconstruir a rede publica por meio da combinacao de:
 
 Federal + Estadual + Municipal
 
 ---
 
-## 9. Cobertura das Unidades da Federação
+## 9. Cobertura das Unidades da Federacao
 
-Foi verificada a presença das 27 UFs em todos os anos.
+Foi verificada a presenca das 27 UFs em todos os anos.
 
 Resultado:
 
 2007–2023:
 27 / 27 UFs
 
-Não foram identificadas UFs ausentes no recorte analisado.
+Nao foram identificadas UFs ausentes no recorte analisado.
 
 ---
 
-## 10. Rede pública e localização total
+## 10. Rede publica e localizacao total
 
-Foi realizada uma verificação específica da combinação:
+Foi realizada uma verificacao especifica da combinacao:
 
-Rede = Pública
-Localização = Total
+Rede = Publica
+Localizacao = Total
 
-considerando variações textuais como:
+considerando variacoes textuais como:
 
 Publico
-Pública
+Publica
 
 Em todos os anos foram encontrados:
 
 27 / 27 UFs
 
-Não foram identificadas duplicidades nessa combinação.
+Nao foram identificadas duplicidades nessa combinacao.
 
-Portanto, existe exatamente um agregado público estadual pertinente ao projeto para cada UF e ano.
+Portanto, existe exatamente um agregado publico estadual pertinente ao projeto para cada UF e ano.
 
 ---
 
 ## 11. Indicadores utilizados
 
-As fontes apresentam três componentes de rendimento:
+As fontes apresentam tres componentes de rendimento:
 
-Aprovação
-Reprovação
+Aprovacao
+Reprovacao
 Abandono
 
 Para cada um deles existem resultados consolidados para:
@@ -252,12 +252,12 @@ Para cada um deles existem resultados consolidados para:
 Anos Iniciais
 Anos Finais
 
-O projeto utilizará, portanto, seis medidas por UF e ano:
+O projeto utilizara, portanto, seis medidas por UF e ano:
 
-Aprovação × Anos Iniciais
-Aprovação × Anos Finais
-Reprovação × Anos Iniciais
-Reprovação × Anos Finais
+Aprovacao × Anos Iniciais
+Aprovacao × Anos Finais
+Reprovacao × Anos Iniciais
+Reprovacao × Anos Finais
 Abandono × Anos Iniciais
 Abandono × Anos Finais
 
@@ -265,34 +265,34 @@ Abandono × Anos Finais
 
 ## 12. Cobertura das medidas
 
-A auditoria confirmou que, para a combinação:
+A auditoria confirmou que, para a combinacao:
 
 27 UFs
-Rede Pública
-Localização Total
+Rede Publica
+Localizacao Total
 
 os seis indicadores possuem cobertura completa entre 2007 e 2023.
 
 Em todos os anos:
 
-Aprovação — Anos Iniciais: 27 válidos / 0 ausentes
-Aprovação — Anos Finais: 27 válidos / 0 ausentes
+Aprovacao — Anos Iniciais: 27 validos / 0 ausentes
+Aprovacao — Anos Finais: 27 validos / 0 ausentes
 
-Reprovação — Anos Iniciais: 27 válidos / 0 ausentes
-Reprovação — Anos Finais: 27 válidos / 0 ausentes
+Reprovacao — Anos Iniciais: 27 validos / 0 ausentes
+Reprovacao — Anos Finais: 27 validos / 0 ausentes
 
-Abandono — Anos Iniciais: 27 válidos / 0 ausentes
-Abandono — Anos Finais: 27 válidos / 0 ausentes
+Abandono — Anos Iniciais: 27 validos / 0 ausentes
+Abandono — Anos Finais: 27 validos / 0 ausentes
 
 ---
 
-## 13. Validação matemática
+## 13. Validacao matematica
 
-Foi aplicada a seguinte verificação para cada UF, ano e etapa:
+Foi aplicada a seguinte verificacao para cada UF, ano e etapa:
 
-Aprovação + Reprovação + Abandono ≈ 100
+Aprovacao + Reprovacao + Abandono ≈ 100
 
-A tolerância definida para a auditoria foi de:
+A tolerancia definida para a auditoria foi de:
 
 0,2 ponto percentual
 
@@ -304,55 +304,55 @@ maior desvio = 0,00
 Anos Finais:
 maior desvio = 0,00
 
-Registros fora da tolerância:
+Registros fora da tolerancia:
 
 0
 
-A consistência interna das três taxas foi, portanto, confirmada em toda a série auditada.
+A consistencia interna das tres taxas foi, portanto, confirmada em toda a serie auditada.
 
 ---
 
-## 14. Ausência de necessidade de reconstrução
+## 14. Ausencia de necessidade de reconstrucao
 
-Como a própria fonte disponibiliza os resultados consolidados de:
+Como a propria fonte disponibiliza os resultados consolidados de:
 
 UF
-Rede Pública
-Localização Total
+Rede Publica
+Localizacao Total
 Anos Iniciais
 Anos Finais
 
-não será necessário:
+nao sera necessario:
 
-- agregar municípios;
-- calcular médias entre UFs ou municípios;
+- agregar municipios;
+- calcular medias entre UFs ou municipios;
 - combinar Federal, Estadual e Municipal;
-- reconstruir taxas a partir de séries individuais.
+- reconstruir taxas a partir de series individuais.
 
-O pipeline deverá utilizar diretamente os agregados oficiais disponibilizados pelo Inep.
+O pipeline devera utilizar diretamente os agregados oficiais disponibilizados pelo Inep.
 
 ---
 
 ## 15. Valores ausentes
 
-As fontes utilizam representações como:
+As fontes utilizam representacoes como:
 
 --
 -
 
-para determinados valores indisponíveis em outras categorias e níveis de desagregação.
+para determinados valores indisponiveis em outras categorias e niveis de desagregacao.
 
-Esses valores não devem ser convertidos para zero.
+Esses valores nao devem ser convertidos para zero.
 
-Na transformação deverão ser tratados como valores ausentes.
+Na transformacao deverao ser tratados como valores ausentes.
 
-No recorte efetivamente utilizado pelo projeto — rede pública, localização total, Anos Iniciais e Anos Finais — não foram encontrados valores ausentes nas seis medidas auditadas.
+No recorte efetivamente utilizado pelo projeto — rede publica, localizacao total, Anos Iniciais e Anos Finais — nao foram encontrados valores ausentes nas seis medidas auditadas.
 
 ---
 
 ## 16. Estrutura padronizada pretendida
 
-A tabela final de Rendimento Escolar poderá adotar estrutura longa:
+A tabela final de Rendimento Escolar podera adotar estrutura longa:
 
 ANO
 UF
@@ -372,7 +372,7 @@ Considerando:
 
 17 anos × 27 UFs × 2 etapas × 3 indicadores
 
-a tabela completa deverá possuir:
+a tabela completa devera possuir:
 
 2.754 registros
 
@@ -385,58 +385,58 @@ caso as regras definitivas mantenham esse recorte.
 A auditoria indica as seguintes regras futuras:
 
 1. Identificar o ano interno de cada arquivo.
-2. Validar o ano contra a organização local.
-3. Reconhecer as diferentes estruturas históricas.
+2. Validar o ano contra a organizacao local.
+3. Reconhecer as diferentes estruturas historicas.
 4. Selecionar somente as 27 UFs.
-5. Excluir Brasil e regiões quando presentes.
-6. Selecionar Localização = Total.
-7. Selecionar Rede = Pública, normalizando Publico/Pública.
+5. Excluir Brasil e regioes quando presentes.
+6. Selecionar Localizacao = Total.
+7. Selecionar Rede = Publica, normalizando Publico/Publica.
 8. Utilizar os agregados de Anos Iniciais e Anos Finais.
-9. Selecionar Aprovação, Reprovação e Abandono.
+9. Selecionar Aprovacao, Reprovacao e Abandono.
 10. Converter "-" e "--" em valores ausentes.
 11. Transformar os dados para formato longo.
-12. Validar ausência de duplicidades.
-13. Validar presença das 27 UFs.
-14. Validar Aprovação + Reprovação + Abandono = 100 dentro da tolerância estabelecida.
+12. Validar ausencia de duplicidades.
+13. Validar presenca das 27 UFs.
+14. Validar Aprovacao + Reprovacao + Abandono = 100 dentro da tolerancia estabelecida.
 
-Essas regras somente serão incorporadas ao pipeline produtivo após a conclusão das demais auditorias.
+Essas regras somente serao incorporadas ao pipeline produtivo apos a conclusao das demais auditorias.
 
 ---
 
-## 18. Conclusão
+## 18. Conclusao
 
-A auditoria confirmou que as fontes de Rendimento Escolar são adequadas para a série histórica proposta pelo projeto.
+A auditoria confirmou que as fontes de Rendimento Escolar sao adequadas para a serie historica proposta pelo projeto.
 
-Entre 2007 e 2023 existe cobertura integral das 27 Unidades da Federação para:
+Entre 2007 e 2023 existe cobertura integral das 27 Unidades da Federacao para:
 
-- rede pública;
-- localização total;
+- rede publica;
+- localizacao total;
 - Anos Iniciais;
 - Anos Finais;
-- aprovação;
-- reprovação;
+- aprovacao;
+- reprovacao;
 - abandono.
 
-Não há necessidade de reconstruir o agregado público nem de calcular as taxas a partir de níveis geográficos inferiores.
+Nao ha necessidade de reconstruir o agregado publico nem de calcular as taxas a partir de niveis geograficos inferiores.
 
-A validação matemática confirmou ainda que:
+A validacao matematica confirmou ainda que:
 
-Aprovação + Reprovação + Abandono = 100
+Aprovacao + Reprovacao + Abandono = 100
 
 em todos os registros auditados do recorte.
 
-A auditoria estrutural do Rendimento Escolar está, portanto, concluída.
+A auditoria estrutural do Rendimento Escolar esta, portanto, concluida.
 
-Permanece pendente apenas a decisão metodológica transversal sobre o conceito de rede pública, que será consolidada após a auditoria dos demais indicadores.
+Permanece pendente apenas a decisao metodologica transversal sobre o conceito de rede publica, que sera consolidada apos a auditoria dos demais indicadores.
 
 ---
 
-## Histórico de atualização
+## Historico de atualizacao
 
-| Data | Alteração |
+| Data | Alteracao |
 |---|---|
-| 18/08/2026 | Primeira versão da auditoria técnica |
+| 18/08/2026 | Primeira versao da auditoria tecnica |
 | 18/08/2026 | Confirmada cobertura das 27 UFs entre 2007 e 2023 |
 | 18/08/2026 | Confirmada cobertura integral das seis medidas |
-| 18/08/2026 | Validada a soma Aprovação + Reprovação + Abandono |
-| A definir | Atualização após definição metodológica conjunta da rede pública |
+| 18/08/2026 | Validada a soma Aprovacao + Reprovacao + Abandono |
+| A definir | Atualizacao apos definicao metodologica conjunta da rede publica |

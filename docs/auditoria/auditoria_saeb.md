@@ -1,12 +1,12 @@
-# Auditoria das Fontes — SAEB
+﻿# Auditoria das Fontes — SAEB
 
 ## 1. Objetivo
 
-Este documento registra a auditoria técnica das fontes do **Sistema de Avaliação da Educação Básica (SAEB)** utilizadas no projeto.
+Este documento registra a auditoria tecnica das fontes do **Sistema de Avaliacao da Educacao Basica (SAEB)** utilizadas no projeto.
 
-A auditoria foi realizada antes da definição final das regras de transformação do pipeline, com o objetivo de identificar diferenças entre os arquivos disponibilizados ao longo dos anos e evitar a aplicação de um tratamento uniforme sobre estruturas distintas.
+A auditoria foi realizada antes da definicao final das regras de transformacao do pipeline, com o objetivo de identificar diferencas entre os arquivos disponibilizados ao longo dos anos e evitar a aplicacao de um tratamento uniforme sobre estruturas distintas.
 
-Foram analisadas as edições de:
+Foram analisadas as edicoes de:
 
 **2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021 e 2023.**
 
@@ -14,34 +14,34 @@ O projeto utiliza somente:
 
 * Ensino Fundamental — Anos Iniciais;
 * Ensino Fundamental — Anos Finais;
-* Língua Portuguesa;
-* Matemática;
-* resultados em nível de Unidade Federativa (UF).
+* Lingua Portuguesa;
+* Matematica;
+* resultados em nivel de Unidade Federativa (UF).
 
-> **Status deste documento:** provisório. Algumas decisões sobre a fonte definitiva e o conceito de rede pública serão atualizadas após a auditoria dos demais indicadores do projeto, especialmente IDEB, Rendimento Escolar e TDI.
+> **Status deste documento:** provisorio. Algumas decisoes sobre a fonte definitiva e o conceito de rede publica serao atualizadas apos a auditoria dos demais indicadores do projeto, especialmente IDEB, Rendimento Escolar e TDI.
 
 ---
 
-## 2. Princípios adotados na auditoria
+## 2. Principios adotados na auditoria
 
-A análise das fontes seguiu os seguintes princípios:
+A analise das fontes seguiu os seguintes principios:
 
 1. preservar os arquivos originais na camada `raw`;
-2. identificar o nível original de cada fonte;
-3. verificar se o resultado já é disponibilizado por UF ou precisa ser calculado;
-4. identificar as categorias de rede disponíveis em cada edição;
-5. verificar as variáveis utilizadas nas médias de Língua Portuguesa e Matemática;
-6. identificar a quantidade de participantes quando necessária para agregação;
-7. não interpretar valores ausentes como zero;
-8. registrar diferenças estruturais entre as edições;
+2. identificar o nivel original de cada fonte;
+3. verificar se o resultado ja e disponibilizado por UF ou precisa ser calculado;
+4. identificar as categorias de rede disponiveis em cada edicao;
+5. verificar as variaveis utilizadas nas medias de Lingua Portuguesa e Matematica;
+6. identificar a quantidade de participantes quando necessaria para agregacao;
+7. nao interpretar valores ausentes como zero;
+8. registrar diferencas estruturais entre as edicoes;
 9. evitar reconstruir um indicador quando existir resultado oficial agregado adequado;
-10. adiar decisões que dependam da consistência com outros indicadores.
+10. adiar decisoes que dependam da consistencia com outros indicadores.
 
 ---
 
 # 3. SAEB 2007
 
-## Arquivos disponíveis
+## Arquivos disponiveis
 
 ```text
 Dicionario_SAEB_2007.xlsx
@@ -51,7 +51,7 @@ MEDIA_UF_2007.xlsx
 
 ## `MEDIA_UF_2007.xlsx`
 
-O arquivo apresenta resultados já agregados por Unidade Federativa.
+O arquivo apresenta resultados ja agregados por Unidade Federativa.
 
 Principais campos identificados:
 
@@ -91,21 +91,21 @@ Privada
 Total - Estadual e Municipal
 ```
 
-Não foi encontrada nesse arquivo uma categoria denominada:
+Nao foi encontrada nesse arquivo uma categoria denominada:
 
 ```text
 Total - Federal, Estadual e Municipal
 ```
 
-Portanto, o agregado público disponível diretamente no arquivo de UF corresponde a **Estadual + Municipal**, enquanto o outro total inclui também a rede privada.
+Portanto, o agregado publico disponivel diretamente no arquivo de UF corresponde a **Estadual + Municipal**, enquanto o outro total inclui tambem a rede privada.
 
 ---
 
 ## `TS_ESCOLA_2007.csv`
 
-O arquivo contém registros em nível de escola.
+O arquivo contem registros em nivel de escola.
 
-Variáveis relevantes:
+Variaveis relevantes:
 
 ```text
 ID_UF
@@ -121,15 +121,15 @@ MEDIA_8EF_LP
 MEDIA_8EF_MT
 ```
 
-O dicionário identifica:
+O dicionario identifica:
 
-* `ID_UF`: código da Unidade Federativa;
-* `IN_PUBLICA`: indicador de escola pública;
-* `NU_PRESENTES_4EF`: alunos presentes na avaliação da etapa correspondente;
-* `NU_PRESENTES_8EF`: alunos presentes na avaliação da etapa correspondente;
-* `MEDIA_*`: proficiência média dos participantes.
+* `ID_UF`: codigo da Unidade Federativa;
+* `IN_PUBLICA`: indicador de escola publica;
+* `NU_PRESENTES_4EF`: alunos presentes na avaliacao da etapa correspondente;
+* `NU_PRESENTES_8EF`: alunos presentes na avaliacao da etapa correspondente;
+* `MEDIA_*`: proficiencia media dos participantes.
 
-A inspeção do arquivo encontrou:
+A inspecao do arquivo encontrou:
 
 ```text
 IN_PUBLICA = 0      18 registros
@@ -140,22 +140,22 @@ Total: 48.951 registros
 
 Foram encontradas as 27 UFs.
 
-### Situação
+### Situacao
 
-O ano de 2007 possui duas fontes tecnicamente possíveis:
+O ano de 2007 possui duas fontes tecnicamente possiveis:
 
-1. resultado já agregado em `MEDIA_UF_2007.xlsx`;
-2. resultado construído a partir de `TS_ESCOLA_2007.csv`.
+1. resultado ja agregado em `MEDIA_UF_2007.xlsx`;
+2. resultado construido a partir de `TS_ESCOLA_2007.csv`.
 
-A fonte definitiva ainda não foi escolhida porque a decisão depende do conceito de **rede pública** que será adotado de forma consistente nos demais indicadores.
+A fonte definitiva ainda nao foi escolhida porque a decisao depende do conceito de **rede publica** que sera adotado de forma consistente nos demais indicadores.
 
-**Status:** auditado, decisão final pendente.
+**Status:** auditado, decisao final pendente.
 
 ---
 
 # 4. SAEB 2009
 
-## Arquivos disponíveis
+## Arquivos disponiveis
 
 ```text
 Dicionario_SAEB_2009.xlsx
@@ -163,7 +163,7 @@ TS_ESCOLA_2009.csv
 MEDIA_UF_2009.xlsx
 ```
 
-A estrutura é semelhante à encontrada em 2007.
+A estrutura e semelhante a encontrada em 2007.
 
 ## `MEDIA_UF_2009.xlsx`
 
@@ -194,7 +194,7 @@ Privada
 Total - Estadual e Municipal
 ```
 
-Assim como em 2007, não existe diretamente a categoria:
+Assim como em 2007, nao existe diretamente a categoria:
 
 ```text
 Total - Federal, Estadual e Municipal
@@ -204,7 +204,7 @@ Total - Federal, Estadual e Municipal
 
 ## `TS_ESCOLA_2009.csv`
 
-Variáveis relevantes:
+Variaveis relevantes:
 
 ```text
 ID_UF
@@ -220,7 +220,7 @@ MEDIA_8EF_LP
 MEDIA_8EF_MT
 ```
 
-Resultado da inspeção:
+Resultado da inspecao:
 
 ```text
 IN_PUBLICA = 0    1.665 registros
@@ -229,26 +229,26 @@ IN_PUBLICA = 1   58.682 registros
 Total: 60.347 registros
 ```
 
-As 27 UFs estão presentes.
+As 27 UFs estao presentes.
 
-### Situação
+### Situacao
 
 Assim como em 2007, existem duas possibilidades de fonte.
 
-**Status:** auditado, decisão final pendente.
+**Status:** auditado, decisao final pendente.
 
 ---
 
 # 5. SAEB 2011
 
-## Arquivos disponíveis
+## Arquivos disponiveis
 
 ```text
 Dicionario_SAEB_2011.xlsx
 TS_RESULTADO_UF_2011.csv
 ```
 
-O arquivo utilizado já apresenta resultados agregados por Unidade Federativa.
+O arquivo utilizado ja apresenta resultados agregados por Unidade Federativa.
 
 Principais campos:
 
@@ -268,14 +268,14 @@ ERRO_PADRAO_LP
 ERRO_PADRAO_MT
 ```
 
-## Códigos verificados no dicionário
+## Codigos verificados no dicionario
 
-### Série
+### Serie
 
 ```text
-5  = 4ª série / 5º ano do Ensino Fundamental
-9  = 8ª série / 9º ano do Ensino Fundamental
-12 = 3ª série do Ensino Médio
+5  = 4ª serie / 5º ano do Ensino Fundamental
+9  = 8ª serie / 9º ano do Ensino Fundamental
+12 = 3ª serie do Ensino Medio
 ```
 
 ### Tipo de rede
@@ -286,10 +286,10 @@ ERRO_PADRAO_MT
 2 = Estadual
 3 = Municipal
 4 = Privada
-5 = Pública
+5 = Publica
 ```
 
-### Localização
+### Localizacao
 
 ```text
 0 = Todas
@@ -297,7 +297,7 @@ ERRO_PADRAO_MT
 2 = Rural
 ```
 
-### Área
+### Area
 
 ```text
 0 = Todas
@@ -307,7 +307,7 @@ ERRO_PADRAO_MT
 
 ## Recorte identificado para o projeto
 
-Para obter o resultado público total da UF:
+Para obter o resultado publico total da UF:
 
 ```text
 ID_TIPO_REDE = 5
@@ -316,14 +316,14 @@ ID_CAPITAL = 0
 ID_SERIE = 5 ou 9
 ```
 
-As proficiências são obtidas diretamente de:
+As proficiencias sao obtidas diretamente de:
 
 ```text
 MEDIA_LP
 MEDIA_MT
 ```
 
-Como o arquivo já contém o resultado agregado por UF, não é necessário reconstruir a média a partir das escolas.
+Como o arquivo ja contem o resultado agregado por UF, nao e necessario reconstruir a media a partir das escolas.
 
 **Status:** auditado.
 
@@ -345,15 +345,15 @@ UF
 
 ## Estrutura
 
-A planilha possui cabeçalho multinível.
+A planilha possui cabecalho multinivel.
 
 Estrutura observada:
 
 ```text
-linha 0 → título
-linha 1 → observação metodológica
+linha 0 → titulo
+linha 1 → observacao metodologica
 linha 2 → vazia
-linhas 3 a 5 → cabeçalhos
+linhas 3 a 5 → cabecalhos
 linha 6 em diante → dados
 ```
 
@@ -365,21 +365,21 @@ REDE
 LOCALIZACAO
 CAPITAL
 
-Língua Portuguesa - Anos Iniciais
-Matemática - Anos Iniciais
+Lingua Portuguesa - Anos Iniciais
+Matematica - Anos Iniciais
 
-Língua Portuguesa - Anos Finais
-Matemática - Anos Finais
+Lingua Portuguesa - Anos Finais
+Matematica - Anos Finais
 
-Língua Portuguesa - Ensino Médio
-Matemática - Ensino Médio
+Lingua Portuguesa - Ensino Medio
+Matematica - Ensino Medio
 ```
 
-## Observação metodológica da própria fonte
+## Observacao metodologica da propria fonte
 
 A planilha informa que:
 
-> células em branco significam que não foi possível calcular a média para aquele estrato.
+> celulas em branco significam que nao foi possivel calcular a media para aquele estrato.
 
 Portanto, valores em branco devem continuar sendo tratados como ausentes.
 
@@ -397,7 +397,7 @@ Total - Federal, Estadual e Municipal
 Total - Federal, Estadual, Municipal e Privada
 ```
 
-### Localização
+### Localizacao
 
 ```text
 Rural
@@ -439,11 +439,11 @@ UFs
 
 ## Estrutura
 
-A estrutura é semelhante à de 2013.
+A estrutura e semelhante a de 2013.
 
-Os dados começam após cinco linhas de título e cabeçalho.
+Os dados comecam apos cinco linhas de titulo e cabecalho.
 
-Campos analíticos:
+Campos analiticos:
 
 ```text
 UF
@@ -457,23 +457,23 @@ MT - Anos Iniciais
 LP - Anos Finais
 MT - Anos Finais
 
-LP - Ensino Médio
-MT - Ensino Médio
+LP - Ensino Medio
+MT - Ensino Medio
 ```
 
 ## Particularidade importante
 
 A fonte informa que:
 
-> células com valor 0 significam que não foi possível calcular a média para aquele estrato.
+> celulas com valor 0 significam que nao foi possivel calcular a media para aquele estrato.
 
 Consequentemente:
 
 ```text
-0 em coluna de proficiência ≠ proficiência zero
+0 em coluna de proficiencia = proficiencia zero
 ```
 
-Esses valores deverão ser tratados como ausentes durante a transformação.
+Esses valores deverao ser tratados como ausentes durante a transformacao.
 
 ## Categorias encontradas
 
@@ -489,7 +489,7 @@ Total - Federal, Estadual e Municipal
 Total - Federal, Estadual, Municipal e Privada
 ```
 
-### Localização
+### Localizacao
 
 ```text
 Rural
@@ -517,9 +517,9 @@ Total
 TS_UF_2017.xlsx
 ```
 
-A estrutura já está organizada em formato tabular.
+A estrutura ja esta organizada em formato tabular.
 
-Principais variáveis do projeto:
+Principais variaveis do projeto:
 
 ```text
 CO_UF
@@ -534,7 +534,7 @@ MEDIA_9_LP
 MEDIA_9_MT
 ```
 
-Há também variáveis referentes ao Ensino Médio e aos níveis de proficiência, que não fazem parte do recorte atual.
+Ha tambem variaveis referentes ao Ensino Medio e aos niveis de proficiencia, que nao fazem parte do recorte atual.
 
 ## Categorias de rede
 
@@ -548,7 +548,7 @@ Total - Federal, Estadual e Municipal
 Total - Federal, Estadual, Municipal e Privada
 ```
 
-### Localização
+### Localizacao
 
 ```text
 Rural
@@ -597,17 +597,17 @@ MEDIA_9_LP
 MEDIA_9_MT
 ```
 
-A base também possui resultados para:
+A base tambem possui resultados para:
 
 * 2º ano;
-* Ciências Humanas;
-* Ciências da Natureza;
-* Ensino Médio;
-* níveis de proficiência.
+* Ciencias Humanas;
+* Ciencias da Natureza;
+* Ensino Medio;
+* niveis de proficiencia.
 
-Essas variáveis não integram o recorte atual.
+Essas variaveis nao integram o recorte atual.
 
-As categorias de rede, localização e capital são compatíveis com 2017.
+As categorias de rede, localizacao e capital sao compativeis com 2017.
 
 Existe:
 
@@ -633,7 +633,7 @@ Aba:
 Estados
 ```
 
-Estrutura semelhante à de 2019.
+Estrutura semelhante a de 2019.
 
 Campos relevantes:
 
@@ -650,7 +650,7 @@ MEDIA_9_LP
 MEDIA_9_MT
 ```
 
-Também está disponível:
+Tambem esta disponivel:
 
 ```text
 Total - Federal, Estadual e Municipal
@@ -669,9 +669,9 @@ Dicionario_Saeb_2023.xlsx
 TS_ESCOLA_2023.csv
 ```
 
-O arquivo utilizado está em nível de escola.
+O arquivo utilizado esta em nivel de escola.
 
-Principais variáveis:
+Principais variaveis:
 
 ```text
 ID_UF
@@ -687,19 +687,19 @@ MEDIA_9EF_LP
 MEDIA_9EF_MT
 ```
 
-O arquivo possui outras variáveis relativas ao Ensino Médio, que não integram o recorte do projeto.
+O arquivo possui outras variaveis relativas ao Ensino Medio, que nao integram o recorte do projeto.
 
-## Resultado da inspeção
+## Resultado da inspecao
 
 ```text
 IN_PUBLICA = 1    70.151 registros
 ```
 
-Não foram encontrados registros com `IN_PUBLICA = 0`.
+Nao foram encontrados registros com `IN_PUBLICA = 0`.
 
-Assim, o arquivo escolar utilizado em 2023 contém somente escolas identificadas como públicas.
+Assim, o arquivo escolar utilizado em 2023 contem somente escolas identificadas como publicas.
 
-### Localização
+### Localizacao
 
 ```text
 Urbana: 53.756 registros
@@ -712,9 +712,9 @@ Foram identificadas as 27 UFs.
 
 ---
 
-# 12. Síntese da auditoria
+# 12. Sintese da auditoria
 
-| Ano  | Fonte(s) disponível(is)                     | Nível       | Situação                       |
+| Ano  | Fonte(s) disponivel(is)                     | Nivel       | Situacao                       |
 | ---- | ------------------------------------------- | ----------- | ------------------------------ |
 | 2007 | `MEDIA_UF_2007.xlsx` / `TS_ESCOLA_2007.csv` | UF / Escola | Auditada; fonte final pendente |
 | 2009 | `MEDIA_UF_2009.xlsx` / `TS_ESCOLA_2009.csv` | UF / Escola | Auditada; fonte final pendente |
@@ -728,21 +728,21 @@ Foram identificadas as 27 UFs.
 
 ---
 
-# 13. Questões metodológicas identificadas
+# 13. Questoes metodologicas identificadas
 
-## 13.1 Agregação de resultados escolares
+## 13.1 Agregacao de resultados escolares
 
-Quando for necessário construir um resultado estadual a partir de `TS_ESCOLA`, não deverá ser utilizada a média simples das médias das escolas.
+Quando for necessario construir um resultado estadual a partir de `TS_ESCOLA`, nao devera ser utilizada a media simples das medias das escolas.
 
 Escolas possuem diferentes quantidades de participantes.
 
-A agregação deverá considerar a quantidade de alunos presentes:
+A agregacao devera considerar a quantidade de alunos presentes:
 
 ```text
-média UF =
-Σ (média da escola × participantes da escola)
+media UF =
+Σ (media da escola × participantes da escola)
 ------------------------------------------------
-Σ participantes das escolas com média válida
+Σ participantes das escolas com media valida
 ```
 
 Para 2007 e 2009:
@@ -759,29 +759,29 @@ Anos Iniciais → NU_PRESENTES_5EF
 Anos Finais   → NU_PRESENTES_9EF
 ```
 
-Registros sem proficiência válida não devem participar nem do numerador nem do denominador.
+Registros sem proficiencia valida nao devem participar nem do numerador nem do denominador.
 
 ---
 
-## 13.2 Ausência de resultado
+## 13.2 Ausencia de resultado
 
-Ausência de resultado não deve ser transformada em zero.
+Ausencia de resultado nao deve ser transformada em zero.
 
-Foram encontradas diferentes representações:
+Foram encontradas diferentes representacoes:
 
 ```text
-2013 → célula em branco
+2013 → celula em branco
 2015 → valor 0
-TS_ESCOLA → possíveis valores ausentes
+TS_ESCOLA → possiveis valores ausentes
 ```
 
-Cada estrutura deverá ser tratada conforme a documentação correspondente.
+Cada estrutura devera ser tratada conforme a documentacao correspondente.
 
 ---
 
-## 13.3 Estruturas diferentes ao longo da série
+## 13.3 Estruturas diferentes ao longo da serie
 
-A série histórica não pode ser tratada como uma única estrutura de arquivo.
+A serie historica nao pode ser tratada como uma unica estrutura de arquivo.
 
 Foram identificados:
 
@@ -793,13 +793,13 @@ Foram identificados:
 2023
 ```
 
-### Resultado agregado por UF com códigos
+### Resultado agregado por UF com codigos
 
 ```text
 2011
 ```
 
-### Resultado por UF com cabeçalho multinível
+### Resultado por UF com cabecalho multinivel
 
 ```text
 2013
@@ -814,13 +814,13 @@ Foram identificados:
 2021
 ```
 
-Essas diferenças deverão ser normalizadas somente após a leitura adequada de cada fonte.
+Essas diferencas deverao ser normalizadas somente apos a leitura adequada de cada fonte.
 
 ---
 
-# 14. Questão pendente: definição de rede pública
+# 14. Questao pendente: definicao de rede publica
 
-A auditoria do SAEB identificou diferenças importantes na forma como a rede pública aparece nas fontes.
+A auditoria do SAEB identificou diferencas importantes na forma como a rede publica aparece nas fontes.
 
 Em 2013, 2015, 2017, 2019 e 2021 existe diretamente:
 
@@ -831,7 +831,7 @@ Total - Federal, Estadual e Municipal
 Em 2011 existe:
 
 ```text
-ID_TIPO_REDE = 5 → Pública
+ID_TIPO_REDE = 5 → Publica
 ```
 
 Em 2007 e 2009, os arquivos agregados por UF possuem:
@@ -840,7 +840,7 @@ Em 2007 e 2009, os arquivos agregados por UF possuem:
 Total - Estadual e Municipal
 ```
 
-mas não apresentam diretamente:
+mas nao apresentam diretamente:
 
 ```text
 Total - Federal, Estadual e Municipal
@@ -848,13 +848,13 @@ Total - Federal, Estadual e Municipal
 
 Os arquivos `TS_ESCOLA` desses anos permitem, por outro lado, identificar escolas por meio de `IN_PUBLICA`.
 
-A decisão final sobre qual fonte utilizar em 2007 e 2009 será tomada **somente após a auditoria de IDEB, Rendimento Escolar e TDI**, para evitar a adoção de conceitos diferentes de rede pública entre os indicadores históricos.
+A decisao final sobre qual fonte utilizar em 2007 e 2009 sera tomada **somente apos a auditoria de IDEB, Rendimento Escolar e TDI**, para evitar a adocao de conceitos diferentes de rede publica entre os indicadores historicos.
 
 ---
 
 # 15. Estrutura padronizada pretendida
 
-Após a definição metodológica final, todas as edições do SAEB deverão resultar em uma estrutura comum:
+Apos a definicao metodologica final, todas as edicoes do SAEB deverao resultar em uma estrutura comum:
 
 ```text
 ANO
@@ -868,40 +868,40 @@ VALOR
 Exemplo:
 
 ```text
-2007 | MG | PUBLICA | ANOS INICIAIS | PORTUGUÊS  | ...
-2007 | MG | PUBLICA | ANOS INICIAIS | MATEMÁTICA | ...
-2007 | MG | PUBLICA | ANOS FINAIS   | PORTUGUÊS  | ...
-2007 | MG | PUBLICA | ANOS FINAIS   | MATEMÁTICA | ...
+2007 | MG | PUBLICA | ANOS INICIAIS | PORTUGUES  | ...
+2007 | MG | PUBLICA | ANOS INICIAIS | MATEMATICA | ...
+2007 | MG | PUBLICA | ANOS FINAIS   | PORTUGUES  | ...
+2007 | MG | PUBLICA | ANOS FINAIS   | MATEMATICA | ...
 ```
 
-Essa tabela padronizada será posteriormente utilizada no modelo analítico e no Power BI.
+Essa tabela padronizada sera posteriormente utilizada no modelo analitico e no Power BI.
 
 ---
 
-# 16. Conclusão
+# 16. Conclusao
 
-A auditoria confirmou que existem fontes adequadas para todas as edições do SAEB utilizadas no período de 2007 a 2023, mas as estruturas e os níveis de agregação variam entre os anos.
+A auditoria confirmou que existem fontes adequadas para todas as edicoes do SAEB utilizadas no periodo de 2007 a 2023, mas as estruturas e os niveis de agregacao variam entre os anos.
 
-As principais diferenças encontradas foram:
+As principais diferencas encontradas foram:
 
-* utilização de dados escolares em alguns anos;
+* utilizacao de dados escolares em alguns anos;
 * disponibilidade de resultados oficiais por UF em outros;
-* mudanças na nomenclatura das etapas;
-* alterações nos formatos das planilhas;
-* diferentes formas de representar a rede pública;
+* mudancas na nomenclatura das etapas;
+* alteracoes nos formatos das planilhas;
+* diferentes formas de representar a rede publica;
 * valores ausentes representados de formas distintas;
-* necessidade de ponderação pela quantidade de participantes quando a agregação partir de escolas.
+* necessidade de ponderacao pela quantidade de participantes quando a agregacao partir de escolas.
 
-A auditoria das fontes do SAEB está concluída quanto à identificação de arquivos, estruturas, variáveis e particularidades metodológicas.
+A auditoria das fontes do SAEB esta concluida quanto a identificacao de arquivos, estruturas, variaveis e particularidades metodologicas.
 
-Permanece pendente a **decisão final sobre o recorte comum de rede e a fonte definitiva de 2007 e 2009**. Essa decisão será registrada neste documento após a auditoria conjunta de IDEB, Rendimento Escolar e TDI.
+Permanece pendente a **decisao final sobre o recorte comum de rede e a fonte definitiva de 2007 e 2009**. Essa decisao sera registrada neste documento apos a auditoria conjunta de IDEB, Rendimento Escolar e TDI.
 
 ---
 
-## Histórico de atualização
+## Historico de atualizacao
 
-| Data       | Alteração                                              |
+| Data       | Alteracao                                              |
 | ---------- | ------------------------------------------------------ |
-| 18/08/2026 | Primeira versão da auditoria das fontes do SAEB        |
-| A definir  | Atualização após definição do conceito de rede pública |
+| 18/08/2026 | Primeira versao da auditoria das fontes do SAEB        |
+| A definir  | Atualizacao apos definicao do conceito de rede publica |
 | A definir  | Registro das fontes definitivas utilizadas no pipeline |
