@@ -1,0 +1,51 @@
+name: Publicar release
+
+on:
+  push:
+    paths:
+      - ".github/workflows/release.yml"
+      - "docs/release_v*.md"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag existente a publicar"
+        required: true
+        default: "v1.1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.tag || 'v1.1.0' }}
+    steps:
+      - name: Obter repositorio
+        uses: actions/checkout@v4
+
+      - name: Verificar tag e artefatos
+        run: |
+          git fetch --tags --force
+          git rev-parse "refs/tags/${RELEASE_TAG}"
+          test -f docs/release_v1.1.0.md
+          test -f output/pdf/Template_TCC_UEMG_revisado.pdf
+
+      - name: Criar ou atualizar release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release edit "${RELEASE_TAG}" \
+              --title "Pipeline de Dados Educacionais ${RELEASE_TAG}" \
+              --notes-file docs/release_v1.1.0.md
+          else
+            gh release create "${RELEASE_TAG}" \
+              --verify-tag \
+              --title "Pipeline de Dados Educacionais ${RELEASE_TAG}" \
+              --notes-file docs/release_v1.1.0.md
+          fi
+
+          gh release upload "${RELEASE_TAG}" \
+            output/pdf/Template_TCC_UEMG_revisado.pdf \
+            --clobber
