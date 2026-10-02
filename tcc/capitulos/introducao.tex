@@ -1,0 +1,73 @@
+\chapter[Introdução]{Introdução}
+
+Nas últimas décadas, a produção e o armazenamento de dados passaram a ocupar papel central em diferentes áreas da sociedade. Entretanto, a disponibilidade de grandes volumes de dados, por si só, não garante sua transformação em informação útil ou conhecimento. \citeonline{loh2014bi} distingue dados, informação e conhecimento e destaca que sistemas de informação e processos de Business Intelligence podem apoiar a tomada de decisão ao organizar, analisar e contextualizar os dados disponíveis. Nesse contexto, torna-se necessário aplicar técnicas capazes de coletar, preparar, integrar, tratar e apresentar informações de maneira compreensível e analiticamente útil.
+
+No contexto educacional brasileiro, essa realidade também se faz presente. O Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (INEP) disponibiliza diferentes bases públicas relacionadas à Educação Básica, entre elas o Índice de Desenvolvimento da Educação Básica (IDEB) \cite{inep2024ideb}, o Sistema de Avaliação da Educação Básica (SAEB) \cite{inep2025saeb}, as Taxas de Rendimento Escolar \cite{inep2025rendimento} e a Taxa de Distorção Idade-Série (TDI) \cite{inep2026tdi}. Em conjunto, essas fontes permitem observar dimensões como desempenho dos estudantes, fluxo escolar, aprovação, reprovação, abandono e distorção idade-série. Além desses indicadores históricos, este trabalho também considera a Prova Nacional Docente (PND) 2025 como base complementar de análise \cite{inep2025pnd}, especialmente por permitir observar informações relacionadas ao desempenho de participantes em diferentes áreas de formação docente.
+
+Apesar da relevância dessas informações, sua utilização ainda apresenta desafios. Os dados encontram-se distribuídos em diferentes arquivos, períodos históricos, formatos e estruturas. Além disso, as bases possuem nomenclaturas, códigos e formas de organização distintas, o que dificulta análises integradas entre indicadores, anos, unidades federativas, redes de ensino, etapas escolares e demais categorias de análise. As fontes também variam quanto ao nível de agregação e à forma de apresentação. Neste trabalho, foram priorizados resultados oficiais agregados por Unidade Federativa sempre que disponíveis; microdados e arquivos em outros níveis foram preservados para auditoria ou empregados quando necessários. Assim, uma análise mais ampla da Educação Básica exige não apenas acesso aos dados, mas também processos consistentes de preparação, transformação, validação e modelagem.
+
+Diante desse cenário, este trabalho delimita-se à análise da aplicação de técnicas de Engenharia de Dados e Business Intelligence na integração e visualização de indicadores educacionais brasileiros disponibilizados pelo INEP, considerando o período de 2007 a 2023 para as bases históricas de IDEB, SAEB, Rendimento Escolar e Distorção Idade-Série. A PND 2025 foi incorporada como base complementar, não compondo a série histórica principal, mas ampliando as possibilidades de análise por meio de informações relacionadas às notas, acertos, áreas de formação e códigos dos municípios de aplicação da prova.
+
+A pesquisa concentra-se na organização das bases de IDEB, SAEB, Rendimento Escolar, Distorção Idade-Série e PND 2025, com a finalidade de compreender como essas informações podem ser estruturadas em um ambiente analítico capaz de favorecer interpretações históricas, comparativas e visuais. Para garantir maior consistência entre as bases, a análise histórica foi padronizada principalmente em nível de Unidade Federativa (UF), contemplando Anos Iniciais e Anos Finais do Ensino Fundamental. O Ensino Médio não compôs o recorte analítico desenvolvido neste trabalho.
+
+A relevância deste estudo está no fato de que dados educacionais públicos, quando analisados de forma isolada ou fragmentada, podem limitar a compreensão da realidade educacional. Ao integrar diferentes indicadores em uma mesma estrutura analítica, torna-se possível observar relações entre desempenho, fluxo escolar, atraso escolar e desempenho em avaliações externas, contribuindo para uma leitura mais ampla da Educação Básica brasileira. Dessa forma, o trabalho busca demonstrar como técnicas computacionais podem auxiliar na transformação de dados públicos dispersos em informações organizadas, acessíveis e úteis para análise.
+
+\section{Motivação}
+
+A motivação para o desenvolvimento deste trabalho surgiu da percepção de que, embora o Brasil disponha de uma quantidade significativa de dados educacionais públicos, esses dados nem sempre são facilmente compreendidos ou explorados de maneira integrada. Muitas vezes, os arquivos disponibilizados exigem tratamento prévio, conhecimento técnico e organização adequada para que possam ser utilizados em análises comparativas. Essa necessidade de preparação é coerente com \citeonline{loh2014bi}, que ressalta que a quantidade de dados não é suficiente para uma análise de qualidade: os dados precisam apresentar qualidade e estar organizados em formato adequado ao processo analítico.
+
+No campo educacional, IDEB, SAEB, Rendimento Escolar e Distorção Idade-Série permitem acompanhar dimensões distintas da Educação Básica, como desempenho em avaliações externas, fluxo escolar e distorção idade-série \cite{inep2024ideb,inep2025saeb,inep2025rendimento,inep2026tdi}. Quando analisados separadamente, esses indicadores oferecem recortes específicos da realidade educacional; sua integração, no escopo deste trabalho, permite colocá-los em uma mesma estrutura analítica e observar conjuntamente desempenho, aprovação, reprovação, abandono e atraso escolar. A inclusão da PND 2025 como base complementar também possibilita observar informações relacionadas ao desempenho de participantes em áreas de formação docente \cite{inep2025pnd}, acrescentando uma dimensão recente ao conjunto de análises realizadas.
+
+Estudos anteriores já apontam a importância do uso de técnicas computacionais no tratamento de dados educacionais. \citeonline{soares2021} evidenciam o potencial das bases do INEP para pesquisas relacionadas à mineração e análise de dados educacionais. \citeonline{ilha2021} demonstram a relevância da construção de um Data Warehouse para organização de indicadores educacionais, enquanto \citeonline{wanderley2021} destaca o uso de Business Intelligence na visualização de informações da Educação Básica por meio de dashboards.
+
+Apesar dessas contribuições, ainda existem desafios relacionados à integração de múltiplas bases públicas, à padronização de dados históricos e à construção de modelos analíticos que permitam analisar diferentes dimensões da Educação Básica em conjunto. Nesse sentido, este trabalho parte da necessidade de investigar como a Engenharia de Dados e o Business Intelligence podem contribuir para organizar, integrar e interpretar indicadores educacionais brasileiros de maneira mais acessível e estruturada.
+
+\section{Objetivos e Desafios da Pesquisa}
+
+O principal desafio desta pesquisa está na complexidade de trabalhar com diferentes bases públicas educacionais, que apresentam formatos, estruturas, períodos e categorias variadas. A integração dessas informações exige processos de extração, limpeza, transformação, padronização, validação e modelagem, de modo que os dados possam ser analisados de forma conjunta e coerente. A questão que orienta o trabalho é: como uma arquitetura reprodutível de Engenharia de Dados pode integrar bases educacionais heterogêneas do INEP e disponibilizá-las de forma consistente para análise no Power BI?
+
+Dessa forma, o objetivo geral deste trabalho é desenvolver e avaliar um pipeline reprodutível de Engenharia de Dados, integrado a uma solução de Business Intelligence, para organizar, validar e disponibilizar indicadores educacionais brasileiros do INEP no período de 2007 a 2023, com análise complementar da PND 2025.
+
+Para alcançar esse objetivo geral, foram definidos os seguintes objetivos específicos:\\
+
+a) investigar as características das bases públicas educacionais disponibilizadas pelo INEP, considerando IDEB, SAEB, Rendimento Escolar, Taxa de Distorção Idade-Série e PND 2025;\\
+
+b) analisar os desafios de integração, padronização e tratamento presentes nas bases educacionais selecionadas;\\
+
+c) implementar em Python processos de extração, transformação e carga organizados nas camadas Raw, Bronze, Silver e Gold;\\
+
+d) padronizar os dados históricos em nível de Unidade Federativa, considerando as diferenças estruturais entre arquivos organizados por UF, município ou escola;\\
+
+e) documentar a origem dos arquivos, sua integridade e a linhagem das transformações para permitir a reprodução do processamento;\\
+
+f) organizar os indicadores educacionais em um modelo dimensional composto por tabelas fato e dimensão e validar sua integridade;\\
+
+g) incorporar a PND 2025 como base complementar, utilizando informações de notas, acertos, área de formação e código do município de aplicação da prova;\\
+
+h) avaliar como dashboards interativos desenvolvidos no Power BI podem favorecer a visualização e interpretação dos indicadores educacionais.\\
+
+Com isso, este trabalho não se limita à construção de uma solução técnica, mas busca compreender de que forma a integração de dados educacionais pode contribuir para a análise da Educação Básica brasileira. A partir da organização das bases e da criação de visualizações interativas, pretende-se evidenciar possibilidades de leitura dos indicadores públicos, ampliando a compreensão sobre desempenho, fluxo escolar, distorção idade-série e informações complementares da PND 2025.
+
+\section{Contribuições}
+
+As principais contribuições deste trabalho consistem em:
+
+a) integração de diferentes bases públicas educacionais disponibilizadas pelo INEP, permitindo a análise conjunta de indicadores que, originalmente, encontram-se distribuídos em arquivos e estruturas distintas;\\
+
+b) organização dos indicadores educacionais em uma estrutura dimensional composta por tabelas fato e dimensão, favorecendo consultas e análises históricas;\\
+
+c) aplicação de processos de ETL para tratamento, padronização e consolidação de dados educacionais referentes ao período de 2007 a 2023;\\
+
+d) padronização dos dados históricos em nível de Unidade Federativa, permitindo integrar bases originalmente disponibilizadas em diferentes níveis de detalhe, como UF, município e escola;\\
+
+e) possibilidade de realização de análises comparativas entre IDEB, SAEB, Rendimento Escolar e Taxa de Distorção Idade-Série;\\
+
+f) incorporação da PND 2025 como análise complementar, com classificação dos padrões de desempenho a partir da nota objetiva;\\
+
+g) apresentação dos indicadores por meio de dashboards interativos no Power BI, favorecendo a interpretação visual dos dados e a identificação de padrões, tendências e relações entre os indicadores educacionais;\\
+
+h) disponibilização de manifesto, hashes SHA-256, validações automatizadas e notebooks demonstrativos que tornam explícitos os critérios de tratamento por indicador.
+
+\section{Organização do trabalho}
+
+Este trabalho está organizado em seis capítulos. O primeiro capítulo apresenta a introdução, a motivação, os objetivos, os desafios da pesquisa e as contribuições do trabalho. O segundo capítulo aborda os conceitos teóricos relacionados à Engenharia de Dados, ETL, Data Warehouse, modelagem dimensional, Business Intelligence e indicadores educacionais brasileiros. O terceiro capítulo apresenta estudos relacionados ao uso de dados e tecnologias analíticas no contexto educacional. O quarto capítulo descreve os procedimentos metodológicos adotados para coleta, tratamento, modelagem e visualização dos dados. O quinto capítulo apresenta os resultados e discussões obtidos a partir dos dashboards desenvolvidos. Por fim, o sexto capítulo apresenta as conclusões, limitações e possibilidades de trabalhos futuros.

@@ -232,6 +232,9 @@ FATO_PND: 759.140
 - [docs/definicao_rede_publica.md](docs/definicao_rede_publica.md)
 - [docs/modelagem_power_bi.md](docs/modelagem_power_bi.md)
 - [docs/auditoria/](docs/auditoria/)
+- [Fonte LaTeX do TCC](tcc/README.md)
+- [PDF do TCC](output/pdf/Template_TCC_UEMG_revisado.pdf)
+- [Orientações sobre as referências acadêmicas](referencias/README.md)
 
 ## Escopo Temporal
 

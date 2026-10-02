@@ -1,0 +1,81 @@
+\chapter[Fundamentação Teórica]{Fundamentação Teórica}
+
+Este capítulo apresenta os principais conceitos relacionados ao desenvolvimento deste trabalho, abordando fundamentos de Engenharia de Dados, processos de ETL, Data Warehouse, modelagem dimensional, Business Intelligence e indicadores educacionais brasileiros. Esses conceitos são necessários para compreender as técnicas utilizadas na construção da solução proposta e a importância da transformação de dados brutos em informações relevantes para análise.
+
+\section{Engenharia de Dados}
+
+Com o crescimento da produção de dados em diferentes setores da sociedade, tornou-se necessário estruturar processos capazes de integrar, transformar e disponibilizar informações para uso analítico. Neste trabalho, a Engenharia de Dados é abordada operacionalmente como o conjunto de práticas empregado na construção desses fluxos, abrangendo ingestão, padronização, tratamento, modelagem e disponibilização dos dados. Em estudo aplicado à UFRN, \citeonline{carvalho2025estudo} organiza um pipeline justamente nessas etapas, partindo da coleta e ingestão até a modelagem dimensional, o cálculo de indicadores e a validação dos resultados.
+
+A organização do fluxo não se limita ao armazenamento. A qualidade e a rastreabilidade dos dados também condicionam a confiabilidade das análises. \citeonline{moreno2026tomada} discutem dimensões como acurácia, completude, consistência e disponibilidade, enquanto \citeonline{da2025proveniencia} relaciona a proveniência ao registro da origem, do histórico e das transformações dos dados. Esses aspectos são especialmente relevantes quando diferentes fontes precisam ser combinadas em uma mesma estrutura analítica.
+
+Em ambientes com fontes heterogêneas, pipelines de dados permitem separar etapas de ingestão, limpeza, integração, modelagem e validação. \citeonline{carvalho2025estudo} apresenta essa organização em um fluxo com camadas e procedimentos sucessivos de tratamento, demonstrando como dados históricos provenientes de fontes distintas podem ser preparados para consumo analítico.
+
+No contexto educacional, a aplicação desses conceitos permite integrar diferentes bases de dados relacionadas ao ensino, possibilitando análises mais amplas sobre indicadores de desempenho, permanência escolar, fluxo educacional e evolução histórica da educação. Essa integração é especialmente importante quando as bases públicas apresentam diferenças de formato, período, nível de agregação e nomenclatura das variáveis, exigindo processos de tratamento e padronização antes da análise.
+
+\section{Processo ETL (Extract, Transform, Load)}
+
+Um dos principais processos utilizados na Engenharia de Dados é conhecido como ETL, sigla referente às etapas de extração (\textit{Extract}), transformação (\textit{Transform}) e carga (\textit{Load}). Esse processo tem como objetivo coletar dados de diferentes fontes, realizar os tratamentos necessários e disponibilizar as informações em uma estrutura adequada para análise, conforme \citeonline{kimball2013data}.
+
+A etapa de extração corresponde ao processo inicial de obtenção dos dados. Nessa fase, as informações podem ser coletadas de diferentes origens, como bancos de dados, arquivos estruturados, APIs e sistemas externos. Um dos desafios dessa etapa está relacionado à diversidade dos formatos encontrados, exigindo mecanismos capazes de interpretar diferentes estruturas de armazenamento, conforme \citeonline{kimball2013data}.
+
+Após a extração ocorre a etapa de transformação, considerada uma das fases mais importantes do processo. Nesse momento são realizadas atividades de limpeza e preparação dos dados, incluindo remoção de registros inconsistentes, tratamento de valores ausentes, padronização de formatos, criação de novas variáveis e integração entre diferentes bases, conforme \citeonline{kimball2013data}.
+
+A etapa de transformação também pode envolver processos de alteração da estrutura dos dados, como a conversão de tabelas em formato amplo para formatos mais adequados à análise, padronização de códigos, criação de colunas derivadas, agrupamentos e consolidação de diferentes arquivos históricos. Em bases educacionais públicas, essas etapas são necessárias porque os dados podem ser disponibilizados em arquivos separados por ano, etapa de ensino, rede, Unidade Federativa, município ou escola.
+
+A última etapa corresponde à disponibilização dos dados tratados em uma estrutura de destino, como um Data Warehouse, um modelo dimensional ou outra base consolidada. No contexto educacional, \citeonline{ilha2021} descrevem a importação de indicadores do INEP para um repositório estruturado em Data Warehouse e sua posterior exploração por recursos de Business Intelligence e dashboards.
+
+No desenvolvimento deste trabalho, os conceitos de ETL foram utilizados para integrar bases educacionais originalmente separadas. As etapas foram implementadas em Python e distribuídas entre auditoria, ingestão, transformação e validação. O Power BI consome os arquivos analíticos produzidos pelo pipeline e concentra a modelagem semântica, as medidas DAX e as visualizações, não constituindo o motor principal de transformação dos dados.
+
+\section{Arquitetura em camadas e reprodutibilidade}
+
+Arquiteturas de dados em camadas permitem separar estágios de ingestão, tratamento e consumo analítico, estabelecendo responsabilidades distintas ao longo do fluxo de processamento. Em estudo aplicado à gestão de dados da UFRN, \citeonline{carvalho2025estudo} descreve uma organização em camadas Bronze, Silver e Gold, na qual os dados são inicialmente preservados em formato próximo ao original, passam posteriormente por limpeza, padronização e validação e, por fim, são refinados e modelados para consumo analítico.
+
+A qualidade dos dados constitui outro aspecto relevante para a confiabilidade das análises. \citeonline{moreno2026tomada} discutem dimensões como acurácia, completude, consistência e disponibilidade e destacam que a existência de grande volume de dados, isoladamente, não assegura maior valor analítico. Em seu estudo, os autores identificaram associações positivas entre a percepção dessas dimensões de qualidade e a confiança nos processos decisórios. Dessa forma, procedimentos de validação, padronização e integração são importantes para reduzir inconsistências antes que os dados sejam utilizados em análises.
+
+A reprodutibilidade computacional depende não apenas da apresentação dos resultados finais, mas também da documentação dos dados de entrada, do código executado e das dependências necessárias ao ambiente de processamento. Ao investigar a reprodução de pesquisas apoiadas por infraestrutura computacional, \citeonline{ferreira2024dados} identificou dificuldades associadas à ausência de referências diretas aos dados utilizados, às versões do código-fonte e às dependências de software. A autora destaca, assim, a importância de práticas e ferramentas que documentem e preservem os artefatos de pesquisa ao longo do tempo.
+
+A rastreabilidade também se relaciona ao conceito de proveniência de dados. \citeonline{da2025proveniencia} caracteriza a proveniência como o registro da origem, do histórico e das transformações dos dados, relacionando-a à autenticidade, à confiabilidade e à rastreabilidade das informações. O registro desses elementos permite compreender como um dado foi produzido ou modificado e favorece sua avaliação e reutilização em diferentes contextos.
+
+No presente trabalho, esses princípios são operacionalizados por meio das camadas Raw, Bronze, Silver e Gold. A Raw preserva cópias organizadas dos insumos oficiais; a Bronze realiza a leitura inicial e conserva metadados técnicos; a Silver aplica recortes, harmonização e regras de qualidade; e a Gold materializa fatos e dimensões destinados ao consumo analítico. O projeto mantém ainda inventário dos arquivos Raw, endereços das fontes oficiais, hashes SHA-256, documentação de linhagem e validadores executáveis. O hash não comprova a correção metodológica de uma fonte, mas permite verificar se o arquivo utilizado em uma reprodução é idêntico ao inventariado. Essa organização também evita que o Power BI precise reinterpretar os arquivos de origem, pois a ferramenta consome exclusivamente a camada Gold.
+
+\section{Data Warehouse e Modelagem Dimensional}
+
+O Data Warehouse é utilizado para organizar e integrar dados destinados a consultas e análises. No contexto educacional, \citeonline{ilha2021} empregam essa tecnologia para reunir indicadores disponibilizados pelo INEP em um repositório analítico e viabilizar sua exploração por ferramentas de Business Intelligence. Essa finalidade é compatível com a modelagem dimensional voltada a ambientes analíticos descrita por \citeonline{kimball2013data}.
+
+Uma das abordagens utilizadas na construção de ambientes analíticos é a modelagem dimensional. Segundo \citeonline{kimball2013data}, essa abordagem organiza os dados em estruturas compostas por tabelas fato e tabelas dimensão, favorecendo consultas e análises.
+
+As tabelas fato armazenam os eventos ou indicadores que serão analisados, geralmente contendo valores numéricos e métricas. Já as tabelas dimensão representam características utilizadas para contextualizar essas informações, como tempo, localização, etapa de ensino, área de formação ou outras categorias de análise, conforme \citeonline{kimball2013data}.
+
+Entre os modelos dimensionais mais utilizados encontra-se o esquema estrela (\textit{Star Schema}), no qual uma ou mais tabelas fato se relacionam diretamente com dimensões compartilhadas. \citeonline{kimball2013data} apresentam essa estrutura como uma organização característica da modelagem dimensional voltada a ambientes analíticos.
+
+Neste trabalho, esse conceito fundamentou a criação de cinco fatos, correspondentes a IDEB, SAEB, Rendimento Escolar, TDI e PND, e cinco dimensões: tempo, Unidade Federativa, etapa de ensino, área da PND e município de aplicação. A dimensão de município é ativa e relaciona-se diretamente com a fato da PND pelo código municipal. Não existe relação física entre as dimensões de UF e município, evitando um segundo caminho de filtragem até a mesma fato.
+
+\section{Business Intelligence e Visualização de Dados}
+
+Business Intelligence (BI) é tratado por \citeonline{loh2014bi} como um processo que envolve métodos, técnicas, tecnologias, pessoas, informações, fontes, métricas e ferramentas, com o propósito de apoiar a compreensão de problemas e a tomada de decisão fundamentada em dados.
+
+Essa perspectiva não restringe BI à construção de dashboards ou relatórios. \citeonline{loh2014bi} diferencia o processo de BI da simples geração de visualizações e destaca que a preparação e a qualidade dos dados condicionam a qualidade das análises, reforçando a necessidade de organizar os dados em formato adequado antes de sua exploração analítica.
+
+A visualização constitui uma das formas de disponibilizar os resultados desse processo. Em aplicação voltada à Educação Básica, \citeonline{wanderley2021} desenvolve uma solução de BI baseada em painéis interativos para apresentar indicadores educacionais e apoiar a avaliação das informações por gestores.
+
+Entre as ferramentas disponíveis atualmente destaca-se o Power BI, plataforma que possibilita a conexão com diferentes fontes de dados, aplicação de processos de transformação, criação de modelos relacionais e desenvolvimento de dashboards analíticos \cite{microsoft2025powerbi}.
+
+A utilização de BI na área educacional possibilita analisar grandes conjuntos de dados relacionados ao desempenho dos estudantes, contribuindo para identificar padrões, acompanhar a evolução de indicadores e comunicar resultados de forma mais clara. No caso deste trabalho, o Power BI foi utilizado para relacionar as tabelas da camada Gold, definir medidas DAX e criar dashboards interativos com indicadores históricos da Educação Básica e informações complementares da Prova Nacional Docente (PND), disponibilizada pelo \cite{inep2025pnd}.
+
+\section{Indicadores Educacionais Brasileiros}
+
+A avaliação e o acompanhamento da qualidade educacional dependem da utilização de indicadores capazes de representar diferentes aspectos do processo de ensino. No Brasil, o Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (INEP) disponibiliza diferentes bases de dados relacionadas à Educação Básica \cite{inep2024ideb}.
+
+O Índice de Desenvolvimento da Educação Básica (IDEB) é um indicador utilizado para acompanhar a qualidade da educação brasileira, combinando informações relacionadas ao desempenho dos estudantes em avaliações externas e ao fluxo escolar \cite{inep2024ideb}. Por reunir aspectos de aprendizagem e rendimento, o IDEB é frequentemente utilizado para observar a evolução da educação ao longo do tempo e comparar resultados entre diferentes unidades territoriais.
+
+O Sistema de Avaliação da Educação Básica (SAEB) é composto por avaliações aplicadas aos estudantes com o objetivo de medir competências e habilidades, principalmente nas áreas de Língua Portuguesa e Matemática \cite{inep2025saeb}. No contexto deste trabalho, os dados do SAEB foram utilizados para analisar a proficiência média dos estudantes nessas áreas, considerando sua relação com outros indicadores, como IDEB e taxas de rendimento escolar.
+
+Além dos indicadores de desempenho, as taxas de rendimento escolar apresentam informações relacionadas ao fluxo dos estudantes, incluindo aprovação, reprovação e abandono escolar. Esses dados possibilitam compreender aspectos relacionados à permanência e progressão dos alunos durante sua trajetória escolar \cite{inep2025rendimento}. A análise dessas taxas permite observar se os estudantes estão avançando nas etapas escolares ou se há maiores níveis de retenção e abandono.
+
+Outro indicador relevante é a Taxa de Distorção Idade-Série (TDI), que representa a proporção de estudantes que se encontram em atraso escolar em relação à idade considerada adequada para determinada etapa de ensino \cite{inep2026tdi}. Esse indicador é importante porque ajuda a compreender desigualdades na trajetória escolar, evidenciando situações em que os estudantes permanecem em séries incompatíveis com sua idade.
+
+Além dos indicadores históricos da Educação Básica, este trabalho também utilizou a Prova Nacional Docente (PND) 2025 como base complementar. A PND foi considerada por apresentar informações relacionadas ao desempenho de participantes em diferentes áreas de formação docente, como Matemática, Pedagogia, Letras, História, Geografia, Ciências Biológicas, entre outras. Para sua utilização, foram considerados dados como área da prova, Unidade Federativa de aplicação, código do município de aplicação, nota objetiva, nota discursiva, nota geral e quantidade de acertos. As variáveis territoriais da PND referem-se ao local de aplicação da prova, não à residência do participante.
+
+A PND 2025 não foi tratada como série histórica, pois corresponde a uma base específica de 2025. Sua utilização ocorreu de forma complementar aos indicadores de 2007 a 2023, permitindo ampliar a análise por meio de informações recentes relacionadas à formação docente. Dessa forma, enquanto IDEB, SAEB, Rendimento Escolar e TDI possibilitam observar a evolução histórica da Educação Básica, a PND contribui com uma perspectiva adicional sobre o desempenho dos participantes em áreas relacionadas à docência.
+
+A integração desses diferentes indicadores possibilita uma análise mais abrangente sobre a educação brasileira, permitindo observar relações entre desempenho, fluxo escolar, trajetória dos estudantes, atraso escolar e informações complementares sobre desempenho em áreas de formação docente. Essa integração não tem como objetivo estabelecer relações causais diretas entre os indicadores, mas favorecer uma leitura mais ampla e organizada dos dados públicos educacionais.

@@ -1,0 +1,43 @@
+\chapter[Conclusão]{Conclusão}
+
+Este trabalho investigou como uma arquitetura reprodutível de Engenharia de Dados pode integrar bases educacionais heterogêneas do INEP e disponibilizá-las de forma consistente para análise no Power BI. A questão de pesquisa foi respondida por meio da construção de um pipeline em Python organizado nas camadas Raw, Bronze, Silver e Gold, acompanhado de manifesto das fontes, hashes SHA-256, metadados de linhagem, validadores independentes e uma camada analítica consumida exclusivamente pelo Power BI.
+
+O pipeline integrou IDEB, SAEB, Rendimento Escolar e TDI no recorte histórico de 2007 a 2023 e incorporou a PND 2025 como análise complementar. A solução final materializou cinco tabelas fato e cinco dimensões. A validação global confirmou a integridade estrutural do modelo e as correspondências definidas entre as camadas, retornando \texttt{MODELO DIMENSIONAL GOLD: OK}.
+
+A construção mostrou que a integração de fontes oficiais exige mais do que reunir arquivos em uma ferramenta de visualização. Foi necessário tratar diferenças de formato, layout, periodicidade, granularidade e semântica de rede, além de documentar decisões específicas por indicador. No SAEB, por exemplo, a preservação dos agregados oficiais de UF evitou substituir o valor publicado por uma recomposição escolar que não reproduzia o resultado oficial. Na PND, a auditoria da população e o uso dos pontos de corte aplicados à \texttt{NT\_OBJ} substituíram critérios analíticos anteriores e produziram uma classificação coerente com a documentação adotada no projeto.
+
+O Power BI atuou como camada de consumo e análise. As 27 medidas DAX e as páginas do dashboard permitiram observar panorama histórico, desempenho por Unidade Federativa, associação descritiva entre aprendizagem e fluxo, variações territoriais, distorção idade-série e resultados da PND 2025. As medidas temporais foram implementadas de forma a usar o primeiro e o último ano com dado dentro do intervalo selecionado, respeitando a periodicidade anual de Rendimento e TDI e a periodicidade bienal de IDEB e SAEB.
+
+Os resultados descritivos evidenciam trajetórias distintas entre indicadores e UFs. No panorama geral do modelo, observam-se aumento do IDEB, das proficiências e da aprovação ao longo de grande parte da série, acompanhado de redução da TDI. Na página específica de TDI, o intervalo 2007--2023 apresenta variação média de -18,3 pontos percentuais no contexto exibido, enquanto a PND reúne 759.140 participantes e 493.208 classificados como proficientes, correspondentes a 64,97\% da população analítica. Esses resultados são descritivos e não demonstram relações causais.
+
+A principal contribuição técnica do trabalho está na reprodutibilidade do percurso entre fonte e consumo analítico. O inventário de 54 arquivos Raw, a identificação por hashes, a documentação da origem, os validadores de cada camada, o orquestrador e os testes do repositório tornam explícitas decisões que, em um fluxo restrito à ferramenta de BI, poderiam permanecer ocultas. Os notebooks demonstrativos complementam essa documentação, sem substituir os scripts oficiais do pipeline.
+
+As limitações permanecem relevantes. A série histórica é harmonizada principalmente em nível de UF, rede pública e etapas agregadas, o que impede inferências sobre escolas ou municípios. As fontes possuem metodologias e layouts que mudam ao longo do tempo; SAEB apresenta particularidade de rede em 2007 e 2009; IDEB e SAEB são bienais; a PND possui apenas 2025; e as médias do dashboard não equivalem automaticamente a médias nacionais ponderadas. Além disso, as visualizações não permitem inferência causal.
+
+Dessa forma, conclui-se que a arquitetura desenvolvida atingiu o objetivo proposto: bases públicas heterogêneas foram integradas em um pipeline documentado, validado e rastreável, chegando a um modelo dimensional consistente para exploração no Power BI. A contribuição do trabalho está tanto no produto analítico final quanto na explicitação do processo de Engenharia de Dados necessário para produzi-lo.
+
+\section{Principais Contribuições}
+
+As principais contribuições podem ser sintetizadas em cinco eixos. Primeiro, a integração de fontes educacionais heterogêneas do INEP em um fluxo único. Segundo, a arquitetura em camadas, que separa preservação, ingestão, harmonização e consumo analítico. Terceiro, a rastreabilidade e a reprodutibilidade, apoiadas por manifesto, hashes, linhagem, validadores, testes e orquestração. Quarto, a modelagem dimensional com cinco fatos e cinco dimensões. Quinto, a disponibilização dos dados em um modelo semântico com 27 medidas DAX e dashboards temáticos.
+
+No componente territorial, a padronização histórica por Unidade Federativa viabilizou a integração entre fontes com diferentes estruturas. Para a PND, o modelo preservou também o código do município de aplicação e a relação ativa com \texttt{DIM\_MUNICIPIO}, sem criar uma relação direta entre essa dimensão e \texttt{DIM\_UF}, evitando ambiguidade de filtro.
+
+A incorporação da PND 2025 demonstrou a possibilidade de integrar uma fonte de granularidade individual ao mesmo ambiente analítico sem tratá-la como continuação artificial da série histórica da Educação Básica. A separação entre a análise histórica e a PND preservou a interpretação de cada fonte.
+
+\section{Trabalhos Futuros}
+
+Como trabalhos futuros, sugere-se ampliar o modelo com outras bases do INEP, como Censo Escolar, infraestrutura, matrículas, turmas e formação docente. A inclusão dessas fontes pode permitir análises adicionais, desde que cada nova base passe pelo mesmo processo de auditoria, documentação de fonte, harmonização e validação.
+
+Outra possibilidade é aprofundar a granularidade territorial ou institucional. O presente trabalho prioriza UFs na análise histórica; pesquisas futuras podem desenvolver recortes municipais ou escolares quando houver compatibilidade de fonte, grão e metodologia.
+
+Também podem ser incorporados indicadores socioeconômicos de instituições como IBGE ou IPEA. Essa expansão permitiria explorar associações mais amplas entre contexto social e indicadores educacionais, sem confundir análise descritiva com inferência causal.
+
+Em estudos futuros, técnicas estatísticas ou de ciência de dados podem ser utilizadas para correlação, regressão, agrupamento ou séries temporais. Caso o objetivo seja investigar causalidade, será necessário um desenho específico de pesquisa, com hipóteses, controles e métodos adequados.
+
+No caso da PND, novas edições poderão permitir a construção de uma série própria, separada dos indicadores históricos deste trabalho. Também é possível evoluir a publicação do dashboard para ambiente institucional ou público, com atenção a usabilidade, atualização automatizada e governança dos dados.
+
+\section{Contribuições em Produção Bibliográfica}
+
+Até o momento da finalização deste trabalho, não houve publicação de artigo científico resultante diretamente da pesquisa. O projeto, entretanto, oferece material para futuras produções sobre pipelines reprodutíveis de dados educacionais, qualidade e linhagem de dados públicos, modelagem dimensional aplicada ao INEP, integração de indicadores da Educação Básica e visualização analítica em Power BI.
+
+Possíveis trabalhos derivados incluem estudos sobre reprodutibilidade de pipelines educacionais, comparação de metodologias de publicação entre edições do SAEB, integração de indicadores históricos com novas fontes e uso de visualizações para comunicação de resultados educacionais.

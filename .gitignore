@@ -18,3 +18,36 @@ __pycache__/
 .ipynb_checkpoints/
 .env
 .venv/
+
+# Artefatos temporarios
+tmp/
+
+# Referencias academicas mantidas apenas localmente
+referencias/*.pdf
+
+# Arquivos auxiliares gerados pelo LaTeX
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.nlo
+*.out
+*.synctex.gz
+*.toc
+tcc/main_tcc_uemg.pdf
+
+# Materiais demonstrativos nao utilizados do template original
+tcc/elementos/ape_comandos/
+tcc/elementos/ape_sobre/
+tcc/figs/facom-logo.pdf
+tcc/figs/folhaAprovacaoSistemas.pdf
+tcc/figs/logo-ufu.png
+tcc/figs/logo-ufu2.png
+tcc/figs/ppgco-logo.png

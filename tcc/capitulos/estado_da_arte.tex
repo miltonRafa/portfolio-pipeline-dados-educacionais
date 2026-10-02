@@ -1,0 +1,98 @@
+\chapter[Estado da Arte]{Estado da Arte}
+
+Este capítulo apresenta trabalhos correlatos ao tema desta pesquisa, com foco em estudos que utilizam bases educacionais públicas, técnicas de Engenharia de Dados, Data Warehouse, Business Intelligence e visualização de dados aplicadas ao contexto educacional. A seleção dos trabalhos considerou pesquisas que se aproximam da proposta deste estudo, especialmente aquelas relacionadas ao uso de dados disponibilizados pelo Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (INEP), à organização de indicadores educacionais e ao desenvolvimento de soluções analíticas para apoio à interpretação de informações da Educação Básica.
+
+A análise dos trabalhos correlatos permite compreender como diferentes autores têm utilizado técnicas computacionais para transformar dados educacionais em informações relevantes. Além disso, possibilita identificar contribuições, limitações e lacunas existentes, evidenciando de que forma esta pesquisa se diferencia ao propor a integração de diferentes indicadores educacionais brasileiros em uma estrutura dimensional voltada à análise histórica, comparativa e visual.
+
+\section{Busca por trabalhos correlatos}
+
+A busca por trabalhos correlatos considerou pesquisas voltadas ao uso de dados educacionais, indicadores do INEP, técnicas de mineração de dados, construção de Data Warehouse, Business Intelligence e visualização de dados no contexto da Educação Básica. Foram selecionados estudos que apresentam maior proximidade com a proposta desta pesquisa, seja pela utilização de bases públicas educacionais, pela aplicação de técnicas de tratamento e integração de dados, ou pelo desenvolvimento de painéis e visualizações analíticas.
+
+Entre os trabalhos identificados, destacam-se os estudos de \citeonline{soares2021}, \citeonline{ilha2021}, \citeonline{wanderley2021} e \citeonline{martinsfilho2025}. Esses trabalhos contribuem para a compreensão do estado da arte relacionado ao uso de dados educacionais e tecnologias analíticas, permitindo observar avanços e limitações existentes na área.
+
+\section{Soares et al. (2021)}
+
+\citeonline{soares2021} realizaram uma revisão sistemática sobre a aplicação de técnicas de mineração de dados utilizando bases da Educação Básica brasileira disponibilizadas pelo INEP. O objetivo do estudo foi identificar pesquisas que utilizam dados educacionais públicos para extração de conhecimento, com atenção a bases como SAEB, IDEB, Censo Escolar e Indicadores Educacionais.
+
+O trabalho apresenta como principal contribuição a sistematização de estudos que utilizam dados educacionais brasileiros, demonstrando o potencial das bases do INEP para pesquisas relacionadas à análise da Educação Básica. Os autores evidenciam que essas bases possuem grande volume de informações e podem apoiar estudos voltados à compreensão do desempenho escolar, do fluxo educacional e de outros aspectos relacionados ao ensino.
+
+Como resultado, a pesquisa aponta que o uso de técnicas computacionais pode contribuir para a extração de conhecimento a partir de dados educacionais. Entretanto, por se tratar de uma revisão sistemática, o trabalho não desenvolve uma solução própria de integração, modelagem ou visualização dos dados. Assim, sua contribuição para esta pesquisa está em demonstrar a relevância das bases públicas do INEP e a necessidade de técnicas adequadas para tratamento e análise dessas informações.
+
+\section{Ilha e Moreira Junior (2021)}
+
+\citeonline{ilha2021} desenvolveram uma proposta de construção de um Data Warehouse utilizando indicadores educacionais disponibilizados pelo INEP. O estudo teve como objetivo organizar dados educacionais em um ambiente analítico capaz de facilitar consultas e apoiar processos de análise e tomada de decisão.
+
+A pesquisa apresenta relação direta com conceitos de modelagem dimensional, uma vez que propõe a estruturação de dados educacionais em um repositório voltado à análise. O trabalho demonstra que a construção de um Data Warehouse pode contribuir para transformar dados dispersos em informações mais organizadas, acessíveis e úteis para gestores e pesquisadores da área educacional.
+
+Como resultado, os autores indicam que a utilização de Data Warehouse e ferramentas de Business Intelligence pode auxiliar na compreensão de indicadores educacionais e na geração de informações para apoio à gestão. Entretanto, o estudo possui foco principal na construção do ambiente de armazenamento dos dados. A presente pesquisa amplia essa abordagem ao integrar diferentes indicadores educacionais, como IDEB, SAEB, Taxas de Rendimento Escolar, Taxa de Distorção Idade-Série e PND 2025, além de explorar visualizações interativas no Power BI.
+
+\section{Wanderley (2021)}
+
+\citeonline{wanderley2021} desenvolveu uma solução baseada em Business Intelligence para avaliação de indicadores de desempenho da Educação Básica no Estado do Acre. O estudo utilizou painéis interativos para representar informações educacionais, buscando facilitar a interpretação dos dados e apoiar processos de tomada de decisão.
+
+O trabalho evidencia a importância do uso de dashboards na área educacional, pois permite transformar dados em representações visuais mais acessíveis. A utilização de ferramentas de BI possibilita a visualização de indicadores de forma dinâmica, favorecendo análises por diferentes dimensões e contribuindo para o acompanhamento da realidade educacional.
+
+Apesar de sua contribuição, o estudo apresenta um recorte regional específico, concentrado no Estado do Acre. Dessa forma, embora se aproxime desta pesquisa pelo uso de Business Intelligence e dashboards, diferencia-se quanto à abrangência e ao conjunto de indicadores analisados. Este trabalho propõe uma abordagem voltada à integração de diferentes bases públicas do INEP, considerando indicadores nacionais e históricos da Educação Básica brasileira no período de 2007 a 2023, além de uma análise complementar da PND 2025.
+
+\section{Martins Filho (2025)}
+
+\citeonline{martinsfilho2025} investigou a preparação e a visualização de dados de desempenho escolar em uma instituição de Educação Básica, utilizando processo de ETL, Python e dashboards interativos para apoiar a análise histórica dos resultados. O estudo destaca a importância da preparação dos dados e da representação visual das informações para facilitar sua interpretação no contexto educacional.
+
+A principal contribuição do trabalho está na combinação entre tratamento dos dados e dashboards interativos, mostrando como informações históricas de uma escola podem ser organizadas para identificação de padrões e apoio à gestão pedagógica.
+
+Entretanto, o estudo concentra-se em dados de uma única instituição escolar e em um período específico. Assim, sua contribuição para esta pesquisa está em demonstrar a aplicação de ETL e visualização no contexto educacional, enquanto o presente trabalho amplia essa perspectiva ao integrar múltiplas bases públicas do INEP, em escala nacional e com recorte histórico, em um modelo dimensional rastreável e reprodutível.
+
+\section{Análise comparativa dos trabalhos}
+
+A partir dos trabalhos analisados, observa-se que todos apresentam contribuições relevantes para o uso de dados no contexto educacional. \citeonline{soares2021} demonstram a relevância das bases do INEP e das técnicas de mineração de dados. \citeonline{ilha2021} contribuem com a organização de indicadores educacionais em um Data Warehouse. \citeonline{wanderley2021} destaca o uso de Business Intelligence para construção de painéis interativos. \citeonline{martinsfilho2025} demonstra a combinação de ETL e visualização interativa para análise de desempenho escolar.
+
+Apesar dessas contribuições, observa-se que os estudos analisados apresentam limitações quanto à integração de múltiplas bases, à abrangência dos indicadores utilizados ou ao recorte territorial adotado. Nesse sentido, a presente pesquisa diferencia-se ao integrar IDEB, SAEB, Taxas de Rendimento Escolar, Taxa de Distorção Idade-Série e PND 2025 em um pipeline reprodutível, com camadas de dados, rastreabilidade dos insumos, validações automatizadas, modelo dimensional e disponibilização analítica no Power BI.
+
+É importante destacar que a PND 2025 não foi utilizada como série histórica, mas como base complementar. Enquanto IDEB, SAEB, Rendimento Escolar e TDI possibilitam acompanhar a evolução de indicadores educacionais entre 2007 e 2023, a PND 2025 permite acrescentar uma leitura recente sobre notas, acertos e áreas de formação docente. Dessa forma, a contribuição técnica do trabalho não se limita à visualização: inclui a organização reprodutível do percurso entre fontes oficiais, camadas de transformação, validações, modelo dimensional e dashboards.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption[Comparação dos trabalhos correlatos]{Comparação dos trabalhos correlatos.}
+\label{tab:trabalhos-correlatos}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|p{2.1cm}|p{2.5cm}|p{4.1cm}|p{4.1cm}|}
+\hline
+\textbf{Trabalho} & \textbf{Técnica principal} & \textbf{Contribuição} & \textbf{Limitação em relação a esta pesquisa} \\ \hline
+
+Soares et al. (2021) &
+Mineração de dados &
+Evidencia o potencial das bases públicas do INEP para análise educacional &
+Não desenvolve solução própria de integração, modelagem dimensional ou dashboards \\ \hline
+
+Ilha e Moreira Junior (2021) &
+Data Warehouse e BI &
+Demonstra a importância da organização dos dados educacionais em ambiente analítico &
+Possui foco principal na estruturação do repositório de dados \\ \hline
+
+Wanderley (2021) &
+Business Intelligence &
+Mostra a aplicação de painéis interativos para análise de indicadores educacionais &
+Apresenta recorte regional específico no Estado do Acre \\ \hline
+
+Martins Filho (2025) &
+ETL e visualização de dados &
+Combina preparação de dados e dashboards interativos para análise escolar &
+Concentra-se em uma única instituição escolar \\ \hline
+
+Este trabalho &
+Engenharia de Dados, ETL, modelagem dimensional e BI &
+Integra IDEB, SAEB, Rendimento Escolar, Distorção Idade-Série e PND 2025 em uma estrutura analítica única &
+Limita-se às bases públicas selecionadas; a PND 2025 é usada como análise complementar \\ \hline
+
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor (2026).}
+\end{table}
+
+\section{Contribuições do trabalho}
+
+Com base nos trabalhos correlatos analisados, observa-se que há espaço para pesquisas que integrem diferentes bases educacionais públicas em uma estrutura analítica única. A contribuição desta pesquisa materializou-se na aplicação de técnicas de Engenharia de Dados, ETL, modelagem dimensional e Business Intelligence para organizar, validar e visualizar indicadores educacionais brasileiros de forma integrada.
+
+A proposta contribui ao demonstrar uma forma reprodutível de estruturar dados públicos do INEP para análises históricas e comparativas, documentando fontes, decisões de transformação, validações e produtos analíticos. Além disso, ao reunir indicadores de desempenho, avaliação externa, rendimento escolar, distorção idade-série e informações complementares da PND 2025, o trabalho possibilita uma leitura mais ampla da Educação Básica brasileira, favorecendo a identificação de padrões, tendências e relações entre diferentes dimensões educacionais.
+
+Dessa maneira, este trabalho não apresenta apenas dashboards, mas evidencia o processo de preparação, tratamento, validação e modelagem necessário para transformar arquivos públicos dispersos em uma base analítica organizada e rastreável. Essa contribuição é relevante porque demonstra, na prática, como técnicas de Engenharia de Dados e Business Intelligence podem ser aplicadas em dados educacionais reais, com diferentes formatos, períodos e níveis de agregação.
