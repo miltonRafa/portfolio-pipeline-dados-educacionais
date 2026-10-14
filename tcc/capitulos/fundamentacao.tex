@@ -8,8 +8,6 @@ Com o crescimento da produção de dados em diferentes setores da sociedade, tor
 
 A organização do fluxo não se limita ao armazenamento. A qualidade e a rastreabilidade dos dados também condicionam a confiabilidade das análises. \citeonline{moreno2026tomada} discutem dimensões como acurácia, completude, consistência e disponibilidade, enquanto \citeonline{da2025proveniencia} relaciona a proveniência ao registro da origem, do histórico e das transformações dos dados. Esses aspectos são especialmente relevantes quando diferentes fontes precisam ser combinadas em uma mesma estrutura analítica.
 
-Em ambientes com fontes heterogêneas, pipelines de dados permitem separar etapas de ingestão, limpeza, integração, modelagem e validação. \citeonline{carvalho2025estudo} apresenta essa organização em um fluxo com camadas e procedimentos sucessivos de tratamento, demonstrando como dados históricos provenientes de fontes distintas podem ser preparados para consumo analítico.
-
 No contexto educacional, a aplicação desses conceitos permite integrar diferentes bases de dados relacionadas ao ensino, possibilitando análises mais amplas sobre indicadores de desempenho, permanência escolar, fluxo educacional e evolução histórica da educação. Essa integração é especialmente importante quando as bases públicas apresentam diferenças de formato, período, nível de agregação e nomenclatura das variáveis, exigindo processos de tratamento e padronização antes da análise.
 
 \section{Processo ETL (Extract, Transform, Load)}
@@ -24,7 +22,7 @@ A etapa de transformação também pode envolver processos de alteração da est
 
 A última etapa corresponde à disponibilização dos dados tratados em uma estrutura de destino, como um Data Warehouse, um modelo dimensional ou outra base consolidada. No contexto educacional, \citeonline{ilha2021} descrevem a importação de indicadores do INEP para um repositório estruturado em Data Warehouse e sua posterior exploração por recursos de Business Intelligence e dashboards.
 
-No desenvolvimento deste trabalho, os conceitos de ETL foram utilizados para integrar bases educacionais originalmente separadas. As etapas foram implementadas em Python e distribuídas entre auditoria, ingestão, transformação e validação. O Power BI consome os arquivos analíticos produzidos pelo pipeline e concentra a modelagem semântica, as medidas DAX e as visualizações, não constituindo o motor principal de transformação dos dados.
+No desenvolvimento deste trabalho, os conceitos de ETL fundamentam a integração das bases educacionais selecionadas. A implementação específica das etapas de auditoria, ingestão, transformação e validação é apresentada na metodologia.
 
 \section{Arquitetura em camadas e reprodutibilidade}
 
@@ -48,7 +46,7 @@ As tabelas fato armazenam os eventos ou indicadores que serão analisados, geral
 
 Entre os modelos dimensionais mais utilizados encontra-se o esquema estrela (\textit{Star Schema}), no qual uma ou mais tabelas fato se relacionam diretamente com dimensões compartilhadas. \citeonline{kimball2013data} apresentam essa estrutura como uma organização característica da modelagem dimensional voltada a ambientes analíticos.
 
-Neste trabalho, esse conceito fundamentou a criação de cinco fatos, correspondentes a IDEB, SAEB, Rendimento Escolar, TDI e PND, e cinco dimensões: tempo, Unidade Federativa, etapa de ensino, área da PND e município de aplicação. A dimensão de município é ativa e relaciona-se diretamente com a fato da PND pelo código municipal. Não existe relação física entre as dimensões de UF e município, evitando um segundo caminho de filtragem até a mesma fato.
+Neste trabalho, esses conceitos fundamentam a modelagem dimensional implementada na camada Gold. A estrutura específica de fatos, dimensões e relacionamentos é apresentada na Seção~\ref{sec:modelagem-dados}, onde são descritos o grão analítico e as decisões de relacionamento adotadas.
 
 \section{Business Intelligence e Visualização de Dados}
 
@@ -60,7 +58,7 @@ A visualização constitui uma das formas de disponibilizar os resultados desse 
 
 Entre as ferramentas disponíveis atualmente destaca-se o Power BI, plataforma que possibilita a conexão com diferentes fontes de dados, aplicação de processos de transformação, criação de modelos relacionais e desenvolvimento de dashboards analíticos \cite{microsoft2025powerbi}.
 
-A utilização de BI na área educacional possibilita analisar grandes conjuntos de dados relacionados ao desempenho dos estudantes, contribuindo para identificar padrões, acompanhar a evolução de indicadores e comunicar resultados de forma mais clara. No caso deste trabalho, o Power BI foi utilizado para relacionar as tabelas da camada Gold, definir medidas DAX e criar dashboards interativos com indicadores históricos da Educação Básica e informações complementares da Prova Nacional Docente (PND), disponibilizada pelo \cite{inep2025pnd}.
+A utilização de BI na área educacional possibilita analisar grandes conjuntos de dados relacionados ao desempenho dos estudantes, contribuindo para identificar padrões, acompanhar a evolução de indicadores e comunicar resultados de forma mais clara. No caso deste trabalho, esses conceitos fundamentam o uso do Power BI como camada de consumo analítico e visualização; sua implementação é detalhada na metodologia.
 
 \section{Indicadores Educacionais Brasileiros}
 

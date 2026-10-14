@@ -44,6 +44,38 @@ As informações de rede são selecionadas segundo a semântica de cada fonte, s
 
 As validações abrangem esquema, domínios, quantidade de registros, unicidade no grão, cobertura temporal e territorial, correspondência entre camadas, chaves órfãs e consistência dos relacionamentos. Na Gold, o validador global verifica também a integridade referencial e a coerência entre município e UF na PND.
 
+\subsection{Desafios de harmonização histórica}
+
+Um dos principais desafios de transformação não foi apenas converter formatos de arquivo, mas reconhecer que uma mesma informação passou a ser representada de maneiras diferentes entre indicadores e edições. As fontes variam quanto à posição e ao nome das colunas, quantidade de linhas de cabeçalho, uso de códigos ou categorias textuais, presença de Brasil e regiões junto às UFs, granularidade de publicação e representação de valores ausentes. Por esse motivo, o pipeline não aplica uma regra genérica baseada apenas na aparência do arquivo. Cada configuração foi definida após auditoria da respectiva fonte e foi materializada explicitamente nos transformadores.
+
+Na Bronze, colunas de planilhas com cabeçalhos complexos recebem nomes técnicos neutros, como \texttt{col\_001}, \texttt{col\_002} e assim sucessivamente. Esses nomes representam a posição física preservada e não atribuem significado novo ao dado. Na Silver, a posição é associada ao conceito identificado na auditoria. Por exemplo, a taxa de aprovação dos Anos Iniciais do Rendimento encontra-se em \texttt{col\_015} em 2007, em \texttt{col\_014} entre 2008 e 2010 e em \texttt{col\_006} entre 2011 e 2015. A correspondência é registrada em \texttt{COLUNA\_ORIGEM}, permitindo retornar à célula utilizada.
+
+Também foi necessária a passagem do formato amplo para o formato longo. Nas fontes de Rendimento, TDI, IDEB e SAEB, diferentes anos, etapas, indicadores ou disciplinas aparecem distribuídos em colunas. Na Silver, essas dimensões tornam-se valores explícitos em campos canônicos, como \texttt{ANO}, \texttt{ETAPA}, \texttt{INDICADOR} e \texttt{DISCIPLINA}. Por essa razão, a quantidade de linhas da Bronze e da Silver não deve ser interpretada como simples contagem de registros removidos: uma linha de origem pode produzir várias observações analíticas.
+
+A Tabela~\ref{tab:sintese-harmonizacao} resume as diferenças que determinaram as regras de transformação. O mapeamento completo dos campos encontra-se no Apêndice~\ref{ap:layouts}; as categorias e códigos harmonizados, no Apêndice~\ref{ap:harmonizacao}; os critérios de inclusão e exclusão, no Apêndice~\ref{ap:criterios}; e os controles de qualidade e rastreabilidade, no Apêndice~\ref{ap:qualidade}.
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Síntese dos desafios e decisões de harmonização por indicador e período.}
+\label{tab:sintese-harmonizacao}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{|p{2.1cm}|p{2.4cm}|p{6.0cm}|p{6.2cm}|p{5.0cm}|}
+\hline
+\textbf{Indicador} & \textbf{Período} & \textbf{Diferença encontrada} & \textbf{Decisão implementada} & \textbf{Saída canônica} \\ \hline
+Rendimento & 2007--2023 & Cinco configurações de posição; presença ou ausência de região; UF por sigla ou nome; rede como \texttt{Publico} ou \texttt{Publica}; três indicadores distribuídos em colunas. & Seleção de localização total e agregado público oficial; mapeamento explícito das colunas por período; UF convertida para sigla; taxas convertidas para número e arredondadas a uma casa decimal; estrutura ampla convertida para longa. & \texttt{ANO}, \texttt{UF}, \texttt{ETAPA}, \texttt{REDE}, \texttt{INDICADOR}, \texttt{VALOR}. \\ \hline
+TDI & 2007--2023 & Cinco configurações de posição; mudanças na representação da UF e da rede; Brasil e regiões presentes junto às UFs nas edições recentes. & Seleção de localização total e agregado \texttt{Publico}/\texttt{Publica}; exclusão de Brasil e regiões do grão analítico; mapeamento explícito das duas etapas; valores entre 0 e 100, com uma casa decimal. & \texttt{ANO}, \texttt{UF}, \texttt{ETAPA}, \texttt{REDE}, \texttt{TDI}. \\ \hline
+IDEB & 2007--2023 & Workbook com abas de Anos Iniciais, Anos Finais e Ensino Médio; nomes completos e abreviados de UFs; anos identificados por variáveis técnicas; arquivo físico também contém edições fora do recorte. & Uso das abas de Anos Iniciais e Finais; seleção de \texttt{Publica (4)}; localização de cada edição por \texttt{VL\_OBSERVADO\_AAAA}; normalização explícita das UFs; seleção deliberada das nove edições de 2007 a 2023. & \texttt{ANO}, \texttt{UF}, \texttt{ETAPA}, \texttt{REDE}, \texttt{IDEB}. \\ \hline
+SAEB & 2007--2023 & Categorias textuais em 2007/2009; códigos em 2011; cabeçalhos hierárquicos em 2013/2015; nomes técnicos nas edições recentes; duas granularidades preservadas em 2023. & Regras específicas por edição; harmonização de séries/anos escolares em duas etapas e de disciplinas em \texttt{LP}/\texttt{MT}; tratamento documentado do zero de 2015; uso do agregado oficial de UF em 2023. & \texttt{ANO}, \texttt{UF}, \texttt{ETAPA}, \texttt{REDE}, \texttt{DISCIPLINA}, \texttt{PROFICIENCIA}. \\ \hline
+PND & 2025 & Microdados com 26 campos, códigos categóricos, marcadores \texttt{NA}, ausência de identificador individual e registros de presença sem resultados completos. & Mapeamento da posição física para os nomes do dicionário; população definida por \texttt{TP\_PRES=555} e cinco resultados completos; preservação de notas negativas publicadas; área derivada de \texttt{CO\_GRUPO}; linha de origem usada como identificador técnico. & Fato individual com ano, local de prova, área, códigos de aplicação e cinco resultados analíticos. \\ \hline
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor a partir das auditorias e dos transformadores do projeto (2026).}
+\end{table}
+\end{landscape}
+
+As escolhas acima distinguem exclusão analítica de perda de informação. Registros, colunas e granularidades que não pertencem ao recorte final permanecem na Raw ou na Bronze. A Silver seleciona a população e as variáveis necessárias à pergunta de pesquisa, enquanto a Gold projeta o conjunto validado para consumo no Power BI. Nenhuma dessas etapas autoriza substituir o agregado oficial por média simples, interpretar marcador de ausência como zero ou expandir automaticamente o período quando a fonte física recebe nova edição.
+
 \subsection{Tratamento da base IDEB}
 
 O IDEB utiliza um único arquivo Raw canônico de divulgação por Regiões e Unidades da Federação. A versão física corrente do arquivo pode conter colunas de edições posteriores, inclusive 2025, mas a Silver e a Gold desta versão selecionam deliberadamente as nove edições de 2007 a 2023: 2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021 e 2023. Assim, a atualização física da fonte não amplia automaticamente o escopo analítico.
@@ -72,6 +104,8 @@ A TDI permanece na escala de 0 a 100. As medidas temporais calculadas no Power B
 
 A PND 2025 foi incorporada como análise complementar. O arquivo de microdados possui 1.087.359 registros. A auditoria identificou 759.152 registros com os cinco resultados analíticos completos; 759.140 desses registros também atendem ao critério \texttt{TP\_PRES = 555} e constituem a população analítica. Permanecem fora 966 registros presentes sem o conjunto completo de resultados e 12 registros com \texttt{TP\_PRES = 888} apesar de apresentarem resultados completos.
 
+Como os microdados não fornecem um identificador individual, a linha de origem preservada na Silver é utilizada exclusivamente como identificador técnico de rastreabilidade do registro e não constitui identificador do participante.
+
 A Gold preserva \texttt{UF\_PROVA} e \texttt{CO\_MUNICIPIO\_PROVA}, que representam o local de aplicação da prova e não a residência do participante. Também preserva o código de área \texttt{CO\_GRUPO}, as notas e resultados analíticos e o campo \texttt{PADRAO\_DESEMPENHO}. O código municipal é relacionado à \texttt{DIM\_MUNICIPIO}; a Gold não incorpora nome de município na fato.
 
 A classificação de desempenho é baseada exclusivamente na nota objetiva. A Nota Técnica nº 44/2025/CEI/CGGI/DAES-INEP documenta a transformação da proficiência objetiva para a escala de divulgação de \texttt{NT\_OBJ}, e a Nota Técnica nº 1/2026/GPP/GAB-INEP estabelece os pontos de corte utilizados na PND por meio do método de Angoff Modificado \cite{inep2025notatecnica44,inep2026notatecnica1}. O projeto aplica:
@@ -85,8 +119,13 @@ A classificação de desempenho é baseada exclusivamente na nota objetiva. A No
 Os grupos \texttt{PADRAO\_1} e \texttt{PADRAO\_2} compõem a medida de proficientes. Essa classificação não representa aprovação ou reprovação e o corte de 50 pontos não deve ser interpretado como 50\% de acertos.
 
 \section{Modelagem dos dados}
+\label{sec:modelagem-dados}
 
 Após as transformações, a camada Gold materializa cinco tabelas fato e cinco dimensões para consumo analítico. As fatos são \texttt{FATO\_RENDIMENTO}, \texttt{FATO\_TDI}, \texttt{FATO\_IDEB}, \texttt{FATO\_SAEB} e \texttt{FATO\_PND}. As dimensões são \texttt{DIM\_UF}, \texttt{DIM\_TEMPO}, \texttt{DIM\_ETAPA}, \texttt{DIM\_AREA\_PND} e \texttt{DIM\_MUNICIPIO}.
+
+\begin{sloppypar}
+O grão de cada tabela fato foi definido antes de sua materialização. A \texttt{FATO\_RENDIMENTO} representa uma observação por ano, UF, etapa e indicador; a \texttt{FATO\_TDI}, uma observação por ano, UF e etapa; a \texttt{FATO\_IDEB}, uma observação por ano, UF e etapa; a \texttt{FATO\_SAEB}, uma observação por ano, UF, etapa e disciplina; e a \texttt{FATO\_PND} mantém granularidade individual para cada registro que atende aos critérios definidos para a população analítica.
+\end{sloppypar}
 
 Os relacionamentos seguem cardinalidade 1:* e filtro unidirecional da dimensão para a fato. \texttt{DIM\_UF} relaciona-se com as cinco fatos; \texttt{DIM\_TEMPO}, também. \texttt{DIM\_ETAPA} relaciona-se apenas com as quatro fatos históricas. Para a PND, os relacionamentos adicionais utilizam \texttt{DIM\_AREA\_PND} e \texttt{DIM\_MUNICIPIO}. Não existe relação física direta entre \texttt{DIM\_UF} e \texttt{DIM\_MUNICIPIO}, evitando um segundo caminho geográfico até a \texttt{FATO\_PND}.
 
@@ -96,6 +135,7 @@ Os relacionamentos seguem cardinalidade 1:* e filtro unidirecional da dimensão 
    \includegraphics[width=0.95\linewidth]{figs/modelo-dimensional.png}
    \caption{Modelo dimensional atual consumido pelo Power BI.}
    \label{fig:modelo-dimensional}
+   \legend{Fonte: Elaborado pelo autor a partir do modelo Power BI do projeto (2026).}
 \end{figure}
 \end{landscape}
 
@@ -131,19 +171,7 @@ As taxas de Rendimento e a TDI já são armazenadas na escala de 0 a 100. Os per
 
 O Power BI consome exclusivamente os arquivos Parquet da Gold. O Power Query é utilizado como camada de conexão com esses arquivos; relacionamentos, medidas DAX e visualizações compõem o modelo semântico e a apresentação analítica.
 
-A primeira página, \textit{Panorama dos Indicadores da Educação Básica}, reúne cartões de IDEB, proficiência média do SAEB em Matemática e Língua Portuguesa, Aprovação, Reprovação, Abandono e TDI, além das respectivas evoluções históricas.
-
-A segunda página, \textit{Desempenho educacional por Unidade Federativa}, compara as UFs em quatro rankings: IDEB, SAEB Matemática, TDI e SAEB Língua Portuguesa. O ano é selecionado entre avaliações disponíveis para IDEB e SAEB, permitindo comparação territorial dentro de um mesmo recorte temporal.
-
-A terceira página, \textit{Aprendizagem e fluxo escolar por Unidade Federativa}, combina a evolução histórica de Aprovação, Reprovação, Abandono e TDI com dois gráficos de dispersão: Aprovação versus IDEB e Aprovação versus proficiência média do SAEB.
-
-A quarta página, \textit{Variação dos indicadores por Unidade Federativa}, utiliza um intervalo de anos e apresenta as diferenças entre o primeiro e o último ano com dado para IDEB, Aprovação, SAEB Língua Portuguesa e SAEB Matemática, respeitando as unidades próprias de cada indicador.
-
-A quinta página, \textit{Distorção idade-série por Unidade Federativa}, apresenta TDI média e Variação TDI, evolução temporal, comparação por UF, comparação entre Anos Iniciais e Anos Finais e variação territorial.
-
-A sexta página, \textit{Resultados da PND 2025}, apresenta os cartões \texttt{Participantes PND}, \texttt{\% Proficientes}, \texttt{Nota Objetiva Média} e \texttt{Nota Geral Média}. Os gráficos mostram percentual de proficientes por área, percentual de proficientes por UF, nota objetiva média por área e distribuição dos padrões de desempenho por UF. Os filtros visíveis dessa página são UF e área.
-
-A sétima página, \textit{Metodologia e Arquitetura do Projeto}, sintetiza escopo, fontes, arquitetura Raw--Bronze--Silver--Gold--Power BI, modelo dimensional, decisões metodológicas e controles de qualidade. Ela funciona como documentação interna do próprio dashboard.
+A solução foi organizada em sete páginas com funções complementares: panorama dos indicadores; comparação por Unidade Federativa; aprendizagem e fluxo escolar; variações no intervalo selecionado; distorção idade-série; resultados da PND 2025; e metodologia e arquitetura do projeto. Essa organização separa a exploração histórica e territorial da documentação técnica do modelo. Os valores, rankings, associações descritivas e demais resultados apresentados em cada página são discutidos no Capítulo~\ref{cap:resultados}, evitando duplicar nesta seção a descrição analítica dos painéis.
 
 \begin{landscape}
 \begin{figure}[H]
@@ -151,6 +179,7 @@ A sétima página, \textit{Metodologia e Arquitetura do Projeto}, sintetiza esco
   \includegraphics[width=0.95\linewidth]{figs/dashboard-metodologia.png}
   \caption{Página de metodologia e arquitetura do projeto no Power BI.}
   \label{fig:dashboard-metodologia}
+  \legend{Fonte: Elaborado pelo autor a partir do dashboard do projeto (2026).}
 \end{figure}
 \end{landscape}
 

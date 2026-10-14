@@ -1,0 +1,107 @@
+\chapter{Critérios de inclusão e exclusão}
+\label{ap:criterios}
+\setlength{\tabcolsep}{2pt}
+\setlength{\emergencystretch}{3em}
+
+Este apêndice distingue exclusão analítica de exclusão física. A Raw mantém os arquivos oficiais inventariados e a Bronze preserva as estruturas selecionadas para ingestão sem aplicar o recorte final. Os filtros são executados na Silver. Assim, um registro, coluna ou nível de agregação ausente da Gold não foi necessariamente apagado: ele pode permanecer disponível na Raw ou na Bronze para auditoria e para pesquisas futuras com outro objetivo.
+
+\section{Recortes por indicador}
+
+\begin{landscape}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{2.5cm}|p{6.0cm}|p{7.0cm}|p{5.8cm}|}
+\caption{Critérios de seleção e dados fora do recorte analítico.}\label{tab:ap-filtros}\\
+\hline
+\textbf{Indicador} & \textbf{Incluído na Silver} & \textbf{Não incluído na Silver/Gold} & \textbf{Justificativa e preservação} \\ \hline
+\endfirsthead
+\multicolumn{4}{c}{\tablename\ \thetable\ -- continuação}\\
+\hline
+\textbf{Indicador} & \textbf{Incluído na Silver} & \textbf{Não incluído na Silver/Gold} & \textbf{Justificativa e preservação} \\ \hline
+\endhead
+Rendimento Escolar & Anos de 2007 a 2023; 27 UFs; localização \texttt{Total}; agregado oficial \texttt{Publico}/\texttt{Publica}; Anos Iniciais e Finais; Aprovação, Reprovação e Abandono. & Brasil e regiões; localização urbana/rural; rede privada; categorias federal, estadual e municipal separadas; outras etapas e demais colunas da planilha. & Recorte comum da pesquisa em nível estadual e rede pública. Não há recomposição por média entre redes. A Bronze preserva 17 layouts anuais e todas as respectivas colunas. \\ \hline
+TDI & Anos de 2007 a 2023; 27 UFs; localização \texttt{Total}; agregado oficial \texttt{Publico}/\texttt{Publica}; Anos Iniciais e Finais. & Brasil e regiões; localização urbana/rural; rede privada; dependências separadas; outras etapas e colunas não utilizadas. & Mesmo recorte territorial e de rede adotado para a série histórica. A categoria de dependência \texttt{Total} não é usada como sinônimo de pública. Os dados continuam na Bronze. \\ \hline
+IDEB & Nove edições de 2007 a 2023; 27 UFs; abas de Anos Iniciais e Finais; categoria \texttt{Publica (4)}; valor \texttt{VL\_OBSERVADO\_AAAA}. & Edição 2005; edição 2025 presente no arquivo físico; Ensino Médio; Brasil e regiões; outras redes; metas e componentes auxiliares do workbook. & O período e as etapas são definidos pelo escopo desta versão. As três abas e anos adicionais permanecem na Bronze, e a atualização do arquivo não amplia automaticamente a análise. \\ \hline
+SAEB & Nove edições de 2007 a 2023; 27 UFs; agregado público oficial disponível; Anos Iniciais e Finais; Língua Portuguesa e Matemática; resultados em nível de UF. & Rede privada; localização ou capital desagregados; outras séries/etapas; outras categorias de rede; microdados e resultados escolares como fonte da fato; demais campos das fontes. & O grão comparável é UF por etapa e disciplina. Em 2023, a Bronze escolar permanece preservada, mas o resultado estadual publicado é obtido da Bronze agregada oficial porque médias escolares testadas não reproduziram o agregado. \\ \hline
+PND 2025 & Registros com \texttt{TP\_PRES=555} e \texttt{PROFICIENCIA}, \texttt{NT\_OBJ}, \texttt{NT\_DIS}, \texttt{NT\_GER} e \texttt{QT\_ACERTOS} simultaneamente completos; todas as 27 UFs e 17 áreas presentes nessa população. & Ausentes, eliminados, múltiplas inscrições ausentes, resultados desconsiderados pelo INEP, presentes sem resultados completos; vetores de gabarito/escolha/acerto e respostas \texttt{CO\_RS\_I1}--\texttt{CO\_RS\_I9} fora da fato analítica. & A análise descreve participantes válidos com resultados disponíveis, sem imputação. Todos os 1.087.359 registros e as 26 colunas continuam preservados na Bronze. \\ \hline
+\end{longtable}
+\end{landscape}
+
+As conclusões do trabalho são condicionais a esses recortes. Elas não devem ser generalizadas para rede privada, Ensino Médio, escolas, municípios ou todos os inscritos da PND. Esses universos demandariam nova definição de população e novas validações.
+
+\section{População analítica da PND}
+
+A PND permite uma comparação direta de registros, pois o grão individual é mantido da Bronze para a Silver. O diagnóstico utilizado antes do filtro está sintetizado na Tabela~\ref{tab:ap-populacao-pnd}.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Composição da população analítica da PND 2025.}
+\label{tab:ap-populacao-pnd}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|p{9.5cm}|r|}
+\hline
+\textbf{Condição observada} & \textbf{Registros} \\ \hline
+Registros de dados na Bronze, sem contar o cabeçalho preservado & 1.087.359 \\ \hline
+Cinco resultados completos & 759.152 \\ \hline
+Cinco resultados ausentes & 328.207 \\ \hline
+Resultados parcialmente preenchidos & 0 \\ \hline
+\texttt{TP\_PRES=555} & 760.106 \\ \hline
+\texttt{TP\_PRES=555} e cinco resultados completos: incluídos & 759.140 \\ \hline
+\texttt{TP\_PRES=555} sem o conjunto completo: não incluídos & 966 \\ \hline
+\texttt{TP\_PRES=888} com cinco resultados completos: não incluídos & 12 \\ \hline
+\end{tabular}
+\legend{Fonte: Auditoria da população da PND 2025 realizada pelo projeto.}
+\end{table}
+
+Os 328.207 registros com resultados ausentes incluem diferentes situações de presença, entre elas os 966 registros classificados como \texttt{TP\_PRES=555}. A causa dessa combinação não foi identificada nos materiais examinados; por isso, não houve imputação nem reconstrução. Os 12 registros \texttt{TP\_PRES=888} com resultados preenchidos foram excluídos porque o dicionário define essa categoria como resultado desconsiderado pelo INEP.
+
+\section{Cardinalidades e transformação do grão}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Cardinalidades esperadas das tabelas analíticas.}
+\label{tab:ap-cardinalidades}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|p{3.3cm}|p{6.5cm}|r|r|}
+\hline
+\textbf{Indicador} & \textbf{Composição do grão} & \textbf{Silver} & \textbf{Gold} \\ \hline
+Rendimento & 17 anos $\times$ 27 UFs $\times$ 2 etapas $\times$ 3 indicadores & 2.754 & 2.754 \\ \hline
+TDI & 17 anos $\times$ 27 UFs $\times$ 2 etapas & 918 & 918 \\ \hline
+IDEB & 9 anos $\times$ 27 UFs $\times$ 2 etapas & 486 & 486 \\ \hline
+SAEB & 9 anos $\times$ 27 UFs $\times$ 2 etapas $\times$ 2 disciplinas & 972 & 972 \\ \hline
+PND & registros individuais que atendem às duas condições da população & 759.140 & 759.140 \\ \hline
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor a partir dos contratos de validação do pipeline (2026).}
+\end{table}
+
+A igualdade entre Silver e Gold demonstra que a Gold projeta o conjunto analítico validado sem remover linhas. Nas quatro séries históricas, cada combinação esperada permanece no grão mesmo quando a medida de origem é ausente; o campo de valor fica nulo e não há exclusão silenciosa da combinação.
+
+\section{Contagens preservadas na Bronze}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Estruturas preservadas na camada Bronze.}
+\label{tab:ap-bronze-contagens}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|p{3.0cm}|p{4.0cm}|p{7.2cm}|}
+\hline
+\textbf{Indicador} & \textbf{Volume Bronze} & \textbf{Observação} \\ \hline
+Rendimento & 9.012 linhas & Dezessete arquivos anuais preservados com os campos e cabeçalhos técnicos de cada edição. \\ \hline
+TDI & 8.989 linhas & Dezessete arquivos anuais preservados; as diferenças de quantidade e posição de colunas não são uniformizadas na Bronze. \\ \hline
+IDEB & 150 linhas AI; 149 AF; 117 EM & Três abas preservadas separadamente, incluindo Ensino Médio e edições fora do recorte analítico. \\ \hline
+SAEB & 84.800 linhas físicas em 10 Parquets & Nove edições; em 2023 há uma Bronze escolar e outra do agregado oficial por UF. \\ \hline
+PND & 1.087.360 linhas, incluindo cabeçalho & 1.087.359 registros substantivos e uma linha física de cabeçalho; 26 campos preservados. \\ \hline
+\end{tabular}
+\legend{Fonte: Relatórios de validação da camada Bronze do projeto.}
+\end{table}
+
+Esses números não devem ser subtraídos diretamente das cardinalidades Silver para calcular “linhas descartadas”. Rendimento, TDI, IDEB e SAEB passam de estruturas amplas para longas, contêm cabeçalhos preservados e podem reunir vários níveis geográficos ou categorias em uma mesma fonte. A comprovação de completude é feita pela seleção esperada, pela cobertura das combinações do grão e pela correspondência célula a célula, não por uma diferença bruta de contagem.
+
+\section{Colunas de proveniência e projeção Gold}
+
+Na Silver, a forma original relevante permanece disponível. Rendimento e TDI guardam rede, localização, arquivo, linha e coluna de origem. IDEB acrescenta geografia e aba. SAEB acrescenta capital e granularidade. A PND guarda arquivo, granularidade e linha física do participante.
+
+A Gold mantém somente os atributos necessários ao modelo dimensional e às medidas do Power BI. A retirada dos campos detalhados de proveniência da Gold é uma projeção de consumo e não uma perda no pipeline, porque a Silver permanece como camada auditável entre a Bronze e a Gold.

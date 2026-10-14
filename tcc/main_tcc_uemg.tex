@@ -38,6 +38,7 @@
 \usepackage{nomencl} 			% Lista de simbolos
 \usepackage{graphicx}			% Inclusão de gráficos
 \usepackage{pdflscape}			% Páginas horizontais para figuras largas
+\usepackage{longtable}			% Tabelas extensas com quebra de página
 % ---
 
 % ---
@@ -62,6 +63,14 @@
 %	1. Nome completo do autor
 %	2. Formato de nome para bibliografia
 \autor{Milton Rafael De Souza Garcia}{Souza Garcia, Milton}
+\hypersetup{
+	pdftitle={APLICAÇÃO DE ENGENHARIA DE DADOS E BUSINESS INTELLIGENCE NA ANÁLISE DE INDICADORES EDUCACIONAIS DA EDUCAÇÃO BÁSICA BRASILEIRA},
+	pdfauthor={Milton Rafael De Souza Garcia},
+	pdfsubject={Trabalho de Conclusão de Curso - Sistemas de Informação - Universidade do Estado de Minas Gerais, Unidade Ituiutaba},
+	pdfkeywords={Engenharia de Dados; Pipelines de Dados; Indicadores Educacionais; Reprodutibilidade de Dados; Business Intelligence},
+	pdfcreator={Milton Rafael De Souza Garcia},
+	hypertexnames=false
+}
 %
 % Cidade
 \local{Ituiutaba}
@@ -280,13 +289,17 @@ This work aims to develop and analyze a reproducible Data Engineering and Busine
 % ---
 % Inicia os apêndices
 % ---
-%\begin{apendicesenv}
+\begin{apendicesenv}
 % Imprime uma página indicando o início dos apêndices
-%\partapendices
+\partapendices
 % ----------------------------------------------------------
 % Incluir Apêndice
 % ----------------------------------------------------------
-%\end{apendicesenv}
+\include{apendices/mapeamento_layouts}
+\include{apendices/harmonizacao_categorias}
+\include{apendices/criterios_inclusao}
+\include{apendices/controles_qualidade}
+\end{apendicesenv}
 % ---
 
 % ----------------------------------------------------------

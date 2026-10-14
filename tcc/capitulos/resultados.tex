@@ -1,4 +1,5 @@
 \chapter[Resultados e Discussão]{Resultados e Discussão}
+\label{cap:resultados}
 
 Este capítulo apresenta os resultados técnicos e analíticos obtidos com o pipeline e com os dashboards desenvolvidos no Power BI. Os resultados possuem caráter descritivo e exploratório. Assim, as comparações permitem observar padrões, diferenças territoriais e mudanças temporais, mas não sustentam, por si só, inferências causais.
 
@@ -35,20 +36,21 @@ A Figura~\ref{fig:dashboard-panorama} apresenta a visão geral dos indicadores h
 
 Esses valores devem ser interpretados como médias das linhas presentes no contexto do modelo, e não como médias nacionais ponderadas por matrícula. O principal interesse do painel está na leitura conjunta das trajetórias. O IDEB apresenta trajetória visual predominantemente ascendente entre as edições observadas; as proficiências médias de Matemática e Língua Portuguesa também crescem ao longo de grande parte da série, embora com oscilações nas edições mais recentes. A aprovação cresce no período, enquanto a TDI apresenta redução expressiva ao longo dos anos.
 
-A leitura conjunta sugere melhora simultânea em diferentes dimensões do recorte analisado. IDEB e SAEB, porém, são observados em edições bienais, enquanto Rendimento e TDI possuem série anual, o que exige cautela nas comparações temporais.
+A leitura conjunta indica tendências gerais de melhora em diferentes dimensões do recorte analisado. IDEB e SAEB, porém, são observados em edições bienais, enquanto Rendimento e TDI possuem série anual, o que exige cautela nas comparações temporais.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.98\textwidth]{figs/dashboard-panorama.png}
   \caption{Panorama dos indicadores da Educação Básica.}
   \label{fig:dashboard-panorama}
+  \legend{Fonte: Elaborado pelo autor a partir do dashboard do projeto (2026).}
 \end{figure}
 
 \section{Desempenho educacional por Unidade Federativa}
 
 A segunda página compara IDEB, SAEB Matemática, TDI e SAEB Língua Portuguesa entre Unidades Federativas em um ano de avaliação disponível. Na captura da Figura~\ref{fig:dashboard-uf}, o ano selecionado é 2007 e a etapa está em \textit{Todos}.
 
-Nesse recorte, Paraná, Santa Catarina e São Paulo aparecem com IDEB médio de 4,4 entre as barras visíveis. No SAEB, o Distrito Federal aparece no topo visível tanto em Matemática, com 228,4 pontos, quanto em Língua Portuguesa, com 213,0 pontos. Para TDI, Pará e Alagoas aparecem entre os maiores valores visíveis, com 50,1 e 49,9, respectivamente. Esses exemplos evidenciam que a posição de uma UF depende do indicador analisado e que desempenho, fluxo e atraso escolar não formam uma única dimensão.
+Nesse recorte, com a etapa configurada como \textit{Todos}, Paraná, Santa Catarina e São Paulo aparecem com valor médio de IDEB de 4,4 entre as barras visíveis. Esse valor corresponde à média das observações presentes no contexto do modelo e não deve ser interpretado como um indicador oficial único publicado para a UF. No SAEB, o Distrito Federal aparece no topo visível tanto em Matemática, com 228,4 pontos, quanto em Língua Portuguesa, com 213,0 pontos. Para TDI, Pará e Alagoas aparecem entre os maiores valores visíveis, com 50,1 e 49,9, respectivamente. Esses exemplos evidenciam que a posição de uma UF depende do indicador analisado e que desempenho, fluxo e atraso escolar não formam uma única dimensão.
 
 A página utiliza rankings separados para evitar transformar indicadores de escalas e significados distintos em uma medida única. Diferenças territoriais de desempenho também podem coexistir com condições sociais e educacionais distintas. Em um recorte específico do SAEB 2023 para o 5º ano de escolas públicas do Rio Grande do Norte, \citeonline{de2026desigualdades} identificaram diferenças significativas de proficiência entre escolas urbanas e rurais e ressaltaram sua coexistência com características territoriais e socioeconômicas. Embora se trate de outro recorte analítico, o estudo reforça a necessidade de contextualizar a leitura dos rankings.
 
@@ -57,6 +59,7 @@ A página utiliza rankings separados para evitar transformar indicadores de esca
   \includegraphics[width=0.98\textwidth]{figs/dashboard-ideb-saeb.png}
   \caption{Desempenho educacional por Unidade Federativa no recorte exibido no dashboard.}
   \label{fig:dashboard-uf}
+  \legend{Fonte: Elaborado pelo autor a partir do dashboard do projeto (2026).}
 \end{figure}
 
 \section{Aprendizagem e fluxo escolar}
@@ -72,6 +75,7 @@ O IDEB combina informações de desempenho em avaliações com dados de fluxo es
   \includegraphics[width=0.98\textwidth]{figs/dashboard-aprendizagem-fluxo.png}
   \caption{Aprendizagem e fluxo escolar por Unidade Federativa.}
   \label{fig:dashboard-aprendizagem-fluxo}
+  \legend{Fonte: Elaborado pelo autor a partir do dashboard do projeto (2026).}
 \end{figure}
 
 \section{Variação dos indicadores por Unidade Federativa}
@@ -87,6 +91,7 @@ As diferenças territoriais reforçam que a evolução não ocorre de forma unif
   \includegraphics[width=0.98\textwidth]{figs/dashboard-variacao.png}
   \caption{Variação dos indicadores por Unidade Federativa no intervalo 2007--2023.}
   \label{fig:dashboard-variacao}
+  \legend{Fonte: Elaborado pelo autor a partir do dashboard do projeto (2026).}
 \end{figure}
 
 \section{Análise da Taxa de Distorção Idade-Série}
@@ -102,6 +107,7 @@ A redução é um resultado favorável sob a interpretação do indicador, pois 
   \includegraphics[width=0.98\textwidth]{figs/dashboard-tdi.png}
   \caption{Distorção idade-série por Unidade Federativa e etapa de ensino.}
   \label{fig:dashboard-tdi}
+  \legend{Fonte: Elaborado pelo autor a partir do dashboard do projeto (2026).}
 \end{figure}
 
 \section{Resultados da PND 2025}
@@ -117,6 +123,7 @@ A classificação deve ser interpretada nos termos dos pontos de corte aplicados
   \includegraphics[width=0.98\textwidth]{figs/dashboard-pnd-medias.png}
   \caption{Resultados da Prova Nacional Docente de 2025.}
   \label{fig:dashboard-pnd}
+  \legend{Fonte: Elaborado pelo autor a partir do dashboard do projeto (2026).}
 \end{figure}
 
 \section{Limitações observadas nos resultados}

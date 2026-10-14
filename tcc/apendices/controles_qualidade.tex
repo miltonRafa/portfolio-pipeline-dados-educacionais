@@ -1,0 +1,84 @@
+\chapter{Controles de qualidade e rastreabilidade}
+\label{ap:qualidade}
+\setlength{\tabcolsep}{2pt}
+\setlength{\emergencystretch}{3em}
+
+Os controles do projeto verificam se os arquivos utilizados são identificáveis, se a ingestão preserva a fonte, se as transformações aplicam exatamente as regras declaradas e se o modelo dimensional mantém integridade. Eles não certificam a qualidade substantiva da coleta realizada pelo INEP nem substituem as notas metodológicas oficiais.
+
+\section{Controles por camada}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Dimensões de qualidade verificadas ao longo do pipeline.}
+\label{tab:ap-qualidade-camadas}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{|p{2.5cm}|p{5.0cm}|p{8.0cm}|p{6.0cm}|}
+\hline
+\textbf{Camada} & \textbf{Objetivo do controle} & \textbf{Verificações} & \textbf{Evidência produzida} \\ \hline
+Raw & Identificar exatamente os insumos. & Inventário de 54 arquivos; existência; caminho; tamanho; fonte; período; finalidade; hash SHA-256 válido; comparação do hash calculado com o manifesto. & \texttt{docs/fontes\_dados.csv}, \texttt{docs/raw\_checksums\_sha256.txt} e verificação executável do manifesto. \\ \hline
+Bronze & Demonstrar que a ingestão não alterou silenciosamente o conteúdo. & Arquivo e aba esperados; quantidade de linhas e colunas; sequência de \texttt{col\_NNN}; posição do cabeçalho; metadados obrigatórios; correspondência com a Raw; hash da fonte; preservação de tipos heterogêneos como texto quando necessário. & Parquets por fonte e validadores independentes de cada indicador. \\ \hline
+Silver & Comprovar o recorte e a harmonização semântica. & Período; 27 UFs; redes, etapas, disciplinas e indicadores permitidos; domínios numéricos; marcadores de ausência; cardinalidade; unicidade do grão; correspondência de cada valor com arquivo, aba, linha e coluna Bronze; falha diante de categoria desconhecida. & Arquivos harmonizados, campos de proveniência e relatórios dos validadores Silver. \\ \hline
+Gold & Garantir que a camada de consumo reproduza a Silver e forme um modelo dimensional íntegro. & Esquema e ordem das colunas; igualdade de valores e quantidade de linhas Silver--Gold; grão único; chaves sem órfãos; dimensões com chaves únicas; domínios das dimensões iguais aos domínios utilizados pelas fatos; coerência município--UF. & Cinco fatos, cinco dimensões, validadores individuais e mensagem \texttt{MODELO DIMENSIONAL GOLD: OK}. \\ \hline
+Power BI & Evitar transformação analítica não documentada na visualização. & Consumo exclusivo da Gold; relacionamentos 1:* com filtro da dimensão para a fato; tipos esperados; 27 medidas DAX documentadas; escalas e unidades explicitadas. & Modelo semântico, arquivo de medidas e documentação de modelagem. \\ \hline
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor a partir dos contratos de validação do projeto (2026).}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\section{Contratos por indicador}
+
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{2.4cm}|p{5.0cm}|p{8.8cm}|p{5.5cm}|}
+\caption{Controles específicos das tabelas Silver.}\label{tab:ap-qualidade-indicadores}\\
+\hline
+\textbf{Indicador} & \textbf{Grão único} & \textbf{Controles específicos} & \textbf{Resultado estrutural esperado} \\ \hline
+\endfirsthead
+\multicolumn{4}{c}{\tablename\ \thetable\ -- continuação}\\
+\hline
+\textbf{Indicador} & \textbf{Grão único} & \textbf{Controles específicos} & \textbf{Resultado estrutural esperado} \\ \hline
+\endhead
+Rendimento & \texttt{ANO+UF+ETAPA+REDE+INDICADOR} & 17 anos; 27 UFs por ano; duas etapas; três indicadores; somente rede pública; valores entre 0 e 100; zero preservado; \texttt{--} convertido em ausência; soma Aprovação + Reprovação + Abandono aproximadamente igual a 100, considerando arredondamento; comparação dos 2.754 valores com a Bronze. & 2.754 linhas; 162 por ano; nenhuma duplicidade. \\ \hline
+TDI & \texttt{ANO+UF+ETAPA+REDE} & 17 anos; 27 UFs por ano; duas etapas; somente rede pública; valores entre 0 e 100; preservação de zero; correspondência de arquivo, linha e coluna com a Bronze. & 918 linhas; 54 por ano; nenhuma duplicidade. \\ \hline
+IDEB & \texttt{ANO+UF+ETAPA+REDE} & Nove anos bienais; 27 UFs por etapa; rede \texttt{Publica (4)}; IDEB entre 0 e 10; aliases geográficos explícitos; seleção por \texttt{VL\_OBSERVADO\_AAAA}; arquivo, aba, linha e coluna conferidos. & 486 linhas; 54 por ano; nenhuma duplicidade. \\ \hline
+SAEB & \texttt{ANO+UF+ETAPA+REDE+DISCIPLINA} & Nove edições; duas etapas; duas disciplinas; proficiência entre 0 e 500; seleção de rede/localização/capital por edição; regra de zero de 2015; origem histórica de 2007/2009; uso do agregado oficial de UF em 2023; comparação dos 972 valores com as Bronzes. & 972 linhas; 108 por ano; zero proficiências ausentes; nenhuma duplicidade. \\ \hline
+PND & linha individual de origem dentro da população analítica & Total bruto, completude conjunta, condição \texttt{TP\_PRES=555}, 27 UFs, 17 áreas, 750 municípios, mapeamento área-código, cinco resultados completos, \texttt{QT\_ACERTOS} não negativo, preservação de valores publicados e comparação dos 759.140 registros com a Bronze. & 759.140 linhas; nenhuma ausência nas cinco medidas; nenhuma linha de origem duplicada. \\ \hline
+\end{longtable}
+\end{landscape}
+
+\section{Campos de rastreabilidade}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Metadados de proveniência preservados na Silver.}
+\label{tab:ap-proveniencia}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|p{3.1cm}|p{11.8cm}|}
+\hline
+\textbf{Indicador} & \textbf{Campos de proveniência} \\ \hline
+Rendimento & \texttt{REDE\_ORIGEM}, \texttt{LOCALIZACAO\_ORIGEM}, \texttt{ARQUIVO\_ORIGEM}, \texttt{LINHA\_ORIGEM\_BRONZE}, \texttt{COLUNA\_ORIGEM} \\ \hline
+TDI & \texttt{REDE\_ORIGEM}, \texttt{LOCALIZACAO\_ORIGEM}, \texttt{ARQUIVO\_ORIGEM}, \texttt{LINHA\_ORIGEM\_BRONZE}, \texttt{COLUNA\_ORIGEM} \\ \hline
+IDEB & \texttt{GEOGRAFIA\_ORIGEM}, \texttt{REDE\_ORIGEM}, \texttt{ARQUIVO\_ORIGEM}, \texttt{ABA\_ORIGEM}, \texttt{LINHA\_ORIGEM\_BRONZE}, \texttt{COLUNA\_ORIGEM} \\ \hline
+SAEB & \texttt{REDE\_ORIGEM}, \texttt{LOCALIZACAO\_ORIGEM}, \texttt{CAPITAL\_ORIGEM}, \texttt{ARQUIVO\_ORIGEM}, \texttt{ABA\_ORIGEM}, \texttt{LINHA\_ORIGEM\_BRONZE}, \texttt{COLUNA\_ORIGEM}, \texttt{GRANULARIDADE\_ORIGEM} \\ \hline
+PND & \texttt{ARQUIVO\_ORIGEM}, \texttt{GRANULARIDADE\_ORIGEM}, \texttt{LINHA\_ORIGEM\_BRONZE} \\ \hline
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor (2026).}
+\end{table}
+
+Na PND, \texttt{LINHA\_ORIGEM\_BRONZE} é um identificador técnico da posição do registro e não um identificador pessoal ou uma chave de negócio. Nas séries históricas, a combinação de arquivo, aba quando aplicável, linha e coluna permite localizar a célula que originou cada medida.
+
+\section{Falha explícita}
+
+O pipeline interrompe a execução quando encontra estrutura diferente do contrato auditado. Entre as condições de falha estão: arquivo ou coluna obrigatória ausente; cabeçalho em posição inesperada; categoria de rede desconhecida; UF não reconhecida; quantidade diferente de 27 UFs; duplicidade no grão; ano obrigatório ausente; valor não numérico fora dos marcadores documentados; domínio inválido; cardinalidade divergente; hash diferente; chave órfã; ou dimensão incompatível com as fatos.
+
+Essa política evita que uma nova edição seja aceita silenciosamente com significado diferente. A incorporação de fonte ou layout novo exige nova auditoria, atualização explícita do mapeamento, execução dos validadores e registro da decisão metodológica.
+
+\section{Validação independente e limites da garantia}
+
+Os validadores Silver reconstroem os resultados esperados diretamente da Bronze, sem importar as funções do respectivo transformador. Os validadores Gold comparam os valores da Gold com a Silver e verificam os relacionamentos dimensionais. Essa separação reduz o risco de uma mesma implementação incorreta produzir e aprovar o resultado.
+
+Os controles demonstram consistência interna, completude do recorte declarado, conformidade com as regras implementadas e rastreabilidade até os insumos. Eles não demonstram que toda informação oficial é livre de erro, que categorias históricas são metodologicamente idênticas ou que os dados excluídos seriam desnecessários para qualquer outra pesquisa. A garantia é restrita ao escopo deste trabalho: rede pública, UFs, etapas e períodos declarados, além da população analítica definida para a PND.

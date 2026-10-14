@@ -4,7 +4,7 @@ Este trabalho investigou como uma arquitetura reprodutível de Engenharia de Dad
 
 O pipeline integrou IDEB, SAEB, Rendimento Escolar e TDI no recorte histórico de 2007 a 2023 e incorporou a PND 2025 como análise complementar. A solução final materializou cinco tabelas fato e cinco dimensões. A validação global confirmou a integridade estrutural do modelo e as correspondências definidas entre as camadas, retornando \texttt{MODELO DIMENSIONAL GOLD: OK}.
 
-A construção mostrou que a integração de fontes oficiais exige mais do que reunir arquivos em uma ferramenta de visualização. Foi necessário tratar diferenças de formato, layout, periodicidade, granularidade e semântica de rede, além de documentar decisões específicas por indicador. No SAEB, por exemplo, a preservação dos agregados oficiais de UF evitou substituir o valor publicado por uma recomposição escolar que não reproduzia o resultado oficial. Na PND, a auditoria da população e o uso dos pontos de corte aplicados à \texttt{NT\_OBJ} substituíram critérios analíticos anteriores e produziram uma classificação coerente com a documentação adotada no projeto.
+A construção mostrou que a integração de fontes oficiais exige mais do que reunir arquivos em uma ferramenta de visualização. Foi necessário tratar diferenças de formato, layout, periodicidade, granularidade e semântica de rede, além de documentar decisões específicas por indicador. No SAEB, por exemplo, a preservação dos agregados oficiais de UF evitou substituir o valor publicado por uma recomposição escolar que não reproduzia o resultado oficial. Na PND, a auditoria da população e o uso dos pontos de corte aplicados à \texttt{NT\_OBJ} produziram uma classificação coerente com a documentação adotada no projeto.
 
 O Power BI atuou como camada de consumo e análise. As 27 medidas DAX e as páginas do dashboard permitiram observar panorama histórico, desempenho por Unidade Federativa, associação descritiva entre aprendizagem e fluxo, variações territoriais, distorção idade-série e resultados da PND 2025. As medidas temporais foram implementadas de forma a usar o primeiro e o último ano com dado dentro do intervalo selecionado, respeitando a periodicidade anual de Rendimento e TDI e a periodicidade bienal de IDEB e SAEB.
 
@@ -36,7 +36,7 @@ Em estudos futuros, técnicas estatísticas ou de ciência de dados podem ser ut
 
 No caso da PND, novas edições poderão permitir a construção de uma série própria, separada dos indicadores históricos deste trabalho. Também é possível evoluir a publicação do dashboard para ambiente institucional ou público, com atenção a usabilidade, atualização automatizada e governança dos dados.
 
-\section{Contribuições em Produção Bibliográfica}
+\section{Perspectivas de produção bibliográfica}
 
 Até o momento da finalização deste trabalho, não houve publicação de artigo científico resultante diretamente da pesquisa. O projeto, entretanto, oferece material para futuras produções sobre pipelines reprodutíveis de dados educacionais, qualidade e linhagem de dados públicos, modelagem dimensional aplicada ao INEP, integração de indicadores da Educação Básica e visualização analítica em Power BI.
 

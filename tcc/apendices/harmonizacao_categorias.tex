@@ -1,0 +1,195 @@
+\chapter{Dicionário de harmonização de categorias}
+\label{ap:harmonizacao}
+\setlength{\tabcolsep}{2pt}
+\setlength{\emergencystretch}{3em}
+
+Este apêndice apresenta as categorias e os códigos que recebem interpretação semântica durante a transformação. A harmonização cria valores comuns para análise, mas preserva a representação original em campos de proveniência sempre que ela é necessária para auditoria.
+
+\section{Unidades Federativas}
+
+Siglas oficiais já existentes são preservadas. Nomes completos são convertidos por igualdade explícita após remoção apenas de espaços excedentes, diferenças entre maiúsculas e minúsculas e acentuação usada na comparação. Não é utilizada correspondência aproximada.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Mapeamento de nomes das Unidades Federativas para siglas.}
+\label{tab:ap-ufs}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{|p{3.3cm}|c|p{3.3cm}|c|p{3.3cm}|c|}
+\hline
+\textbf{Nome} & \textbf{UF} & \textbf{Nome} & \textbf{UF} & \textbf{Nome} & \textbf{UF} \\ \hline
+Acre & AC & Alagoas & AL & Amapá & AP \\ \hline
+Amazonas & AM & Bahia & BA & Ceará & CE \\ \hline
+Distrito Federal & DF & Espírito Santo & ES & Goiás & GO \\ \hline
+Maranhão & MA & Mato Grosso & MT & Mato Grosso do Sul & MS \\ \hline
+Minas Gerais & MG & Pará & PA & Paraíba & PB \\ \hline
+Paraná & PR & Pernambuco & PE & Piauí & PI \\ \hline
+Rio de Janeiro & RJ & Rio Grande do Norte & RN & Rio Grande do Sul & RS \\ \hline
+Rondônia & RO & Roraima & RR & Santa Catarina & SC \\ \hline
+São Paulo & SP & Sergipe & SE & Tocantins & TO \\ \hline
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor (2026).}
+\end{table}
+
+No IDEB, também foram observados e mapeados os aliases \texttt{R. G. do Norte} para \texttt{RN}, \texttt{R. G. do Sul} para \texttt{RS} e \texttt{M. G. do Sul} para \texttt{MS}. Valores como Brasil e nomes de regiões não recebem sigla de UF e, por isso, não integram o grão estadual.
+
+\begin{landscape}
+\section{Rede pública e localização}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Harmonização da rede pública por fonte.}
+\label{tab:ap-rede}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|p{3.0cm}|p{3.3cm}|p{6.0cm}|p{4.0cm}|p{6.0cm}|}
+\hline
+\textbf{Indicador} & \textbf{Período} & \textbf{Representação original selecionada} & \textbf{Valor canônico} & \textbf{Interpretação e restrição} \\ \hline
+Rendimento & 2007--2014 & \texttt{Publico} e localização \texttt{Total} & \texttt{PUBLICA} & Agregado público publicado; não é média calculada entre dependências. \\ \hline
+Rendimento & 2015--2023 & \texttt{Publica} e localização \texttt{Total} & \texttt{PUBLICA} & Mesmo conceito analítico, com mudança textual da fonte. \\ \hline
+TDI & 2007--2014 & \texttt{Publico} e localização \texttt{Total} & \texttt{PUBLICA} & A categoria \texttt{Total} de dependência não substitui o agregado público. \\ \hline
+TDI & 2015--2023 & \texttt{Publica} e localização \texttt{Total} & \texttt{PUBLICA} & Brasil e regiões são retirados após identificação explícita das UFs. \\ \hline
+IDEB & nove edições & \texttt{Publica (4)} & \texttt{PUBLICA} & Categoria oficial do workbook; o IDEB não é recalculado a partir das redes individuais. \\ \hline
+SAEB & 2007 e 2009 & \texttt{Total - Estadual e Municipal}; localização e capital \texttt{Total} & \texttt{PUBLICA} & Exceção histórica: a categoria utilizada não apresenta a rede federal; a grafia original é preservada. \\ \hline
+SAEB & 2011 & \texttt{ID\_TIPO\_REDE=5}; \texttt{ID\_LOCALIZACAO=0}; \texttt{ID\_CAPITAL=0} & \texttt{PUBLICA} & Códigos identificados no dicionário e confirmados pela auditoria. \\ \hline
+SAEB & 2013--2023 & \texttt{Total - Federal, Estadual e Municipal}; localização e capital \texttt{Total} & \texttt{PUBLICA} & Agregado oficial; não há média simples entre as três dependências. \\ \hline
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor a partir das categorias auditadas nas fontes (2026).}
+\end{table}
+\end{landscape}
+
+Não são utilizadas como equivalências automáticas: rede \texttt{Total} quando inclui a rede privada; média ou soma entre redes federal, estadual e municipal; recálculo do IDEB público; transformação de categoria privada em pública; ou substituição de agregado oficial por estimativa própria.
+
+\section{Etapas, indicadores e disciplinas}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Categorias analíticas padronizadas.}
+\label{tab:ap-categorias-canonicas}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|p{3.0cm}|p{6.2cm}|p{5.7cm}|}
+\hline
+\textbf{Dimensão} & \textbf{Representações de origem} & \textbf{Valor canônico} \\ \hline
+Etapa & Anos Iniciais; 4ª série; 5º ano; \texttt{ID\_SERIE=5}; aba AI & \texttt{ANOS\_INICIAIS} \\ \hline
+Etapa & Anos Finais; 8ª série; 9º ano; \texttt{ID\_SERIE=9}; aba AF & \texttt{ANOS\_FINAIS} \\ \hline
+Rendimento & taxa de aprovação nas respectivas colunas & \texttt{APROVACAO} \\ \hline
+Rendimento & taxa de reprovação nas respectivas colunas & \texttt{REPROVACAO} \\ \hline
+Rendimento & taxa de abandono nas respectivas colunas & \texttt{ABANDONO} \\ \hline
+SAEB & Língua Portuguesa; \texttt{MEDIA\_LP}; campos \texttt{MEDIA\_4\_LP}, \texttt{MEDIA\_5\_LP}, \texttt{MEDIA\_8\_LP} ou \texttt{MEDIA\_9\_LP}, conforme etapa e edição & \texttt{LP} \\ \hline
+SAEB & Matemática; \texttt{MEDIA\_MT}; campos \texttt{MEDIA\_4\_MT}, \texttt{MEDIA\_5\_MT}, \texttt{MEDIA\_8\_MT} ou \texttt{MEDIA\_9\_MT}, conforme etapa e edição & \texttt{MT} \\ \hline
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor (2026).}
+\end{table}
+
+A associação entre 4ª/8ª séries e 5º/9º anos respeita a nomenclatura histórica de cada edição da fonte; ambas são consolidadas nas etapas agregadas do Ensino Fundamental utilizadas pelo projeto.
+
+\section{Códigos da PND 2025}
+
+\subsection{Áreas da prova}
+
+O campo \texttt{CO\_GRUPO} é convertido para \texttt{AREA\_PROVA} por um dicionário fechado. Um código não documentado provoca falha na transformação.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Códigos de área da PND 2025.}
+\label{tab:ap-areas-pnd}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{|r|p{11.5cm}|}
+\hline
+\textbf{Código} & \textbf{Rótulo preservado em \texttt{AREA\_PROVA}} \\ \hline
+702 & MATEMÁTICA (LICENCIATURA) \\ \hline
+904 & LETRAS - PORTUGUÊS (LICENCIATURA) \\ \hline
+905 & LETRAS - PORTUGUÊS E INGLÊS (LICENCIATURA) \\ \hline
+906 & LETRAS - PORTUGUÊS E ESPANHOL (LICENCIATURA) \\ \hline
+1402 & FÍSICA (LICENCIATURA) \\ \hline
+1502 & QUÍMICA (LICENCIATURA) \\ \hline
+1602 & CIÊNCIAS BIOLÓGICAS (LICENCIATURA) \\ \hline
+2001 & PEDAGOGIA (LICENCIATURA) \\ \hline
+2402 & HISTÓRIA (LICENCIATURA) \\ \hline
+2501 & ARTES VISUAIS (LICENCIATURA) \\ \hline
+3002 & GEOGRAFIA (LICENCIATURA) \\ \hline
+3202 & FILOSOFIA (LICENCIATURA) \\ \hline
+3502 & EDUCAÇÃO FÍSICA (LICENCIATURA) \\ \hline
+4005 & CIÊNCIA DA COMPUTAÇÃO (LICENCIATURA) \\ \hline
+4301 & MÚSICA (LICENCIATURA) \\ \hline
+5402 & CIÊNCIAS SOCIAIS (LICENCIATURA) \\ \hline
+6407 & LETRAS - INGLÊS (LICENCIATURA) \\ \hline
+\end{tabular}
+\legend{Fonte: Dicionário de Variáveis da PND 2025, organizado pelo autor.}
+\end{table}
+
+\subsection{Inscrição, aplicação e presença}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Códigos categóricos da PND preservados na Silver.}
+\label{tab:ap-codigos-pnd}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{|p{3.1cm}|r|p{9.4cm}|}
+\hline
+\textbf{Campo} & \textbf{Código} & \textbf{Significado documentado} \\ \hline
+\texttt{TP\_INSCRICAO\_PND} & 1 & Concluinte Enade \\ \hline
+\texttt{TP\_INSCRICAO\_PND} & 2 & Demais participantes \\ \hline
+\texttt{TP\_INSCRICAO\_PND} & 3 & Concluinte Enade que optou por realizar a prova em área diferente da inscrição no Enade \\ \hline
+\texttt{IN\_REAPLICACAO} & 0 & Aplicação realizada em 26/10/2025 \\ \hline
+\texttt{IN\_REAPLICACAO} & 1 & Reaplicação realizada em 30/11/2025 \\ \hline
+\texttt{CO\_CADERNO} & 1--4 & Cadernos da aplicação \\ \hline
+\texttt{CO\_CADERNO} & 5 & Caderno da reaplicação \\ \hline
+\texttt{TP\_PRES} & 222 & Ausente \\ \hline
+\texttt{TP\_PRES} & 334 & Eliminado por participação indevida \\ \hline
+\texttt{TP\_PRES} & 444 & Ausente devido a múltiplas inscrições \\ \hline
+\texttt{TP\_PRES} & 555 & Presente com resultado válido \\ \hline
+\texttt{TP\_PRES} & 888 & Presente, com resultado desconsiderado pelo INEP \\ \hline
+\texttt{TP\_SIT\_DISC} & 222 & Não se aplica, participante ausente \\ \hline
+\texttt{TP\_SIT\_DISC} & 333 & Questão em branco, participante presente, nota zero \\ \hline
+\texttt{TP\_SIT\_DISC} & 335 & Questão zerada por resposta nula, nota zero \\ \hline
+\texttt{TP\_SIT\_DISC} & 336 & Resposta divergente da temática, nota zero \\ \hline
+\texttt{TP\_SIT\_DISC} & 555 & Questão com resultado válido \\ \hline
+\end{tabular}
+\legend{Fonte: Dicionário de Variáveis da PND 2025, organizado pelo autor.}
+\end{table}
+
+Não é aplicado filtro \texttt{TP\_SIT\_DISC=555}. Os códigos 333, 335 e 336 possuem nota zero válida e participam do cálculo oficial. A população analítica exige \texttt{TP\_PRES=555}, independentemente do tipo de inscrição, da aplicação ou reaplicação e do caderno, desde que os cinco resultados analíticos estejam completos.
+
+\subsection{Padrão de desempenho}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Classificação de desempenho derivada de \texttt{NT\_OBJ}.}
+\label{tab:ap-padrao-pnd}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|p{5.0cm}|p{5.0cm}|p{4.0cm}|}
+\hline
+\textbf{Condição} & \textbf{Categoria materializada} & \textbf{Uso semântico} \\ \hline
+\texttt{NT\_OBJ < 50} & \texttt{NAO\_PROFICIENTE} & não proficiente \\ \hline
+\texttt{50 <= NT\_OBJ < 70} & \texttt{PADRAO\_1} & proficiente, padrão 1 \\ \hline
+\texttt{NT\_OBJ >= 70} & \texttt{PADRAO\_2} & proficiente, padrão 2 \\ \hline
+\end{tabular}
+\legend{Fonte: Notas Técnicas oficiais do INEP citadas no corpo do trabalho.}
+\end{table}
+
+\section{Marcadores de ausência e conversão numérica}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Tratamento de ausência e precisão por indicador.}
+\label{tab:ap-ausencias}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|p{2.8cm}|p{4.4cm}|p{4.3cm}|p{3.85cm}|}
+\hline
+\textbf{Indicador} & \textbf{Marcadores convertidos em ausência} & \textbf{Zero} & \textbf{Precisão e domínio} \\ \hline
+Rendimento & nulo, vazio e \texttt{--} & preservado como valor substantivo & uma casa decimal; 0 a 100 \\ \hline
+TDI & nulo, vazio e \texttt{--} & preservado como valor substantivo & uma casa decimal; 0 a 100 \\ \hline
+IDEB & nulo, vazio, \texttt{-} e \texttt{--} & preservado & uma casa decimal; 0 a 10 \\ \hline
+SAEB & nulo, vazio, \texttt{-} e \texttt{--} & preservado, exceto em 2015, quando a própria fonte o define como média não calculável para o estrato & duas casas decimais; 0 a 500 \\ \hline
+PND & nulo, vazio e literal \texttt{NA} & preservado quando publicado como resultado & sem arredondamento analítico; \texttt{QT\_ACERTOS} não pode ser negativo \\ \hline
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor a partir das regras dos transformadores (2026).}
+\end{table}
+
+Não é realizada imputação. Na PND, valores negativos de \texttt{PROFICIENCIA} são preservados por pertencerem à escala publicada; nenhum limite inferior não documentado é imposto a \texttt{PROFICIENCIA}, \texttt{NT\_OBJ}, \texttt{NT\_DIS} ou \texttt{NT\_GER}.

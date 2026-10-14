@@ -1,0 +1,148 @@
+\chapter{Mapeamento histórico dos layouts}
+\label{ap:layouts}
+\setlength{\tabcolsep}{2pt}
+\setlength{\emergencystretch}{3em}
+
+Este apêndice registra as correspondências utilizadas para transformar as estruturas físicas preservadas na Bronze nas estruturas semânticas da Silver. A notação \texttt{col\_NNN} identifica a posição física da coluna na fonte. Ela é deliberadamente neutra: o significado é atribuído somente após a leitura do cabeçalho, do dicionário ou da auditoria correspondente.
+
+\section{Rendimento Escolar}
+
+O Rendimento Escolar possui cinco configurações históricas de layout. Em todas elas, \texttt{col\_001} contém o ano; a seleção mantém \texttt{Localizacao = Total}, o agregado público da edição e as 27 UFs. Cada linha selecionada é convertida em seis observações: duas etapas multiplicadas pelos três indicadores.
+
+\begin{landscape}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{2.2cm}|p{5.2cm}|p{3.1cm}|p{3.1cm}|p{3.1cm}|p{3.1cm}|p{2.4cm}|}
+\caption{Mapeamento físico do Rendimento Escolar por período.}\label{tab:ap-rendimento-layout}\\
+\hline
+\textbf{Período} & \textbf{Identificação} & \textbf{Aprovação AI/AF} & \textbf{Reprovação AI/AF} & \textbf{Abandono AI/AF} & \textbf{Categoria de rede} & \textbf{Observação} \\ \hline
+\endfirsthead
+\multicolumn{7}{c}{\tablename\ \thetable\ -- continuação}\\
+\hline
+\textbf{Período} & \textbf{Identificação} & \textbf{Aprovação AI/AF} & \textbf{Reprovação AI/AF} & \textbf{Abandono AI/AF} & \textbf{Categoria de rede} & \textbf{Observação} \\ \hline
+\endhead
+2007 & região \texttt{col\_002}; UF \texttt{col\_003}; localização \texttt{col\_004}; rede \texttt{col\_005} & \texttt{col\_015}/\texttt{col\_016} & \texttt{col\_033}/\texttt{col\_034} & \texttt{col\_051}/\texttt{col\_052} & \texttt{Publico} & Possui coluna própria de região. \\ \hline
+2008--2010 & UF \texttt{col\_002}; localização \texttt{col\_003}; rede \texttt{col\_004} & \texttt{col\_014}/\texttt{col\_015} & \texttt{col\_032}/\texttt{col\_033} & \texttt{col\_050}/\texttt{col\_051} & \texttt{Publico} & Não possui o deslocamento da coluna de região observado em 2007. \\ \hline
+2011--2014 & UF \texttt{col\_002}; localização \texttt{col\_003}; rede \texttt{col\_004} & \texttt{col\_006}/\texttt{col\_007} & \texttt{col\_024}/\texttt{col\_025} & \texttt{col\_042}/\texttt{col\_043} & \texttt{Publico} & A fonte passa a explicitar colunas agregadas de Anos Iniciais e Finais. \\ \hline
+2015 & UF \texttt{col\_002}; localização \texttt{col\_003}; rede \texttt{col\_004} & \texttt{col\_006}/\texttt{col\_007} & \texttt{col\_024}/\texttt{col\_025} & \texttt{col\_042}/\texttt{col\_043} & \texttt{Publica} & UF apresentada por nome e mudança de gênero na categoria pública. \\ \hline
+2016 & região \texttt{col\_002}; UF \texttt{col\_003}; localização \texttt{col\_004}; rede \texttt{col\_005} & \texttt{col\_007}/\texttt{col\_008} & \texttt{col\_025}/\texttt{col\_026} & \texttt{col\_043}/\texttt{col\_044} & \texttt{Publica} & Retorno da coluna de região e deslocamento das métricas. \\ \hline
+2017--2023 & unidade geográfica \texttt{col\_002}; localização \texttt{col\_003}; rede \texttt{col\_004} & \texttt{col\_006}/\texttt{col\_007} & \texttt{col\_024}/\texttt{col\_025} & \texttt{col\_042}/\texttt{col\_043} & \texttt{Publica} & Brasil, regiões e UFs compartilham o campo geográfico; somente UFs reconhecidas são mantidas. \\ \hline
+\end{longtable}
+\end{landscape}
+
+As métricas são convertidas para \texttt{INDICADOR = APROVACAO}, \texttt{REPROVACAO} ou \texttt{ABANDONO}; o valor correspondente é armazenado em \texttt{VALOR}. Os campos \texttt{REDE\_ORIGEM}, \texttt{LOCALIZACAO\_ORIGEM}, \texttt{ARQUIVO\_ORIGEM}, \texttt{LINHA\_ORIGEM\_BRONZE} e \texttt{COLUNA\_ORIGEM} preservam a proveniência.
+
+\section{Taxa de Distorção Idade-Série}
+
+A TDI também possui cinco configurações. Cada linha pública-total selecionada produz duas observações, uma para cada etapa do Ensino Fundamental.
+
+\begin{landscape}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{2.4cm}|p{6.7cm}|p{3.2cm}|p{3.2cm}|p{2.6cm}|p{4.2cm}|}
+\caption{Mapeamento físico da TDI por período.}\label{tab:ap-tdi-layout}\\
+\hline
+\textbf{Período} & \textbf{Identificação} & \textbf{TDI Anos Iniciais} & \textbf{TDI Anos Finais} & \textbf{Categoria de rede} & \textbf{Observação} \\ \hline
+\endfirsthead
+\multicolumn{6}{c}{\tablename\ \thetable\ -- continuação}\\
+\hline
+\textbf{Período} & \textbf{Identificação} & \textbf{TDI Anos Iniciais} & \textbf{TDI Anos Finais} & \textbf{Categoria de rede} & \textbf{Observação} \\ \hline
+\endhead
+2007--2010 & região \texttt{col\_002}; UF \texttt{col\_003}; localização \texttt{col\_004}; rede \texttt{col\_005} & \texttt{col\_015} & \texttt{col\_016} & \texttt{Publico} & Uma linha pública-total por UF. \\ \hline
+2011--2014 & região \texttt{col\_002}; UF \texttt{col\_003}; localização \texttt{col\_004}; rede \texttt{col\_005} & \texttt{col\_007} & \texttt{col\_008} & \texttt{Publico} & Mudança das posições das etapas. \\ \hline
+2015 & região \texttt{col\_002}; código UF \texttt{col\_003}; sigla UF \texttt{col\_004}; localização \texttt{col\_005}; rede \texttt{col\_006} & \texttt{col\_008} & \texttt{col\_009} & \texttt{Publica} & Código e sigla da UF aparecem em campos separados. \\ \hline
+2016 & região \texttt{col\_002}; UF \texttt{col\_003}; localização \texttt{col\_004}; rede \texttt{col\_005} & \texttt{col\_007} & \texttt{col\_008} & \texttt{Publica} & UF representada por nome completo. \\ \hline
+2017--2023 & unidade geográfica \texttt{col\_002}; localização \texttt{col\_003}; rede \texttt{col\_004} & \texttt{col\_006} & \texttt{col\_007} & \texttt{Publica} & Há 33 linhas públicas-totais: Brasil, cinco regiões e 27 UFs; o modelo mantém as 27 UFs. \\ \hline
+\end{longtable}
+\end{landscape}
+
+O valor é armazenado em \texttt{TDI}; a origem permanece registrada em \texttt{REDE\_ORIGEM}, \texttt{LOCALIZACAO\_ORIGEM}, \texttt{ARQUIVO\_ORIGEM}, \texttt{LINHA\_ORIGEM\_BRONZE} e \texttt{COLUNA\_ORIGEM}.
+
+\section{IDEB}
+
+O workbook do IDEB é preservado em três Bronzes, correspondentes às abas \texttt{UF e Regioes (AI)}, \texttt{UF e Regioes (AF)} e \texttt{UF e Regioes (EM)}. A primeira coluna física contém a geografia e a segunda a categoria de rede. O Ensino Médio permanece preservado na Bronze, mas não integra o recorte analítico.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Mapeamento do IDEB para a Silver.}
+\label{tab:ap-ideb-layout}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|p{3.1cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|}
+\hline
+\textbf{Componente} & \textbf{Origem} & \textbf{Regra} & \textbf{Destino} \\ \hline
+Etapa & abas AI e AF & AI é convertida em \texttt{ANOS\_INICIAIS}; AF em \texttt{ANOS\_FINAIS}. & \texttt{ETAPA} \\ \hline
+Geografia & \texttt{col\_001} & Nome ou alias convertido por mapeamento exato; Brasil e regiões não geram sigla e ficam fora do grão. & \texttt{UF}; original em \texttt{GEOGRAFIA\_ORIGEM} \\ \hline
+Rede & \texttt{col\_002} & Seleção da categoria normalizada \texttt{publica (4)}. & \texttt{REDE=PUBLICA}; original em \texttt{REDE\_ORIGEM} \\ \hline
+Ano e medida & linha técnica do cabeçalho & Localização única de \texttt{VL\_OBSERVADO\_2007}, \texttt{VL\_OBSERVADO\_2009}, \ldots, \texttt{VL\_OBSERVADO\_2023}. A posição física não é presumida. & \texttt{ANO} e \texttt{IDEB}; posição em \texttt{COLUNA\_ORIGEM} \\ \hline
+Proveniência & metadados Bronze & Preservação de arquivo, aba e linha. & \texttt{ARQUIVO\_ORIGEM}, \texttt{ABA\_ORIGEM}, \texttt{LINHA\_ORIGEM\_BRONZE} \\ \hline
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor a partir do transformador Silver do IDEB (2026).}
+\end{table}
+
+A busca pelo nome técnico evita utilizar o cabeçalho visual \texttt{20215} (grafia presente no arquivo de origem), observado na apresentação de 2021. O valor correto é identificado por \texttt{VL\_OBSERVADO\_2021}. O arquivo físico pode conter 2005 e 2025, mas somente 2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021 e 2023 são transformados nesta versão.
+
+\section{SAEB}
+
+O SAEB exigiu regras distintas por edição. A tabela seguinte registra a identificação da rede, localização, etapa, disciplina e medida efetivamente utilizada.
+
+\begin{landscape}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{2.0cm}|p{5.2cm}|p{4.4cm}|p{6.3cm}|p{5.0cm}|}
+\caption{Mapeamento histórico do SAEB.}\label{tab:ap-saeb-layout}\\
+\hline
+\textbf{Edição} & \textbf{Seleção de rede e localização} & \textbf{Etapa} & \textbf{Disciplina e medida} & \textbf{Particularidade} \\ \hline
+\endfirsthead
+\multicolumn{5}{c}{\tablename\ \thetable\ -- continuação}\\
+\hline
+\textbf{Edição} & \textbf{Seleção de rede e localização} & \textbf{Etapa} & \textbf{Disciplina e medida} & \textbf{Particularidade} \\ \hline
+\endhead
+2007 e 2009 & \texttt{DEPENDENCIA\_ADM = Total - Estadual e Municipal}; \texttt{LOCALIZACAO = Total}; \texttt{CAPITAL = Total}. & Anos Iniciais pelas variáveis da 4ª série; Anos Finais pelas variáveis da 8ª série. & AI/LP \texttt{MEDIA\_4\_LP}; AI/MT \texttt{MEDIA\_4\_MT}; AF/LP \texttt{MEDIA\_8\_LP}; AF/MT \texttt{MEDIA\_8\_MT}. & O agregado disponível não inclui rede federal de forma explícita; essa limitação é preservada em \texttt{REDE\_ORIGEM}. \\ \hline
+2011 & \texttt{ID\_TIPO\_REDE=5}; \texttt{ID\_LOCALIZACAO=0}; \texttt{ID\_CAPITAL=0}. & \texttt{ID\_SERIE=5} para Anos Iniciais; \texttt{ID\_SERIE=9} para Anos Finais. & \texttt{MEDIA\_LP} é convertida em \texttt{LP}; \texttt{MEDIA\_MT}, em \texttt{MT}. & Fonte tabular com códigos identificados no dicionário da edição. \\ \hline
+2013 e 2015 & \texttt{col\_002 = Total - Federal, Estadual e Municipal}; \texttt{col\_003 = Total}; \texttt{col\_004 = Total}. & AI em \texttt{col\_005}/\texttt{col\_006}; AF em \texttt{col\_007}/\texttt{col\_008}. & \texttt{col\_005}: AI/LP; \texttt{col\_006}: AI/MT; \texttt{col\_007}: AF/LP; \texttt{col\_008}: AF/MT. & Cabeçalho hierárquico em três linhas; não são inventados nomes técnicos ausentes. Em 2015, zero significa média não calculável para o estrato e é convertido em ausência. \\ \hline
+2017, 2019 e 2021 & \texttt{DEPENDENCIA\_ADM = Total - Federal, Estadual e Municipal}; \texttt{LOCALIZACAO = Total}; \texttt{CAPITAL = Total}. & Campos de 5º ano são AI; campos de 9º ano são AF. & AI/LP \texttt{MEDIA\_5\_LP}; AI/MT \texttt{MEDIA\_5\_MT}; AF/LP \texttt{MEDIA\_9\_LP}; AF/MT \texttt{MEDIA\_9\_MT}. & Cabeçalhos técnicos são localizados na linha auditada da própria edição. \\ \hline
+2023 & Mesma seleção textual das edições recentes, aplicada à aba oficial \texttt{Estados}. & Campos de 5º ano são AI; campos de 9º ano são AF. & \texttt{MEDIA\_5\_LP}, \texttt{MEDIA\_5\_MT}, \texttt{MEDIA\_9\_LP} e \texttt{MEDIA\_9\_MT}. & Usa \path{saeb_2023_resultados_uf.parquet}; a Bronze escolar é preservada, mas não é usada para reconstruir a média estadual. \\ \hline
+\end{longtable}
+\end{landscape}
+
+Em todas as edições, a saída utiliza \texttt{ETAPA} igual a \texttt{ANOS\_INICIAIS} ou \texttt{ANOS\_FINAIS}, \texttt{DISCIPLINA} igual a \texttt{LP} ou \texttt{MT} e \texttt{REDE} igual a \texttt{PUBLICA}. A Silver mantém os seguintes campos de proveniência:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{REDE\_ORIGEM}, \texttt{LOCALIZACAO\_ORIGEM} e \texttt{CAPITAL\_ORIGEM};
+    \item \texttt{ARQUIVO\_ORIGEM}, \texttt{ABA\_ORIGEM} e \texttt{LINHA\_ORIGEM\_BRONZE};
+    \item \texttt{COLUNA\_ORIGEM} e \texttt{GRANULARIDADE\_ORIGEM}.
+\end{itemize}
+
+\section{PND 2025}
+
+O arquivo principal da PND contém 26 campos separados por ponto e vírgula. A Bronze preserva todos como texto, além da linha física do cabeçalho. A Silver lê os campos seguintes pelas posições confirmadas no cabeçalho.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Mapeamento físico dos campos utilizados da PND 2025.}
+\label{tab:ap-pnd-layout}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{|p{2.5cm}|p{5.0cm}|p{3.2cm}|p{4.4cm}|}
+\hline
+\textbf{Posição Bronze} & \textbf{Campo oficial} & \textbf{Tipo Silver} & \textbf{Uso} \\ \hline
+\texttt{col\_001} & \texttt{NU\_ANO} & inteiro & ano da aplicação \\ \hline
+\texttt{col\_002} & \texttt{CO\_GRUPO} & inteiro & código da área da prova \\ \hline
+\texttt{col\_003} & \texttt{CO\_MUNICIPIO\_PROVA} & inteiro & município de aplicação \\ \hline
+\texttt{col\_004} & \texttt{SG\_UF\_MUNICIPIO\_PROVA} & texto & origem de \texttt{UF\_PROVA} \\ \hline
+\texttt{col\_005} & \texttt{TP\_INSCRICAO\_PND} & inteiro & perfil de inscrição preservado \\ \hline
+\texttt{col\_006} & \texttt{IN\_REAPLICACAO} & inteiro & aplicação ou reaplicação \\ \hline
+\texttt{col\_007} & \texttt{CO\_CADERNO} & inteiro & caderno da prova \\ \hline
+\texttt{col\_011} & \texttt{TP\_PRES} & inteiro & condição obrigatória da população \\ \hline
+\texttt{col\_012} & \texttt{TP\_SIT\_DISC} & inteiro & situação da questão discursiva \\ \hline
+\texttt{col\_013} & \texttt{PROFICIENCIA} & decimal & proficiência TRI objetiva \\ \hline
+\texttt{col\_014} & \texttt{NT\_OBJ} & decimal & nota objetiva \\ \hline
+\texttt{col\_015} & \texttt{NT\_DIS} & decimal & nota discursiva \\ \hline
+\texttt{col\_016} & \texttt{NT\_GER} & decimal & nota geral \\ \hline
+\texttt{col\_017} & \texttt{QT\_ACERTOS} & inteiro & quantidade de acertos \\ \hline
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor a partir do dicionário e do cabeçalho auditado da PND 2025.}
+\end{table}
+
+Os campos \texttt{col\_008} a \texttt{col\_010} correspondem aos vetores \texttt{DS\_VT\_GAB\_OBJ}, \texttt{DS\_VT\_ESC\_OBJ} e \texttt{DS\_VT\_ACE\_OBJ}; \texttt{col\_018} a \texttt{col\_026} correspondem a \texttt{CO\_RS\_I1} a \texttt{CO\_RS\_I9}. Eles não são transportados para a fato Silver porque não integram as análises definidas, mas permanecem integralmente na Bronze.
