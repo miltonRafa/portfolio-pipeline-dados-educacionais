@@ -51,3 +51,5 @@ tcc/figs/folhaAprovacaoSistemas.pdf
 tcc/figs/logo-ufu.png
 tcc/figs/logo-ufu2.png
 tcc/figs/ppgco-logo.png
+# Arquivos temporarios de bloqueio do LibreOffice
+.~lock.*#
