@@ -38,7 +38,6 @@ As consultas auxiliares utilizadas apenas para leitura dos arquivos devem
 permanecer com carga desabilitada:
 
 ```text
-CaminhoBase
 gold
 fnParquetGold
 ```
@@ -64,6 +63,36 @@ sem repetir o caminho completo em todas as consultas.
 
 Essa solução reduz duplicação de código no Power Query e facilita a alteração
 futura do diretório-base do projeto.
+
+### 2.1 Configurar o PBIX em outro computador
+
+O procedimento completo está em [Abrir e Configurar o Power BI](../README.md#6-abrir-e-configurar-o-power-bi).
+Depois de gerar a Gold pelo pipeline, abra o PBIX no Power BI Desktop e acesse
+**Transformar dados → gold → Fonte**. Na configuração mostrada nesta versão,
+o caminho está diretamente na consulta `gold`, e não em um parâmetro separado
+chamado `CaminhoBase`:
+
+```powerquery
+= Folder.Files("C:\portfolio-pipeline-dados-educacionais\data\gold")
+```
+
+Troque esse caminho absoluto pela pasta `data\gold` do clone local. A função
+[Folder.Files](https://learn.microsoft.com/en-us/powerquery-m/folder-files)
+lista também os arquivos das subpastas `dimensoes` e `fatos`. Não é preciso
+mover os Parquets para a raiz da Gold. Preserve seus nomes e evite arquivos
+duplicados com o mesmo nome em subpastas desse diretório.
+
+As consultas analíticas reutilizam `fnParquetGold`, como no exemplo:
+
+```powerquery
+= fnParquetGold("dim_uf.parquet")
+```
+
+A tela de parâmetro exibida ao selecionar a função é esperada; a atualização
+das tabelas não exige invocação manual. Confira as 27 linhas de `DIM_UF`,
+use **Fechar e Aplicar** e salve o PBIX. Após regenerar a Gold, atualize o
+relatório no Power BI. A atualização do relatório lê os Parquets; não executa
+o download nem o pipeline Python.
 
 ---
 

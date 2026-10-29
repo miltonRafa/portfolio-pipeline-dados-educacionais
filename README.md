@@ -67,6 +67,8 @@ O arquivo Power BI Desktop está em:
 
 [powerbi/pbix/analise dos indicadores da educação.pbix](powerbi/pbix/analise%20dos%20indicadores%20da%20educação.pbix)
 
+Para atualizar o relatório no seu computador, siga [a configuração do PBIX](#6-abrir-e-configurar-o-power-bi).
+
 Medidas e documentação do modelo:
 
 - [powerbi/medidas_power_bi.dax](powerbi/medidas_power_bi.dax)
@@ -219,7 +221,67 @@ python src/pipeline.py full
 O comando executa Bronze, Silver, Gold e validações. Em um clone limpo, a
 execução completa exige que os arquivos Raw estejam disponíveis em `data/raw`.
 
-### 6. Outras Opções
+### 6. Abrir e Configurar o Power BI
+
+Use o **Power BI Desktop no Windows**. Primeiro conclua as etapas anteriores:
+o download prepara a Raw, e `python src/pipeline.py full` gera e valida a Gold.
+Clonar o repositório ou baixar somente a Raw não prepara os arquivos lidos pelo
+PBIX. O pipeline Python é executado no terminal; as consultas do relatório leem
+Parquet, sem exigir configuração de Python dentro do Power BI.
+
+Ao final, a estrutura esperada é:
+
+```text
+data/gold/
+├── dimensoes/
+│   ├── dim_area_pnd.parquet
+│   ├── dim_etapa.parquet
+│   ├── dim_municipio.parquet
+│   ├── dim_tempo.parquet
+│   └── dim_uf.parquet
+└── fatos/
+    ├── fato_ideb.parquet
+    ├── fato_pnd.parquet
+    ├── fato_rendimento.parquet
+    ├── fato_saeb.parquet
+    └── fato_tdi.parquet
+```
+
+Abra `powerbi/pbix/analise dos indicadores da educação.pbix` no Power BI Desktop
+e ajuste a origem para o local em que você clonou o projeto:
+
+1. Em **Página Inicial**, clique em **Transformar dados** para abrir o Editor do Power Query.
+2. Na lista de consultas à esquerda, selecione **`gold`** e a etapa **Fonte**.
+3. Na barra de fórmulas, altere somente o caminho entre aspas de `Folder.Files`. Se a barra não aparecer, habilite **Barra de fórmulas** na guia **Exibição**. Por exemplo, para um clone em `D:\Projetos\portfolio-pipeline-dados-educacionais`:
+
+   ```powerquery
+   = Folder.Files("D:\Projetos\portfolio-pipeline-dados-educacionais\data\gold")
+   ```
+
+   O caminho `C:\portfolio-pipeline-dados-educacionais\data\gold` usado no ambiente de desenvolvimento é apenas uma referência. Informe o caminho absoluto da **sua** pasta `data\gold`.
+
+4. Confirme a fórmula. Na coluna **Name**, confira a presença dos dez nomes `.parquet` listados acima. `Folder.Files` também percorre as subpastas `dimensoes` e `fatos`; mantenha os arquivos nesses diretórios. A listagem pode incluir outros arquivos, como `.gitkeep`.
+5. Selecione **`DIM_UF`** para conferir a leitura. A consulta já usa `= fnParquetGold("dim_uf.parquet")` e deve exibir as 27 UFs. As outras dimensões e fatos usam a mesma função, cada uma com seu arquivo. A tela **Inserir Parâmetro / Invocar** ao selecionar `fnParquetGold` é a interface normal de uma função; não é necessário invocá-la manualmente nem recriar consultas.
+6. Clique em **Fechar e Aplicar**, aguarde a carga terminar e salve o PBIX. Quando os Parquets forem regenerados pelo pipeline, use **Página Inicial → Atualizar** para carregar os novos dados.
+
+A consulta `gold` centraliza o caminho, `fnParquetGold` faz a leitura por nome de
+arquivo e as dez consultas analíticas alimentam o modelo existente. Preserve
+esses nomes e mantenha a carga das auxiliares `gold` e `fnParquetGold`
+desabilitada. Os relacionamentos, as medidas e as páginas já estão no PBIX;
+não é necessário importar e montar as dez tabelas novamente.
+
+| Problema na atualização | O que conferir |
+|---|---|
+| Pasta ou caminho não encontrado | Corrija a etapa Fonte de `gold` para o caminho absoluto local, terminando em `data\gold`. |
+| Arquivo não encontrado ou seleção sem linhas em `fnParquetGold` | Confira os dez nomes esperados na consulta `gold`. Se algum faltar, conclua o pipeline; preserve os nomes gerados e evite cópias com o mesmo nome em subpastas da Gold. |
+| Acesso negado | Verifique se o usuário do Windows pode ler a pasta. Se houver solicitação de acesso à fonte, confira **Configurações da fonte de dados** para a pasta local. |
+| O relatório continua com os dados anteriores | Termine o pipeline e depois atualize o PBIX. Atualizar o Power BI não baixa a Raw nem executa o pipeline Python. |
+
+Detalhes do modelo em [docs/modelagem_power_bi.md](docs/modelagem_power_bi.md).
+A leitura recursiva da pasta segue a documentação de
+[Folder.Files da Microsoft](https://learn.microsoft.com/en-us/powerquery-m/folder-files).
+
+### 7. Outras Opções
 
 ```bash
 python src/pipeline.py bronze
