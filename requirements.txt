@@ -7,3 +7,4 @@ pyxlsb>=1.0
 python-calamine>=0.2
 matplotlib>=3.8
 jupyterlab>=4.2
+requests>=2.32

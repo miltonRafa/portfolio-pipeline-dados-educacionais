@@ -427,7 +427,10 @@ em todos os registros auditados do recorte.
 
 A auditoria estrutural do Rendimento Escolar esta, portanto, concluida.
 
-Permanece pendente apenas a decisao metodologica transversal sobre o conceito de rede publica, que sera consolidada apos a auditoria dos demais indicadores.
+A definicao transversal de rede publica esta consolidada em
+`docs/definicao_rede_publica.md`: o Rendimento utiliza o agregado publico oficial.
+A aquisicao automatizada esta descrita em `docs/automacao_raw.md` e preserva
+os arquivos anuais e as escolhas metodologicas desta auditoria.
 
 ---
 
@@ -439,4 +442,4 @@ Permanece pendente apenas a decisao metodologica transversal sobre o conceito de
 | 18/08/2026 | Confirmada cobertura das 27 UFs entre 2007 e 2023 |
 | 18/08/2026 | Confirmada cobertura integral das seis medidas |
 | 18/08/2026 | Validada a soma Aprovacao + Reprovacao + Abandono |
-| A definir | Atualizacao apos definicao metodologica conjunta da rede publica |
+| 29/10/2026 | Atualizado o status da rede publica e vinculada a aquisicao automatizada |

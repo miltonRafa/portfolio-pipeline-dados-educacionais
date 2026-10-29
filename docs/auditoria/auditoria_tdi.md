@@ -415,7 +415,10 @@ Tambem nao sera necessario reconstruir o agregado publico nem calcular resultado
 
 A auditoria estrutural da TDI esta, portanto, concluida.
 
-Permanece pendente apenas a definicao metodologica transversal do conceito de rede publica, que sera consolidada apos a auditoria dos demais indicadores.
+A definicao transversal de rede publica esta consolidada em
+`docs/definicao_rede_publica.md`: a TDI utiliza o agregado publico oficial.
+A aquisicao automatizada esta descrita em `docs/automacao_raw.md` e preserva
+os arquivos anuais e as escolhas metodologicas desta auditoria.
 
 ---
 
@@ -428,4 +431,4 @@ Permanece pendente apenas a definicao metodologica transversal do conceito de re
 | 18/08/2026 | Confirmado agregado oficial da rede publica |
 | 18/08/2026 | Confirmada cobertura completa de Anos Iniciais e Anos Finais |
 | 18/08/2026 | Confirmada ausencia de duplicidades e valores ausentes |
-| A definir | Atualizacao apos definicao metodologica conjunta da rede publica |
+| 29/10/2026 | Atualizado o status da rede publica e vinculada a aquisicao automatizada |

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -87,7 +88,9 @@ def run_step(step: Step, dry_run: bool) -> None:
     if dry_run:
         return
 
-    subprocess.run(command, cwd=ROOT, check=True)
+    environment = os.environ.copy()
+    environment.setdefault("PYTHONIOENCODING", "utf-8")
+    subprocess.run(command, cwd=ROOT, check=True, env=environment)
 
 
 def list_commands() -> None:

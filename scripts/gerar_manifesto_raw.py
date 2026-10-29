@@ -360,7 +360,7 @@ INVENTORY.extend(
             "Dicionário_arquivos_variáveis_PND_2025.xlsx",
             item_download="Microdados da Prova Nacional Docente",
             pacote_origem="PND > 2025 > Microdados da Prova Nacional Docente",
-            pacote_oficial_atual="microdados_pnd_2025.zip",
+            pacote_oficial_atual="microdados_pnd_2025.rar",
             arquivo_pacote_atual="microdados2025_pnd_arq1.txt",
             observacao="fonte analítica individual da PND no projeto",
         ),
@@ -374,9 +374,11 @@ INVENTORY.extend(
             "não se aplica",
             item_download="Microdados da Prova Nacional Docente",
             pacote_origem="PND > 2025 > Microdados da Prova Nacional Docente",
-            pacote_oficial_atual="microdados_pnd_2025.zip",
-            arquivo_pacote_atual="Dicionário_arquivos_variáveis_PND_2025.xlsx",
-            observacao="dicionário de variáveis; não é observação analítica",
+            pacote_oficial_atual="microdados_pnd_2025.rar",
+            arquivo_pacote_atual="Dicionário arquivos e variáveis PND 2025 (09-09-2029).xlsx",
+            nome_original="Dicionário arquivos e variáveis PND 2025 (09-09-2029).xlsx",
+            edicao_fonte="revisão oficial de 09/09/2026; adotada em 29/10/2026",
+            observacao="dicionário revisado em 09/09/2026; esclarece DS_VT_ACE_OBJ; não altera os microdados",
         ),
         item(
             "PND",
@@ -391,7 +393,7 @@ INVENTORY.extend(
             "não se aplica",
             item_download="Microdados da Prova Nacional Docente",
             pacote_origem="PND > 2025 > Microdados da Prova Nacional Docente",
-            pacote_oficial_atual="microdados_pnd_2025.zip",
+            pacote_oficial_atual="microdados_pnd_2025.rar",
             arquivo_pacote_atual="microdados2025_parametros_itens.xlsx",
             observacao=(
                 "arquivo auxiliar disponibilizado no pacote; não é lido "
@@ -413,6 +415,13 @@ def sha256(path: Path) -> str:
 def inventory_with_hashes() -> list[dict[str, str]]:
     rows = []
     missing = []
+    # Metadados de uma atualização comparada acompanham o hash aprovado.
+    # Mantém a regeneração idempotente após instalação automática de nova fonte.
+    current_path = DOCS_DIR / "fontes_dados.csv"
+    approved = {}
+    if current_path.exists():
+        with current_path.open(encoding="utf-8-sig", newline="") as file:
+            approved = {r["caminho_local"]: r for r in csv.DictReader(file)}
 
     for row in INVENTORY:
         full_path = ROOT / row["caminho_local"]
@@ -422,6 +431,11 @@ def inventory_with_hashes() -> list[dict[str, str]]:
 
         output = dict(row)
         output["sha256"] = sha256(full_path)
+        previous = approved.get(row["caminho_local"], {})
+        if previous.get("sha256") == output["sha256"]:
+            for field in ("url_historica_download", "pacote_oficial_atual", "arquivo_pacote_atual", "nome_original", "edicao_fonte", "anos_disponiveis"):
+                if previous.get(field):
+                    output[field] = previous[field]
         rows.append(output)
 
     if missing:
@@ -496,7 +510,7 @@ def pnd_files_table() -> str:
             "|---|---|---|---|",
             (
                 "| Microdados | Microdados da Prova Nacional Docente / "
-                "`microdados_pnd_2025.zip` | `microdados2025_pnd_arq1.txt` | "
+                "`microdados_pnd_2025.rar` | `microdados2025_pnd_arq1.txt` | "
                 "fonte analítica individual transformada pela Bronze e Silver |"
             ),
             (
@@ -553,10 +567,28 @@ A cópia de conveniência deve conter somente arquivos de `data/raw`, preservand
 a estrutura interna `data/raw/...`. Ela não deve incluir arquivos Parquet,
 Bronze, Silver, Gold, notebooks executados ou outros artefatos derivados.
 
+## Download automático
+
+O procedimento recomendado é executar `python scripts/baixar_raw.py`.
+O download, a extração seletiva e a organização ocorrem em `data/raw`;
+pacotes e candidatos temporários são removidos ao final. Se houver falha de
+HTTPS no servidor de downloads, use `python scripts/baixar_raw.py --http`.
+A validação SHA-256 permanece obrigatória em ambos os modos.
+
+Se o hash mudar, o script compara o conteúdo protegido com uma cópia anterior
+validada. Quando esse conteúdo for igual, instala a nova fonte e atualiza
+automaticamente o CSV, os checksums e este documento. No IDEB, a comparação
+protege o histórico até 2023; nos demais insumos, protege todas as linhas das
+abas usadas e o conteúdo completo dos arquivos de apoio. Se a comparação
+falhar ou houver diferença, preserva a versão anterior e informa o motivo.
+Use `--estrito` para exigir somente identidade binária. Consulte
+[automacao_raw.md](automacao_raw.md) para opções, requisitos e relatórios.
+
 ## Convenção de nomenclatura da Raw
 
-Sempre que o nome original disponibilizado pelo Inep não indicava claramente o
-ano de referência, o arquivo foi renomeado localmente para incluir o ano.
+O script aplica automaticamente os nomes locais definidos no manifesto.
+Quando necessário, esses nomes incluem o ano de referência para identificar
+a edição, mantendo o conteúdo original do arquivo.
 
 Essa padronização:
 
@@ -600,14 +632,9 @@ revisão coordenada das fontes, auditorias, pipeline, Gold, validações e Power
 ### IDEB — arquivo utilizado
 
 A página oficial de Resultados do IDEB é atualizada pelo Inep conforme novas
-edições são divulgadas. A rota atual para obter o arquivo usado pelo projeto é:
-
-```text
-Resultados do IDEB
-→ PLANILHAS DO IDEB | Taxa de aprovação, notas do SAEB, IDEB e projeções
-→ Regiões e estados
-→ Ensino Fundamental Regular e Ensino Médio Regular
-```
+edições são divulgadas. O script identifica o pacote de regiões e estados
+na edição física mais recente, seleciona o workbook e aplica o nome local
+canônico. A tabela registra sua procedência, sem exigir navegação manual.
 
 | Fonte | Página/seção oficial | Pacote oficial atual | Arquivo dentro do pacote | Nome local usado pelo projeto |
 |---|---|---|---|---|
@@ -618,10 +645,10 @@ disponibilizada pelo Inep e pode mudar em futuras atualizações. O projeto
 utiliza localmente o nome estável `divulgacao_regioes_ufs_ideb.xlsx`, evitando
 dependência do ano no caminho do arquivo.*
 
-*A versão atual do projeto mantém o recorte histórico de 2007-2023. Embora o
-workbook atualmente publicado pelo Inep contenha também a edição de 2025
-(`VL_OBSERVADO_2025`), essa edição não é incorporada automaticamente às camadas
-analíticas.*
+*A versão atual do projeto mantém o recorte histórico de 2007-2023. O workbook
+publicado pelo Inep pode conter também edições posteriores a 2023, que não são
+incorporadas automaticamente às camadas analíticas. A edição física e os anos
+disponíveis ficam registrados no CSV do manifesto.*
 
 O IDEB é uma exceção intencional à regra geral de nomenclatura da Raw. Nos demais
 arquivos, quando o nome original já traz o ano de referência, ele é preservado;
@@ -633,27 +660,19 @@ conteúdo interno do arquivo, em colunas `VL_OBSERVADO_YYYY`, como
 `VL_OBSERVADO_2025`.
 
 Para reprodução exata, utilize o arquivo local estável identificado no manifesto
-pelo hash SHA-256. Para atualizar a fonte em uma execução futura, substitua
-deliberadamente esse arquivo local por uma nova versão oficial antes de executar
-o pipeline; durante cada execução, porém, o arquivo Raw é tratado como imutável.
-Substituir o arquivo-fonte não altera automaticamente o escopo analítico, que é
+pelo hash SHA-256. A consulta a novas versões é feita com
+`python scripts/baixar_raw.py --rebaixar`, aplicando a comparação histórica
+antes de aceitar uma alteração de hash. Durante cada execução do pipeline,
+o arquivo Raw é tratado como imutável. A atualização da fonte não altera
+automaticamente o escopo analítico, que é
 controlado separadamente pelo pipeline e pela metodologia do projeto.
 
 ### Rendimento Escolar — arquivos utilizados
 
-Para cada ano da série de 2007 a 2023, foi selecionada a respectiva edição anual
-na página oficial de Taxas de Rendimento Escolar e utilizado o item `Brasil,
-regiões e UFs`. Os nomes apresentados abaixo correspondem aos arquivos
+O script seleciona as edições anuais de 2007 a 2023 na página oficial de
+Taxas de Rendimento Escolar, identificando o item `Brasil, regiões e UFs`.
+Os nomes apresentados abaixo correspondem aos arquivos
 armazenados em `data/raw/rendimento` e efetivamente consumidos pelo pipeline.
-
-Rota de obtenção:
-
-```text
-Taxas de Rendimento Escolar
-→ selecionar o ANO desejado
-→ Brasil, regiões e UFs
-→ baixar o arquivo daquele ano
-```
 
 {annual_files_table(RENDIMENTO)}
 
@@ -662,19 +681,10 @@ O projeto utiliza 17/17 anos entre 2007 e 2023. Os itens `Municípios` e
 
 ### Taxa de Distorção Idade-Série — arquivos utilizados
 
-Para cada ano da série de 2007 a 2023, foi selecionada a respectiva edição anual
-na página oficial de Taxas de Distorção Idade-Série e utilizado o item `Brasil,
-regiões e UFs`. Os nomes apresentados abaixo correspondem aos arquivos
+O script seleciona as edições anuais de 2007 a 2023 na página oficial de
+Taxas de Distorção Idade-Série, identificando o item `Brasil, regiões e UFs`.
+Os nomes apresentados abaixo correspondem aos arquivos
 armazenados em `data/raw/tdi` e efetivamente consumidos pelo pipeline.
-
-Rota de obtenção:
-
-```text
-Taxas de Distorção Idade-Série
-→ selecionar o ANO desejado
-→ Brasil, regiões e UFs
-→ baixar o arquivo daquele ano
-```
 
 {annual_files_table(TDI)}
 
@@ -685,25 +695,19 @@ O projeto utiliza 17/17 anos entre 2007 e 2023. Os itens `Municípios` e
 
 Na página oficial da PND, a edição utilizada é `2025` e o item de download é
 `Microdados da Prova Nacional Docente`. Atualmente, esse item aponta para o
-pacote oficial `microdados_pnd_2025.zip`.
+pacote oficial `microdados_pnd_2025.rar` (atualizado em 09/09/2026).
 
-Rota de obtenção:
+Em 29/10/2026, foi incorporada a revisão oficial do dicionário PND, após
+comparação de metadados e conteúdo. A revisão esclarece a descrição de
+`DS_VT_ACE_OBJ` e registra a alteração na aba de versões. Os microdados e os
+parâmetros de itens permaneceram com hashes idênticos. O nome original do
+dicionário no RAR contém `09-09-2029`; essa grafia é preservada no inventário,
+mas a data da revisão confirmada nos metadados e na página oficial é 09/09/2026.
+O nome local estável do dicionário foi mantido. Essa atualização documental não
+altera as transformações Bronze/Silver/Gold.
 
-```text
-PND
-→ 2025
-→ Microdados da Prova Nacional Docente
-→ baixar microdados_pnd_2025.zip
-```
-
-Orientação prática:
-
-1. acessar a página da PND;
-2. abrir a edição 2025;
-3. clicar em `Microdados da Prova Nacional Docente`;
-4. baixar o pacote;
-5. extrair os arquivos necessários;
-6. manter os nomes locais esperados pelo pipeline.
+O script resolve o link oficial, transfere o pacote e extrai somente os três
+insumos inventariados, aplicando seus nomes locais automaticamente.
 
 {pnd_files_table()}
 
@@ -753,6 +757,9 @@ Atribuição-SemDerivações 3.0 Não Adaptada.
 Mesmo assim, a cópia no Drive é documentada apenas como conveniência de
 reprodução. A referência oficial e primária permanece sendo o Inep/MEC.
 """
+    ideb = next(row for row in rows if row["indicador"] == "IDEB")
+    content = content.replace("divulgacao_regioes_ufs_ideb_2025.zip", ideb["pacote_oficial_atual"])
+    content = content.replace("divulgacao_regioes_ufs_ideb_2025.xlsx", ideb["arquivo_pacote_atual"])
     path.write_text(content.replace("\r\n", "\n"), encoding="utf-8")
 
 

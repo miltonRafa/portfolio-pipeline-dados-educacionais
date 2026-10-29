@@ -52,9 +52,11 @@ COLUNAS_ESPERADAS = [
 
 QUANTIDADE_COLUNAS_FONTE = 26
 
-SHA256_ESPERADO = (
-    "b15968a19e309bca6b63c6f6d7af094efdc13d900645dc7385872a6a50dd7baf"
-)
+with (Path(__file__).resolve().parents[3] / "docs/fontes_dados.csv").open(encoding="utf-8-sig", newline="") as _manifesto:
+    SHA256_ESPERADO = next(
+        row["sha256"] for row in csv.DictReader(_manifesto)
+        if row["caminho_local"] == "data/raw/pnd/microdados2025_pnd_arq1.txt"
+    )
 
 LINHAS_FISICAS_ESPERADAS = 1_087_360
 REGISTROS_DADOS_ESPERADOS = 1_087_359

@@ -10,7 +10,7 @@ que ja foram incorporadas. O presente registro substitui aquele diagnostico e
 considera como fonte principal o projeto LaTeX versionado em `tcc/` e o PDF
 gerado em `output/pdf/Template_TCC_UEMG_revisado.pdf`.
 
-Data desta revisao: 2 de outubro de 2026.
+Data desta revisao: 29 de outubro de 2026.
 
 ## 2. Materiais verificados
 
@@ -23,7 +23,7 @@ Data desta revisao: 2 de outubro de 2026.
 - cinco notebooks demonstrativos;
 - fontes LaTeX em `tcc/`;
 - bibliografia em `tcc/bib/abntex2-modelo-references.bib`;
-- PDF final compilado com 65 paginas.
+- PDF final compilado pelo template institucional com 95 paginas.
 
 ## 3. Situacao geral
 
@@ -82,6 +82,7 @@ O TCC registra os mecanismos realmente existentes no projeto:
 - caminhos e finalidades no manifesto;
 - hashes SHA-256 dos insumos;
 - links para fontes oficiais;
+- aquisicao, selecao, extracao e nomenclatura automatizadas por `scripts/baixar_raw.py`;
 - convencao de nomenclatura local;
 - metadados de linhagem;
 - validadores por camada;
@@ -91,6 +92,24 @@ O TCC registra os mecanismos realmente existentes no projeto:
 
 A copia organizada da Raw e tratada como conveniencia de reproducao e nao como
 substituta das fontes oficiais.
+
+As orientacoes operacionais de aquisicao manual foram substituidas pelo
+procedimento automatizado no README e na documentacao de fontes. O TCC
+descreve a automacao e suas limitacoes metodologicas, preservando as referencias
+oficiais e os criterios de selecao. As tabelas de arquivos permanecem como
+inventario e evidencia de procedencia, nao como instrucoes de download manual.
+
+A aquisicao automatizada tambem consta do Resumo/Abstract, do objetivo
+especifico c e do ultimo item das contribuicoes da Introducao. A secao 4.3
+foi denominada "Arquitetura e processo de ingestao", distinguindo aquisicao
+(fontes oficiais para Raw) de ingestao (Raw para Bronze). O fluxo das camadas
+foi preservado e complementado por figura LaTeX do percurso completo, incluindo
+fontes oficiais e aquisicao automatizada. A afirmacao sobre ausencia de preparo
+manual foi delimitada ao conjunto de fontes coberto nesta versao do projeto.
+
+A captura `tcc/figs/dashboard-metodologia.png` continua retratando a pagina
+do Power BI e suas camadas a partir da Raw. O novo fluxo metodologico e uma
+figura independente escrita em LaTeX, sem alteracao dessa captura.
 
 ### 4.4 Regras especificas dos indicadores
 
@@ -174,7 +193,7 @@ testadas pelo pipeline.
 
 ## 5. Bibliografia
 
-O arquivo `.bib` possui 26 entradas e nao apresenta chaves ou obras duplicadas
+O arquivo `.bib` possui 23 entradas e nao apresenta chaves ou obras duplicadas
 identificadas. Todas as entradas sao citadas e aparecem na bibliografia gerada.
 As definicoes dos indicadores permanecem apoiadas nas fontes oficiais do INEP;
 os trabalhos academicos complementam a fundamentacao e a discussao.
@@ -195,12 +214,57 @@ Os testes estruturais foram executados com:
 python -m unittest discover -s tests -v
 ```
 
-Resultado da ultima verificacao: 10 testes aprovados.
+Resultado da verificacao de 29/10/2026: 27 testes aprovados, incluindo os
+testes de download automatico. O comando `python scripts/baixar_raw.py`
+prepara os 54 insumos diretamente em `data/raw`, antes do pipeline, com
+extracao seletiva, verificacao de hashes e limpeza dos temporarios.
+
+Na mesma data foi incorporada a revisao oficial de 09/09/2026 do dicionario
+PND. O manifesto, os checksums e a documentacao de fontes foram atualizados
+pelo gerador oficial. Os outros 53 arquivos mantiveram os hashes anteriores;
+os dados analiticos e os resultados apresentados no TCC nao mudaram. Consulte
+`docs/automacao_raw.md` para o procedimento e a evidencia da revisao.
+
+O download tambem compara arquivos novos com hash diferente contra uma copia
+anterior validada. Quando o conteudo protegido for igual, atualiza automaticamente
+a Raw e o manifesto, com backup e registro da comparacao. Diferencas historicas
+ou falhas de verificacao preservam a versao anterior e sao explicadas no terminal
+e no relatorio. No IDEB, anos posteriores a 2023 podem ser incorporados fisicamente
+sem expandir o periodo analitico. O modo `--estrito` mantem reproducao binaria.
 
 O projeto LaTeX foi reorganizado em `tcc/`, preservando a classe
 `tccUEMG.cls`. A compilacao completa com `pdflatex`, `bibtex`, `makeindex` e
-duas novas passagens de `pdflatex` produziu um PDF de 65 paginas, sem citacoes
+duas novas passagens de `pdflatex` produziu um PDF de 95 paginas, sem citacoes
 ou referencias indefinidas e sem erros criticos de compilacao.
+
+O PDF foi recompilado a partir de `tcc/main_tcc_uemg.tex` e da classe
+institucional `tccUEMG.cls` apos a atualizacao da aquisicao automatizada.
+As paginas alteradas foram renderizadas e conferidas. O arquivo consolidado
+permanece em `output/pdf/Template_TCC_UEMG_revisado.pdf`.
+
+### 6.1 Conferencia posterior a automacao da aquisicao
+
+Em 29/10/2026, foram conferidos os links locais do README, da documentacao,
+dos notebooks e do TCC, sem caminhos ausentes. O manifesto validou 54/54
+insumos; a validacao global da Gold confirmou as cardinalidades publicadas,
+os graos e a integridade referencial, com `MODELO DIMENSIONAL GOLD: OK`.
+Os 27 testes e a compilacao dos arquivos Python foram aprovados.
+
+As auditorias de fontes tiveram os status de rede e fonte atualizados para
+referenciar as decisoes ja consolidadas, preservando os achados originais.
+A imutabilidade da Raw foi delimitada ao periodo das transformacoes, distinguindo
+a atualizacao controlada anterior. Os metadados de citacao foram alinhados
+a tag existente `v1.1.0`, de 02/10/2026, sem criar uma nova release.
+
+O PDF consolidado coincide com o compilado pelo template e contem 95 paginas.
+A bibliografia tem 23 entradas e 23 itens na lista gerada. As notas de release
+anteriores preservam suas contagens historicas e nao descrevem a versao em
+desenvolvimento. As verificacoes desta revisao nao regeneraram Bronze, Silver
+ou Gold nem alteraram os resultados analiticos.
+
+Foi corrigida uma falha de codificacao na impressao do validador Gold em
+terminais Windows. O orquestrador tambem configura a saida dos subprocessos
+para UTF-8 por padrao, respeitando uma configuracao explicita do ambiente.
 
 ## 7. Pendencias que nao sao erros do projeto
 

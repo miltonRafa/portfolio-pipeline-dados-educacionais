@@ -28,7 +28,7 @@ e contempla somente:
 * resultados em nivel de Unidade Federativa;
 * rede publica.
 
-> **Status deste documento:** auditoria estrutural concluida. A utilizacao definitiva da categoria de rede publica sera consolidada apos a auditoria conjunta de SAEB, Rendimento Escolar e TDI.
+> **Status atualizado em 29/10/2026:** auditoria estrutural concluida e rede publica consolidada em [definicao_rede_publica.md](../definicao_rede_publica.md) e [camada_silver.md](../camada_silver.md). A aquisicao e as atualizacoes controladas do workbook seguem [automacao_raw.md](../automacao_raw.md), mantendo o recorte analitico de 2007-2023.
 
 ---
 
@@ -671,7 +671,10 @@ Nao existe necessidade de reconstruir o IDEB a partir de suas componentes. O pro
 
 A auditoria estrutural do IDEB esta, portanto, **concluida**.
 
-Permanece pendente apenas a decisao metodologica transversal sobre o conceito de **rede publica**, que sera tomada apos a auditoria dos demais indicadores historicos.
+A decisao transversal sobre rede publica foi consolidada em
+`docs/definicao_rede_publica.md`. A Silver do IDEB utiliza `Publica (4)`,
+mantendo as nove edicoes de 2007 a 2023. A publicacao de novas colunas anuais
+no workbook nao amplia automaticamente esse recorte.
 
 ---
 
@@ -681,5 +684,5 @@ Permanece pendente apenas a decisao metodologica transversal sobre o conceito de
 | ---------- | ---------------------------------------------------------------- |
 | 18/08/2026 | Primeira versao da auditoria tecnica do IDEB                     |
 | 18/08/2026 | Confirmada cobertura das 27 UFs em AI e AF, 2007–2023            |
-| A definir  | Atualizacao apos definicao metodologica conjunta da rede publica |
-| A definir  | Registro das regras definitivas incorporadas ao pipeline         |
+| 29/10/2026 | Atualizado o status da rede publica ja consolidada no pipeline |
+| 29/10/2026 | Vinculado o procedimento automatizado de aquisicao e atualizacao da fonte |

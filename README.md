@@ -30,6 +30,7 @@ separada da série histórica.
 
 - múltiplos formatos de origem: XLS, XLSX, XLSB, CSV e TXT;
 - 54 arquivos Raw inventariados;
+- aquisição, seleção, extração e nomenclatura da Raw automatizadas;
 - hashes SHA-256 para rastreabilidade dos insumos;
 - camadas Raw, Bronze, Silver e Gold;
 - validações independentes por camada;
@@ -44,6 +45,8 @@ separada da série histórica.
 
 ```mermaid
 flowchart LR
+    INEP[Fontes oficiais Inep] --> AQUISICAO[Download e validação]
+    AQUISICAO --> RAW
     RAW[Raw] --> BRONZE[Bronze]
     BRONZE --> SILVER[Silver]
     SILVER --> GOLD[Gold]
@@ -157,15 +160,45 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
+O projeto é validado em Python 3.12. Para pacotes RAR, disponibilize `tar`
+com suporte libarchive; o `tar.exe` do Windows utilizado no projeto atende
+a esse requisito.
+
 ### 3. Dados Raw
 
 A pasta `data/raw` não é versionada no Git.
 
-Para reproduzir o projeto, mantenha a estrutura esperada em `data/raw/...` por
-uma destas opções:
+Para preparar a Raw, execute o download automático das fontes oficiais:
 
-- baixar os arquivos nas fontes oficiais seguindo [docs/fontes_dados.md](docs/fontes_dados.md);
-- usar a cópia de conveniência da Raw organizada no Google Drive.
+```bash
+python scripts/baixar_raw.py
+```
+
+O script baixa, extrai e organiza os 54 arquivos diretamente em `data/raw`,
+valida os hashes do manifesto e remove os pacotes e candidatos temporários.
+Arquivos existentes corretos são reaproveitados. Para consultar novamente as
+fontes e verificar atualizações, execute:
+
+```bash
+python scripts/baixar_raw.py --rebaixar
+```
+
+Se um download tiver hash diferente, o script compara o conteúdo usado pelo
+projeto com a versão anterior validada. No IDEB, preserva o histórico até 2023
+e permite anos posteriores; nos demais arquivos, compara todas as linhas e
+campos das abas usadas, incluindo todo o conteúdo dos arquivos de apoio.
+Se forem iguais, instala a nova versão e atualiza automaticamente o hash no
+manifesto, os checksums e a documentação de fontes, mantendo backup e histórico.
+Se houver mudança histórica, erro de leitura ou falta da referência anterior,
+preserva a versão atual e mostra o motivo no terminal e no relatório em
+`data/raw/.download/relatorio_download.json`. Uma Raw nova sem referência
+anterior só aceita diretamente os hashes já registrados. Use `--estrito` para
+exigir sempre identidade binária e impedir atualizações automáticas.
+
+Para os pacotes RAR, é necessário `tar` com suporte libarchive.
+Se o HTTPS do servidor de downloads falhar, use `python scripts/baixar_raw.py --http`.
+Veja [o procedimento de download](docs/automacao_raw.md) para opções e relatórios.
+O manifesto já inclui a revisão oficial de 09/09/2026 do dicionário PND.
 
 ### 4. Verificar Integridade da Raw
 
@@ -200,6 +233,17 @@ python src/pipeline.py full --dry-run
 `full --dry-run` lista a sequência completa e valida a existência dos scripts
 referenciados, sem executar transformações analíticas.
 
+Para verificar o código e os contratos do repositório sem baixar os dados:
+
+```bash
+python -m unittest discover -s tests -v
+python -m compileall -q src scripts tests
+```
+
+A integração contínua executa essas verificações e confere a sequência do
+pipeline. A integridade da Raw e a validação dos dados Gold são verificações
+locais adicionais, pois os dados não são versionados.
+
 ## Resultado Validado
 
 A validação global da Gold retorna:
@@ -226,6 +270,7 @@ FATO_PND: 759.140
 ## Documentação
 
 - [docs/fontes_dados.md](docs/fontes_dados.md)
+- [docs/automacao_raw.md](docs/automacao_raw.md)
 - [docs/camada_bronze.md](docs/camada_bronze.md)
 - [docs/camada_silver.md](docs/camada_silver.md)
 - [docs/camada_gold.md](docs/camada_gold.md)
@@ -246,6 +291,11 @@ automaticamente o escopo desta versão. A PND 2025 permanece como análise
 complementar.
 
 ## Observações
+
+As notas em `docs/release_v*.md` descrevem as respectivas versões publicadas.
+As contagens e procedimentos atuais estão neste README e nos documentos de
+fontes, automação e revisão do TCC; notas de releases anteriores são registros
+históricos.
 
 Os arquivos de dados são ignorados por padrão no Git por tamanho e por serem
 fontes locais ou artefatos reproduzíveis. O arquivo `.pbix` foi mantido como

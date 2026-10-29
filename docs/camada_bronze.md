@@ -29,14 +29,28 @@ Essas transformacoes pertencem as camadas posteriores.
 A camada Raw contem os arquivos obtidos das fontes oficiais e utilizados como
 insumos do pipeline.
 
-Quando o nome original de um arquivo nao identificava claramente o ano de
-referencia, ele pode ser renomeado localmente antes de sua incorporacao a pasta
-`data/raw`, exclusivamente para padronizacao da nomenclatura e melhor
-organizacao temporal. Essa renomeacao nao altera o conteudo, a estrutura ou os
-valores do arquivo.
+A preparacao da Raw e automatizada por `python scripts/baixar_raw.py`, antes
+da Bronze. O script obtem os arquivos nas fontes oficiais, extrai somente os
+insumos inventariados, aplica os nomes locais e valida SHA-256. Pacotes e
+candidatos temporarios sao removidos dentro da propria Raw. O procedimento e
+documentado em `docs/automacao_raw.md`; a verificacao final e feita com
+`python scripts/gerar_manifesto_raw.py --check`.
 
-Uma vez incorporado a pasta `data/raw`, o arquivo passa a ser considerado
-imutavel.
+Antes da Bronze, um novo download com hash diferente pode substituir a fonte
+somente apos comparacao integral do conteudo protegido com a copia anterior
+validada. A atualizacao registra backup, evidencia e novo hash no manifesto.
+No IDEB, o historico protegido vai ate 2023; novas colunas anuais nao ampliam
+o recorte analitico. Os demais insumos preservam o conteudo das abas usadas e
+os arquivos de apoio completos. Falhas ou diferencas mantem a versao anterior.
+Durante a execucao da Bronze/Silver/Gold, a Raw continua imutavel.
+
+Os nomes locais sao aplicados automaticamente pelo script de aquisicao,
+conforme o manifesto, incluindo o ano quando necessario para identificar a
+edicao. Essa padronizacao nao altera o conteudo, a estrutura ou os valores.
+
+Uma vez incorporado a pasta `data/raw`, o arquivo e considerado imutavel
+durante as transformacoes. A atualizacao controlada pelo script de aquisicao
+ocorre antes delas, com comparacao, backup e sincronizacao do manifesto.
 
 O pipeline pode ler os arquivos da camada Raw, mas nao deve sobrescreve-los,
 renomea-los, exclui-los ou modificar seu conteudo. As transformacoes realizadas
@@ -940,7 +954,8 @@ O projeto adotara a seguinte divisao:
 
 ### RAW
 
-Arquivo original, imutavel.
+Arquivo oficial preservado, imutavel durante as transformacoes; atualizacoes
+controladas pertencem a etapa anterior de aquisicao.
 
 ### BRONZE
 

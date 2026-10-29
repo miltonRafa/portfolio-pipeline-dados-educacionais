@@ -24,6 +24,10 @@ tcc/
 
 ## Compilacao local
 
+O texto descreve a aquisicao automatizada por `scripts/baixar_raw.py`, conforme
+o [procedimento do projeto](../docs/automacao_raw.md). A compilacao do TCC usa
+os fontes LaTeX e nao depende da execucao do download ou do pipeline.
+
 Com uma distribuicao LaTeX instalada, execute a partir desta pasta:
 
 ```powershell

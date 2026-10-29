@@ -20,7 +20,9 @@ A análise histórica compreende o período de 2007 a 2023 para IDEB, SAEB, Rend
 
 Os links oficiais do INEP constituem a referência institucional e a fonte primária dos dados. Os arquivos armazenados localmente na camada Raw correspondem aos materiais obtidos dessas fontes e são identificados em manifesto por caminho local, finalidade e hash SHA-256. O inventário utilizado no projeto contém 54 arquivos e pode ser verificado pelo comando \texttt{python scripts/gerar\_manifesto\_raw.py --check}. A cópia organizada da Raw disponibilizada fora do repositório constitui apenas uma conveniência de reprodução e não substitui as fontes oficiais.
 
-\section{Arquitetura e processo de extração}
+A aquisição é automatizada pelo script \texttt{scripts/baixar\_raw.py}, que identifica os links nas páginas oficiais, seleciona as edições e os arquivos previstos no manifesto, extrai os membros necessários dos pacotes e aplica os nomes locais em \texttt{data/raw}. Os pacotes e candidatos temporários são removidos ao final do processamento. Para o conjunto de fontes coberto nesta versão do projeto, a preparação dos insumos não exige seleção, extração ou renomeação manual pelo usuário.
+
+\section{Arquitetura e processo de ingestão}
 
 A solução foi organizada em quatro camadas de dados, seguidas pela camada de consumo analítico:
 
@@ -28,11 +30,40 @@ A solução foi organizada em quatro camadas de dados, seguidas pela camada de c
 \texttt{RAW $\rightarrow$ BRONZE $\rightarrow$ SILVER $\rightarrow$ GOLD $\rightarrow$ POWER BI}
 \end{center}
 
+A Figura~\ref{fig:fluxo-aquisicao} apresenta o percurso completo, incluindo a etapa anterior à Raw. Neste trabalho, aquisição designa a obtenção dos arquivos nas fontes oficiais e sua organização na Raw; ingestão designa a leitura e a estruturação desses insumos na Bronze.
+
+\begin{figure}[htbp]
+\centering
+\fbox{%
+\begin{minipage}{0.65\linewidth}
+\centering
+\small
+\vspace{0.4em}
+\textbf{FONTES OFICIAIS DO INEP}\\
+$\downarrow$\\
+\textbf{AQUISIÇÃO AUTOMATIZADA}\\
+$\downarrow$\\
+\textbf{RAW}\\
+$\downarrow$\\
+\textbf{BRONZE}\\
+$\downarrow$\\
+\textbf{SILVER}\\
+$\downarrow$\\
+\textbf{GOLD}\\
+$\downarrow$\\
+\textbf{POWER BI}
+\vspace{0.4em}
+\end{minipage}}
+\caption{Percurso dos dados, da aquisição nas fontes oficiais ao consumo analítico.}
+\label{fig:fluxo-aquisicao}
+\legend{Fonte: Elaborado pelo autor a partir da implementação do projeto (2026).}
+\end{figure}
+
 A Raw preserva os insumos oficiais organizados localmente. A Bronze realiza a ingestão com padronização técnica mínima e preservação de metadados. A Silver aplica o recorte analítico, harmonização de categorias, seleção das observações e validações de correspondência com a Bronze. A Gold materializa as tabelas fato e dimensão consumidas pelo Power BI.
 
 Os arquivos de origem apresentam formatos heterogêneos, incluindo \texttt{.xls}, \texttt{.xlsx}, \texttt{.xlsb}, \texttt{.csv} e \texttt{.txt}. A leitura e o processamento são executados por scripts Python. O orquestrador \texttt{src/pipeline.py} organiza as etapas de Bronze, Silver, Gold e validação global e disponibiliza, entre outros, os comandos \texttt{bronze}, \texttt{silver}, \texttt{gold}, \texttt{validate-gold} e \texttt{full}, além do modo \texttt{--dry-run} para inspeção da sequência sem execução analítica.
 
-A nomenclatura local da Raw segue uma regra condicional. Quando o nome original do arquivo já apresenta explicitamente o ano de referência, ele é preservado. Quando o ano não está explícito, ele pode ser acrescentado localmente para facilitar a organização temporal, sem alterar conteúdo, estrutura ou valores. O IDEB constitui uma exceção intencional: o projeto utiliza um único arquivo local canônico na pasta \texttt{data/raw/ideb}, denominado \texttt{divulgacao\_regioes\_ufs\_ideb.xlsx}, independentemente do ano presente no nome da edição oficial baixada.
+A nomenclatura local da Raw é aplicada automaticamente a partir do manifesto, preservando a identificação temporal das edições sem alterar seus valores. O IDEB utiliza um único nome local estável, \texttt{divulgacao\_regioes\_ufs\_ideb.xlsx}, enquanto os anos disponíveis são identificados pelo conteúdo do workbook. Essa distinção permite atualizar a edição física da fonte sem modificar os caminhos esperados pelo pipeline.
 
 \section{Transformação, linhagem e validação}
 
@@ -189,6 +220,8 @@ O repositório possui cinco notebooks demonstrativos, um para cada indicador: Re
 
 Além das validações analíticas, o projeto possui testes automatizados do contrato do repositório e um fluxo de integração contínua para verificações estruturais que não dependem da disponibilidade da Raw. O comando \texttt{python src/pipeline.py full --dry-run} valida a sequência de scripts sem executar as transformações, enquanto o manifesto pode ser verificado independentemente por \texttt{python scripts/gerar\_manifesto\_raw.py --check}.
 
+Na aquisição, arquivos com hash diferente são comparados com uma cópia anterior validada. No IDEB, a comparação protege as colunas históricas até 2023 nas três abas lidas pela Bronze; nos demais insumos, protege todas as linhas e campos das abas utilizadas e o conteúdo completo dos arquivos de apoio. Se o conteúdo protegido for igual, a nova versão é instalada e o manifesto é atualizado automaticamente, com backup e registro da comparação. Diferenças históricas, ausência de referência ou falhas de leitura preservam a versão anterior e produzem diagnóstico. O modo \texttt{--estrito} exige identidade binária, e essas operações ocorrem antes das transformações, durante as quais a Raw permanece imutável.
+
 \section{Ferramentas utilizadas}
 
 Foram utilizadas Python e as bibliotecas registradas no arquivo \texttt{requirements.txt}, incluindo Pandas, NumPy, PyArrow e mecanismos de leitura de planilhas em diferentes formatos. Parquet foi adotado nas camadas derivadas para armazenamento tabular. Também foram utilizados Git para versionamento, notebooks Jupyter como material demonstrativo, Power BI Desktop para o modelo semântico e os dashboards, Power Query para conexão à Gold e DAX para as medidas analíticas.
@@ -206,6 +239,6 @@ As médias exibidas no Power BI são médias das linhas existentes no contexto d
 
 A PND corresponde apenas a 2025 e não constitui série temporal. As variáveis territoriais representam o local de aplicação da prova, não residência. A classificação por padrões utiliza \texttt{NT\_OBJ} e descreve proficiência segundo os pontos de corte adotados; ela não equivale a aprovação ou reprovação.
 
-A reprodução exata depende dos arquivos identificados no manifesto e pelos hashes SHA-256. Novas edições oficiais podem alterar nomes, layouts ou endereços de download, motivo pelo qual a documentação das fontes deve ser considerada em conjunto com o inventário versionado.
+A reprodução binária exata depende dos arquivos identificados no manifesto e pelos hashes SHA-256. A aquisição automática reduz a intervenção operacional, mas novas edições oficiais podem alterar nomes, layouts ou endereços de download. A aceitação por equivalência requer uma cópia anterior validada e não amplia o período analítico. Sem essa referência, ou quando houver mudança no conteúdo protegido, o processo interrompe a atualização e informa a causa.
 
 Por fim, os dashboards têm finalidade descritiva e exploratória. Associações visuais entre indicadores não permitem estabelecer relações causais nem atribuir mudanças observadas a políticas, condições socioeconômicas ou outros fatores sem desenho de pesquisa específico para inferência causal.

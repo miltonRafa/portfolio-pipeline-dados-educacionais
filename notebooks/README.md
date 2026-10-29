@@ -14,6 +14,18 @@ oficiais do repositorio e nao reimplementam as regras de transformacao.
 
 ## Uso
 
+Prepare e confira os insumos a partir da raiz do repositorio antes de executar
+as etapas dos notebooks:
+
+```powershell
+python scripts/baixar_raw.py
+python scripts/gerar_manifesto_raw.py --check
+```
+
+Para consultar novas versoes das fontes, use `--rebaixar`; o procedimento de
+comparacao e os diagnosticos estao em [automacao da Raw](../docs/automacao_raw.md).
+Os notebooks nao executam a aquisicao nem atualizam o manifesto.
+
 Execute o Jupyter a partir da raiz do repositorio:
 
 ```powershell

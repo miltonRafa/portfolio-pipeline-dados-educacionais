@@ -1,5 +1,12 @@
 # Auditoria das Fontes — Prova Nacional Docente (PND) 2025
 
+> **Atualizacao documental de 29/10/2026:** o manifesto incorpora o dicionario
+> oficial revisado em 09/09/2026, com esclarecimento de `DS_VT_ACE_OBJ`.
+> Os microdados e os parametros de itens mantiveram os hashes anteriores;
+> os resultados analiticos desta auditoria permanecem validos. A aquisicao,
+> a comparacao de versoes e a procedencia estao em
+> [automacao_raw.md](../automacao_raw.md) e [fontes_dados.md](../fontes_dados.md).
+
 ## 1. Objetivo
 
 Este documento registra a auditoria tecnica dos microdados da Prova Nacional Docente (PND) 2025 utilizados no projeto.

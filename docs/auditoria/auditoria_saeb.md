@@ -18,7 +18,7 @@ O projeto utiliza somente:
 * Matematica;
 * resultados em nivel de Unidade Federativa (UF).
 
-> **Status deste documento:** provisorio. Algumas decisoes sobre a fonte definitiva e o conceito de rede publica serao atualizadas apos a auditoria dos demais indicadores do projeto, especialmente IDEB, Rendimento Escolar e TDI.
+> **Status atualizado em 29/10/2026:** auditoria de fontes concluida. As decisoes finais de rede e fonte estao consolidadas em [definicao_rede_publica.md](../definicao_rede_publica.md) e [camada_silver.md](../camada_silver.md). Os questionamentos investigativos abaixo registram o percurso da auditoria; nao representam pendencias da implementacao atual. A aquisicao segue [automacao_raw.md](../automacao_raw.md).
 
 ---
 
@@ -149,7 +149,7 @@ O ano de 2007 possui duas fontes tecnicamente possiveis:
 
 A fonte definitiva ainda nao foi escolhida porque a decisao depende do conceito de **rede publica** que sera adotado de forma consistente nos demais indicadores.
 
-**Status:** auditado, decisao final pendente.
+**Status:** auditado; resultado agregado oficial por UF adotado como fonte final.
 
 ---
 
@@ -235,7 +235,7 @@ As 27 UFs estao presentes.
 
 Assim como em 2007, existem duas possibilidades de fonte.
 
-**Status:** auditado, decisao final pendente.
+**Status:** auditado; resultado agregado oficial por UF adotado como fonte final.
 
 ---
 
@@ -716,8 +716,8 @@ Foram identificadas as 27 UFs.
 
 | Ano  | Fonte(s) disponivel(is)                     | Nivel       | Situacao                       |
 | ---- | ------------------------------------------- | ----------- | ------------------------------ |
-| 2007 | `MEDIA_UF_2007.xlsx` / `TS_ESCOLA_2007.csv` | UF / Escola | Auditada; fonte final pendente |
-| 2009 | `MEDIA_UF_2009.xlsx` / `TS_ESCOLA_2009.csv` | UF / Escola | Auditada; fonte final pendente |
+| 2007 | `MEDIA_UF_2007.xlsx` / `TS_ESCOLA_2007.csv` | UF / Escola | Agregado oficial de UF adotado; escola preservada para auditoria |
+| 2009 | `MEDIA_UF_2009.xlsx` / `TS_ESCOLA_2009.csv` | UF / Escola | Agregado oficial de UF adotado; escola preservada para auditoria |
 | 2011 | `TS_RESULTADO_UF_2011.csv`                  | UF          | Auditada                       |
 | 2013 | `TS_UF_2013.xlsx`                           | UF          | Auditada                       |
 | 2015 | `TS_UF_2015.xlsx`                           | UF          | Auditada                       |
@@ -818,7 +818,12 @@ Essas diferencas deverao ser normalizadas somente apos a leitura adequada de cad
 
 ---
 
-# 14. Questao pendente: definicao de rede publica
+# 14. Investigacao da definicao de rede publica
+
+As questoes desta secao documentam a investigacao original. A decisao vigente
+esta em `docs/definicao_rede_publica.md`: preservar o agregado publico oficial,
+incluindo a rede federal quando disponivel, e registrar a excecao de 2007/2009,
+cujo agregado publicado e `Total - Estadual e Municipal`.
 
 A auditoria do SAEB identificou diferencas importantes na forma como a rede publica aparece nas fontes.
 
@@ -848,7 +853,10 @@ Total - Federal, Estadual e Municipal
 
 Os arquivos `TS_ESCOLA` desses anos permitem, por outro lado, identificar escolas por meio de `IN_PUBLICA`.
 
-A decisao final sobre qual fonte utilizar em 2007 e 2009 sera tomada **somente apos a auditoria de IDEB, Rendimento Escolar e TDI**, para evitar a adocao de conceitos diferentes de rede publica entre os indicadores historicos.
+A decisao final foi consolidada apos a auditoria conjunta dos indicadores:
+em 2007 e 2009 sao utilizados os agregados oficiais por UF, com a categoria
+`Total - Estadual e Municipal` e sua limitacao de comparabilidade registrada
+em `docs/definicao_rede_publica.md`.
 
 ---
 
@@ -894,7 +902,12 @@ As principais diferencas encontradas foram:
 
 A auditoria das fontes do SAEB esta concluida quanto a identificacao de arquivos, estruturas, variaveis e particularidades metodologicas.
 
-Permanece pendente a **decisao final sobre o recorte comum de rede e a fonte definitiva de 2007 e 2009**. Essa decisao sera registrada neste documento apos a auditoria conjunta de IDEB, Rendimento Escolar e TDI.
+A decisao sobre o recorte comum de rede esta consolidada em
+`docs/definicao_rede_publica.md`. Em 2007 e 2009, a fonte final e o agregado
+oficial por UF, com a limitacao de rede registrada acima. Em 2023, a serie
+analitica utiliza o resultado agregado oficial, e nao a recomposicao de
+medias escolares por `NU_PRESENTES`. Os arquivos escolares permanecem para
+rastreabilidade e auditoria. A aquisicao automatizada nao altera essas escolhas.
 
 ---
 
@@ -903,5 +916,5 @@ Permanece pendente a **decisao final sobre o recorte comum de rede e a fonte def
 | Data       | Alteracao                                              |
 | ---------- | ------------------------------------------------------ |
 | 18/08/2026 | Primeira versao da auditoria das fontes do SAEB        |
-| A definir  | Atualizacao apos definicao do conceito de rede publica |
-| A definir  | Registro das fontes definitivas utilizadas no pipeline |
+| 29/10/2026 | Atualizado o status das decisoes ja consolidadas no pipeline e na documentacao canonica |
+| 29/10/2026 | Registrada a aquisicao automatizada, preservando os achados da auditoria original |
