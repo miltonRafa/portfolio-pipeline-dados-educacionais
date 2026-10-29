@@ -12,6 +12,7 @@ tcc/
 |-- bib/
 |-- capitulos/
 |-- elementos/
+|-- apresentacao/
 `-- figs/
 ```
 
@@ -20,6 +21,7 @@ tcc/
 - `bib/`: base bibliografica utilizada pelo BibTeX;
 - `capitulos/`: conteudo textual do trabalho;
 - `elementos/`: materiais auxiliares do modelo;
+- [apresentacao/](apresentacao/README.md): slides, roteiro impresso e imagens de apoio para a defesa;
 - `figs/`: imagens incorporadas ao documento.
 
 ## Compilacao local
@@ -50,7 +52,8 @@ output/pdf/Template_TCC_UEMG_revisado.pdf
 
 ## Overleaf
 
-Para usar o projeto no Overleaf, envie o conteudo desta pasta preservando a
+Para usar o projeto no Overleaf, envie os fontes LaTeX desta pasta preservando a
 estrutura de diretorios e defina `main_tcc_uemg.tex` como documento principal.
+Os materiais de `apresentacao/` nao sao necessarios para a compilacao.
 Os PDFs armazenados localmente em `referencias/` nao sao necessarios para a
 compilacao.

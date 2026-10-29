@@ -279,6 +279,7 @@ FATO_PND: 759.140
 - [docs/auditoria/](docs/auditoria/)
 - [Fonte LaTeX do TCC](tcc/README.md)
 - [PDF do TCC](output/pdf/Template_TCC_UEMG_revisado.pdf)
+- [Slides, roteiro e imagens de apoio da defesa](tcc/apresentacao/README.md)
 - [Orientações sobre as referências acadêmicas](referencias/README.md)
 
 ## Escopo Temporal
