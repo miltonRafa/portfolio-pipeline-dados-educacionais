@@ -355,6 +355,10 @@ complementar.
 
 ## Observações
 
+A versão `v1.2.0` inclui a aquisição automatizada da Raw, atualizações por
+equivalência do conteúdo histórico e os materiais revisados do TCC e da defesa.
+Veja as [notas da versão](docs/release_v1.2.0.md).
+
 As notas em `docs/release_v*.md` descrevem as respectivas versões publicadas.
 As contagens e procedimentos atuais estão neste README e nos documentos de
 fontes, automação e revisão do TCC; notas de releases anteriores são registros

@@ -2,15 +2,15 @@ name: Publicar release
 
 on:
   push:
-    paths:
-      - ".github/workflows/release.yml"
-      - "docs/release_v*.md"
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
         description: "Tag existente a publicar"
         required: true
-        default: "v1.1.0"
+        default: "v1.2.0"
+        type: string
 
 permissions:
   contents: write
@@ -19,16 +19,20 @@ jobs:
   publicar:
     runs-on: ubuntu-latest
     env:
-      RELEASE_TAG: ${{ inputs.tag || 'v1.1.0' }}
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - name: Obter repositorio
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
 
       - name: Verificar tag e artefatos
         run: |
-          git fetch --tags --force
+          [[ "${RELEASE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
           git rev-parse "refs/tags/${RELEASE_TAG}"
-          test -f docs/release_v1.1.0.md
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")"
+          test -f "docs/release_${RELEASE_TAG}.md"
           test -f output/pdf/Template_TCC_UEMG_revisado.pdf
 
       - name: Criar ou atualizar release
@@ -38,14 +42,22 @@ jobs:
           if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
             gh release edit "${RELEASE_TAG}" \
               --title "Pipeline de Dados Educacionais ${RELEASE_TAG}" \
-              --notes-file docs/release_v1.1.0.md
+              --notes-file "docs/release_${RELEASE_TAG}.md"
           else
             gh release create "${RELEASE_TAG}" \
               --verify-tag \
               --title "Pipeline de Dados Educacionais ${RELEASE_TAG}" \
-              --notes-file docs/release_v1.1.0.md
+              --notes-file "docs/release_${RELEASE_TAG}.md"
           fi
 
           gh release upload "${RELEASE_TAG}" \
             output/pdf/Template_TCC_UEMG_revisado.pdf \
             --clobber
+
+          for artefato in \
+            tcc/apresentacao/Defesa_TCC_evidencias_integradas.pptx \
+            tcc/apresentacao/Roteiro_impresso_defesa_TCC.docx; do
+            if test -f "${artefato}"; then
+              gh release upload "${RELEASE_TAG}" "${artefato}" --clobber
+            fi
+          done
