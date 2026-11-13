@@ -38,6 +38,11 @@
 \usepackage{nomencl} 			% Lista de simbolos
 \usepackage{graphicx}			% Inclusão de gráficos
 \usepackage{pdflscape}			% Páginas horizontais para figuras largas
+% Destinos de links nas páginas horizontais abrem a página inteira.
+% Evita coordenadas de âncora fora da página sem alterar sua composição.
+\apptocmd{\landscape}{\hypersetup{pdfview=Fit}}{}{
+  \PackageError{tcc}{Falha ao configurar os destinos em paisagem}{}
+}
 \usepackage{longtable}			% Tabelas extensas com quebra de página
 % ---
 

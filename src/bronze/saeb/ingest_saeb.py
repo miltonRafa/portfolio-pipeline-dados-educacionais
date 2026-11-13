@@ -3,6 +3,11 @@ import hashlib
 
 import pandas as pd
 
+if __package__:
+    from .contratos_saeb import validar_inventario_bronze
+else:
+    from contratos_saeb import validar_inventario_bronze
+
 
 RAW_DIR = Path("data/raw/saeb")
 BRONZE_DIR = Path("data/bronze/saeb")
@@ -720,32 +725,15 @@ def main():
             configuracao=configuracao,
         )
 
-    parquets = sorted(
-        BRONZE_DIR.glob(
-            "saeb_*.parquet"
-        )
-    )
-
-    nomes_esperados = {
+    nomes_esperados = [
         f"saeb_{ano}.parquet"
         for ano in anos_esperados
-    }
-
-    nomes_encontrados = {
-        arquivo.name
-        for arquivo in parquets
-    }
-
-    if nomes_encontrados != nomes_esperados:
-        raise RuntimeError(
-            "\nConjunto de Parquets do SAEB diferente do esperado.\n"
-            f"Esperados: {sorted(nomes_esperados)}\n"
-            f"Encontrados: {sorted(nomes_encontrados)}"
-        )
+    ]
+    tem_agregado = validar_inventario_bronze(BRONZE_DIR, nomes_esperados)
 
     print("=" * 110)
     print(
-        f"ARQUIVOS PROCESSADOS: {len(parquets)}"
+        f"ARQUIVOS HISTÓRICOS PROCESSADOS: {len(nomes_esperados)}"
     )
     print(
         f"ARQUIVOS ESPERADOS: {len(anos_esperados)}"
@@ -753,6 +741,8 @@ def main():
     print(
         "INGESTÃO DO SAEB CONCLUÍDA COM SUCESSO."
     )
+    if tem_agregado:
+        print("Agregado oficial 2023 preservado; validação na etapa específica.")
     print("=" * 110)
 
 

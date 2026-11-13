@@ -1,0 +1,24 @@
+table DIM_TEMPO
+	lineageTag: 4abc7d42-9fc1-46e9-bb34-efdfc22fb76d
+
+	column ANO
+		dataType: int64
+		formatString: 0
+		lineageTag: 265113e6-ede1-4bcb-970f-c0a0820561ba
+		summarizeBy: none
+		sourceColumn: ANO
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DIM_TEMPO = m
+		mode: import
+		source =
+				let
+				    Fonte = fnParquetGold("dim_tempo.parquet")
+				in
+				    Fonte
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

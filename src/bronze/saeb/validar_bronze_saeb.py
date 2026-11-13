@@ -1,7 +1,15 @@
 from pathlib import Path
+import argparse
 import hashlib
 
 import pandas as pd
+
+if __package__:
+    from .contratos_saeb import validar_inventario_bronze
+    from . import validar_bronze_saeb_resultados_2023 as agregado_2023
+else:
+    from contratos_saeb import validar_inventario_bronze
+    import validar_bronze_saeb_resultados_2023 as agregado_2023
 
 
 RAW_DIR = Path("data/raw/saeb")
@@ -415,7 +423,7 @@ def validar_arquivo(ano, configuracao):
     return len(df)
 
 
-def main():
+def main(*, exigir_agregado_2023=False):
     print("=" * 110)
     print("VALIDAÇÃO FINAL — BRONZE SAEB")
     print("=" * 110)
@@ -423,22 +431,16 @@ def main():
 
     anos_esperados = list(CONFIG.keys())
 
-    nomes_esperados = {
+    nomes_esperados = [
         configuracao["arquivo_bronze"]
         for configuracao in CONFIG.values()
-    }
+    ]
 
-    nomes_encontrados = {
-        arquivo.name
-        for arquivo in BRONZE_DIR.glob("saeb_*.parquet")
-    }
-
-    if nomes_encontrados != nomes_esperados:
-        raise RuntimeError(
-            "Conjunto de Parquets do SAEB diferente do esperado.\n"
-            f"Esperados: {sorted(nomes_esperados)}\n"
-            f"Encontrados: {sorted(nomes_encontrados)}"
-        )
+    tem_agregado = validar_inventario_bronze(
+        BRONZE_DIR,
+        nomes_esperados,
+        exigir_agregado_2023=exigir_agregado_2023,
+    )
 
     total_linhas = 0
 
@@ -463,14 +465,26 @@ def main():
     print("RESUMO")
     print("=" * 110)
     print()
-    print(f"Parquets encontrados: {len(nomes_encontrados)}")
-    print(f"Parquets esperados: {len(nomes_esperados)}")
+    print(f"Parquets históricos validados: {len(nomes_esperados)}")
     print(f"Total de linhas Bronze: {total_linhas:,}")
     print()
     print("TODAS AS 9 EDIÇÕES FORAM VALIDADAS.")
     print("BRONZE DO SAEB: OK")
     print()
 
+    if tem_agregado:
+        # Não basta aceitar o nome: confronte o conteúdo e a proveniência
+        # com o XLSB oficial, pelos controles específicos já existentes.
+        agregado_2023.main()
+    else:
+        print("Agregado oficial 2023 ainda não materializado; será exigido pela etapa específica.")
+
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Valida os históricos SAEB e o agregado oficial, se presente.")
+    parser.add_argument(
+        "--exigir-agregado-2023", action="store_true",
+        help="Falha também quando o agregado oficial de UF de 2023 está ausente.",
+    )
+    args = parser.parse_args()
+    main(exigir_agregado_2023=args.exigir_agregado_2023)

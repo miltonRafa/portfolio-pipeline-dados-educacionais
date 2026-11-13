@@ -1,11 +1,12 @@
 \chapter[Resultados e Discussão]{Resultados e Discussão}
 \label{cap:resultados}
 
-Este capítulo apresenta os resultados técnicos e analíticos obtidos com o pipeline e com os dashboards desenvolvidos no Power BI. Os resultados possuem caráter descritivo e exploratório. Assim, as comparações permitem observar padrões, diferenças territoriais e mudanças temporais, mas não sustentam, por si só, inferências causais.
+Este capítulo apresenta os resultados da integração e validação dos dados, seguidos pela análise descritiva dos indicadores nos dashboards do Power BI.
 
 \section{Estrutura final do modelo analítico}
+\label{sec:resultados-tecnicos}
 
-O primeiro resultado é a consolidação das cinco fontes em um modelo dimensional para consumo analítico. A Gold é composta por cinco tabelas fato e cinco dimensões, validadas antes da conexão com o Power BI. As cardinalidades finais são apresentadas na Tabela~\ref{tab:cardinalidades-gold}.
+As cinco fontes foram consolidadas em cinco tabelas fato e cinco dimensões, com as cardinalidades apresentadas na Tabela~\ref{tab:cardinalidades-gold}. A avaliação combinou reconstrução em diretórios isolados, conforme a Seção~\ref{sec:testes-reproducao}, e conferências específicas das tabelas e do modelo semântico.
 
 \begin{table}[H]
 \centering
@@ -25,10 +26,26 @@ O primeiro resultado é a consolidação das cinco fontes em um modelo dimension
 \texttt{FATO\_SAEB} & 972 \\ \hline
 \texttt{FATO\_PND} & 759.140 \\ \hline
 \end{tabular}
-\legend{Fonte: Validação da camada Gold do projeto (2026).}
+\legend{Fonte: Validação e reprodução da camada Gold, documentadas em 13 nov. 2026.}
 \end{table}
 
-Foram verificados esquema, domínios, cobertura temporal, unicidade no grão, correspondência entre Silver e Gold, chaves órfãs e coerência entre município e UF. A validação global retornou \texttt{MODELO DIMENSIONAL GOLD: OK}. Esse resultado não atesta a qualidade substantiva das fontes oficiais, mas demonstra que as regras implementadas e os contratos estruturais definidos pelo projeto foram satisfeitos.
+A aquisição em destino inicialmente vazio obteve os 54 insumos do manifesto: um arquivo IDEB, 17 de Rendimento, 17 de TDI, 16 de SAEB e três de PND, incluindo dicionários e arquivos auxiliares. A transferência e a extração foram concluídas em modo HTTP estrito, e os 54 hashes SHA-256 corresponderam ao manifesto. O resultado demonstra a obtenção efetiva dos insumos nas condições de ambiente descritas na Seção~\ref{sec:limitacoes-metodologicas}.
+
+A reconstrução a partir dos insumos recém-adquiridos concluiu as 35 etapas de transformação e validação até a Gold, sem camadas derivadas preexistentes. Uma segunda reconstrução utilizou cópias físicas da Raw local. Cada execução produziu 63 Parquets: 48 Bronze, cinco Silver e dez Gold. A comparação das tabelas históricas reconstruídas com as referências confirmou igualdade binária, de conteúdo, tipos, ordem das linhas e esquema. A classificação da Gold PND por nota geral foi objeto de validação específica, cujos resultados são apresentados na Seção 5.7.
+
+A cobertura observada nas fatos históricas corresponde ao recorte completo: 27 UFs e duas etapas nas 17 edições anuais de Rendimento e TDI e nas nove edições bienais de IDEB e SAEB. As três taxas de Rendimento e as duas disciplinas do SAEB explicam suas cardinalidades maiores. Não foram encontrados valores ausentes nas colunas das fatos. A PND permaneceu restrita a 2025, com 759.140 registros, 17 áreas e 750 municípios de aplicação. Essa completude é relativa ao recorte selecionado e não abrange todas as populações das fontes.
+
+Os cinco validadores Silver concluíram a comparação com as respectivas Bronzes: 2.754 observações de Rendimento, 918 de TDI, 486 de IDEB, 972 de SAEB e 759.140 registros da PND. Como exemplo de proveniência observada, a aprovação dos Anos Iniciais do Acre em 2007, de 78,3, está associada ao arquivo \texttt{TX RENDIMENTO UFS 2007.xls}, à linha de origem 36 e à coluna \texttt{col\_015}. Os campos de arquivo, linha e coluna materializam a correspondência especificada nos apêndices. Na PND, a identificação técnica usa a linha de origem; a Gold não conserva esse identificador, de modo que sua conferência depende da Silver e da comparação da projeção analítica, sem estabelecer unicidade de pessoas.
+
+No SAEB, os nove arquivos históricos e o agregado oficial de UF de 2023 foram validados. A Bronze agregada reproduziu a aba \texttt{Estados}, e o estrato público manteve 27 UFs e quatro campos de proficiência preenchidos. O confronto com o XLSB recém-adquirido confirmou 108/108 correspondências na Silver e na Gold, à precisão harmonizada de duas casas decimais.
+
+Uma comparação entre o agregado oficial e 108 recomposições de médias escolares ponderadas por presentes não encontrou coincidências a duas casas decimais. Esse resultado fundamenta a preservação do agregado publicado pelo INEP e se distingue da conferência de correspondência entre fonte e camadas.
+
+Os validadores Gold confirmaram a correspondência com a Silver, os esquemas, os domínios, as cardinalidades, a unicidade das dimensões e das fatos históricas, a ausência de chaves órfãs e a coerência município/UF. A classificação PND foi conferida pela regra por \texttt{NT\_GER}. Esses controles demonstram consistência estrutural e correspondência entre camadas no recorte definido.
+
+A suíte de software registrou 71 testes aprovados, incluindo contratos de entrada, dependências de execução e classificação PND. Os testes com dados fictícios exercitam cenários de falha e regressão; os validadores e as reconstruções isoladas fornecem evidência complementar sobre o processamento dos dados reais.
+
+No Power BI, a inspeção do modelo exportado confirmou a equivalência das 27 expressões DAX com o arquivo versionado, os 16 relacionamentos e as sete páginas. A conferência dos valores apresentados e dos recortes de filtro selecionados complementou essa análise de metadados. Os testes de filtros no Desktop foram informados pelo responsável pelo projeto e confrontados com a Gold; não constituem uma avaliação de todas as interações do relatório.
 
 \section{Panorama geral dos indicadores educacionais}
 
@@ -68,7 +85,7 @@ A página de aprendizagem e fluxo escolar combina duas formas de leitura. Na par
 
 Na Figura~\ref{fig:dashboard-aprendizagem-fluxo}, os gráficos históricos mostram aumento da aprovação ao longo do período e redução de TDI, reprovação e abandono em diferentes intensidades. Os gráficos de dispersão, por sua vez, permitem observar associação descritiva entre níveis mais elevados de aprovação e valores mais altos de IDEB ou proficiência em parte das UFs.
 
-O IDEB combina informações de desempenho em avaliações com dados de fluxo escolar em sua composição \cite{inep2024ideb}, o que torna esperada alguma proximidade entre aprovação e IDEB. \citeonline{dias2026avaliaccao} ressaltam que, embora o IDEB seja um instrumento relevante de diagnóstico e planejamento, sua condição de indicador sintético exige interpretação contextualizada, evitando reduzir a complexidade educacional a uma única medida. A dispersão entre aprovação e proficiência do SAEB, por sua vez, deve ser lida apenas como associação descritiva.
+O IDEB combina informações de desempenho em avaliações com dados de fluxo escolar em sua composição \cite[p.~1--2]{inep2007notatecnicaideb}, o que torna esperada alguma proximidade entre aprovação e IDEB. \citeonline{dias2026avaliaccao} ressaltam que, embora o IDEB seja um instrumento relevante de diagnóstico e planejamento, sua condição de indicador sintético exige interpretação contextualizada, evitando reduzir a complexidade educacional a uma única medida. A dispersão entre aprovação e proficiência do SAEB, por sua vez, deve ser lida apenas como associação descritiva.
 
 \begin{figure}[H]
   \centering
@@ -80,7 +97,7 @@ O IDEB combina informações de desempenho em avaliações com dados de fluxo es
 
 \section{Variação dos indicadores por Unidade Federativa}
 
-As medidas de variação comparam o último e o primeiro ano com dado disponível dentro do intervalo selecionado para cada indicador. Isso evita supor observações anuais onde a fonte é bienal. As unidades também diferem: IDEB é expresso em pontos do índice; Aprovação, em pontos percentuais; e SAEB, em pontos de proficiência.
+As variações expressam diferenças entre os extremos disponíveis do intervalo selecionado, nas unidades de cada indicador definidas na metodologia.
 
 Na Figura~\ref{fig:dashboard-variacao}, o intervalo selecionado é 2007--2023. Entre as barras visíveis, Ceará apresenta a maior variação de IDEB, com 2,6 pontos, e também a maior variação de proficiência em Língua Portuguesa, com 60 pontos, além de 51 pontos em Matemática. Na Taxa de Aprovação, Alagoas aparece com aumento de 27 pontos percentuais. Esses valores descrevem diferença entre extremos observados no período e não uma taxa de crescimento relativa.
 
@@ -100,7 +117,9 @@ A Figura~\ref{fig:dashboard-tdi} apresenta a TDI em quatro perspectivas: evoluç
 
 A evolução temporal passa de 34,4 no início da série exibida para 16,0 em 2023. Por etapa, os Anos Finais apresentam TDI média de 32,3, enquanto os Anos Iniciais apresentam 17,5. No ranking de médias por UF, Sergipe aparece com 37,2 e São Paulo com 8,6 nos extremos visíveis do painel. A variação territorial é negativa para todas as barras exibidas, indicando redução da distorção no intervalo considerado, embora em magnitudes diferentes entre as UFs.
 
-A redução é um resultado favorável sob a interpretação do indicador, pois a TDI expressa a proporção de estudantes em situação de distorção entre idade e série \cite{inep2026tdi}; portanto, valores menores indicam menor incidência dessa condição no recorte analisado. Contudo, a permanência de médias elevadas em determinadas UFs e a diferença entre etapas mostram que o problema não desaparece de forma homogênea. \citeonline{leal2025distorccao} discute a distorção idade-série como um fenômeno associado a fatores pedagógicos, sociais e estruturais, entre eles repetência e vulnerabilidade socioeconômica, aspectos que não são modelados pelo dashboard.
+A variação utiliza as médias não arredondadas das 54 observações em cada extremo: 34,372222\ldots\ em 2007 e 16,025926\ldots\ em 2023. A diferença de -18,346296\ldots\ pontos percentuais resulta em -18,3 na exibição, embora a subtração dos rótulos arredondados produza -18,4.
+
+A redução é um resultado favorável sob a interpretação do indicador, pois a TDI expressa a proporção de estudantes em situação de distorção entre idade e série \cite[p.~17]{inep2004dicionario}; portanto, valores menores indicam menor incidência dessa condição no recorte analisado. Contudo, a permanência de médias elevadas em determinadas UFs e a diferença entre etapas mostram que o problema não desaparece de forma homogênea. \citeonline{leal2025distorccao} discute a distorção idade-série como um fenômeno associado a fatores pedagógicos, sociais e estruturais, entre eles repetência e vulnerabilidade socioeconômica, aspectos que não são modelados pelo dashboard.
 
 \begin{figure}[H]
   \centering
@@ -112,24 +131,23 @@ A redução é um resultado favorável sob a interpretação do indicador, pois 
 
 \section{Resultados da PND 2025}
 
-A PND é analisada separadamente das séries históricas. A população analítica contém 759.140 registros. A classificação utilizada no projeto é baseada em \texttt{NT\_OBJ} e nos pontos de corte documentados para a PND \cite{inep2025notatecnica44,inep2026notatecnica1}. Aplicando essa regra à população analítica, obtiveram-se 265.932 não proficientes, 304.638 participantes no Padrão 1 e 188.570 no Padrão 2. A soma dos padrões 1 e 2 corresponde a 493.208 proficientes, equivalentes a 64,97\% da população analítica.
+A população analítica da PND contém 759.140 registros, classificados pela nota geral publicada \texttt{NT\_GER}, segundo a Nota Técnica nº 44/2025 \cite[p.~6, item 9.3 e Tabela 2]{inep2025notatecnica44}. São 265.915 registros Abaixo do Básico, 309.425 Básicos e 183.800 Adequados, correspondentes a 35,03\%, 40,76\% e 24,21\%. Básico ou Adequado reúne 493.225 registros, ou 64,97\%, sem representar aprovação ou habilitação.
 
-Na Figura~\ref{fig:dashboard-pnd}, os cartões arredondam esse resultado para 759 mil participantes e 65,0\% de proficientes. A Nota Objetiva Média exibida é 57,5 e a Nota Geral Média é 57,3. Os gráficos complementam a leitura com percentual de proficientes por área, percentual de proficientes por UF, nota objetiva média por área e distribuição dos três padrões por UF.
+O nível Básico concentra a maior parcela dos registros, enquanto o Adequado representa menos de um quarto da população selecionada. A agregação dos dois níveis superiores deve ser lida em conjunto com essa distribuição, pois o percentual de 64,97\% não indica desempenho homogêneo. As médias objetiva e geral são aproximadamente 57,5 e 57,34, respectivamente.
 
-A classificação deve ser interpretada nos termos dos pontos de corte aplicados à nota objetiva \cite{inep2025notatecnica44,inep2026notatecnica1}. Não se trata de aprovação ou reprovação e o limite de 50 pontos não representa simplesmente 50\% de acertos. A distribuição por UF e área também é descritiva da população analítica da prova. Como \texttt{UF\_PROVA} representa a Unidade Federativa de aplicação, diferenças territoriais não devem ser interpretadas automaticamente como características de residência dos participantes.
+Essas contagens descrevem os registros com presença válida e resultados completos selecionados pelo método, sem equivalência automática com a população integral divulgada pelo INEP ou com pessoas únicas. As distribuições territoriais referem-se ao local de aplicação da prova.
 
+A Figura~\ref{fig:dashboard-pnd} apresenta a distribuição dos níveis por nota geral e os recortes por UF e área. Nos filtros testados, Minas Gerais apresentou 64.904 registros, e Minas Gerais com Pedagogia, 39.917, em correspondência com a Gold. Esses recortes demonstram o detalhamento da população selecionada, sem atribuir suas diferenças a fatores explicativos externos.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.98\textwidth]{figs/dashboard-pnd-medias.png}
-  \caption{Resultados da Prova Nacional Docente de 2025.}
+  \caption{Resultados da PND 2025 por nota geral.}
   \label{fig:dashboard-pnd}
   \legend{Fonte: Elaborado pelo autor a partir do dashboard do projeto (2026).}
 \end{figure}
 
-\section{Limitações observadas nos resultados}
+\section{Alcance da interpretação dos resultados}
 
-Os resultados devem ser lidos em conjunto com as limitações metodológicas apresentadas na Seção~\ref{sec:limitacoes-metodologicas}. Em particular, as fontes diferem em periodicidade, nível de agregação e categorias históricas, enquanto a análise foi harmonizada principalmente por UF, rede pública e etapa de ensino.
+A leitura conjunta dos painéis evidencia trajetórias gerais de melhora acompanhadas de contrastes entre UFs e etapas. O panorama agregado resume essas trajetórias, enquanto rankings, variações e recortes por etapa revelam diferenças que uma única média não expressa. Por isso, cada resultado deve ser associado ao contexto de seleção exibido no relatório.
 
-Os cartões de média no Power BI calculam a média das linhas presentes no contexto de filtro. Quando todas as UFs estão selecionadas, esse valor não equivale automaticamente a um indicador nacional ponderado por matrícula ou por quantidade de participantes. Assim, os números gerais do dashboard devem ser interpretados como sínteses do modelo analítico construído, e não como substitutos de estatísticas nacionais oficiais produzidas com outros ponderadores.
-
-Por fim, nenhuma associação visual apresentada neste capítulo deve ser interpretada como relação de causa e efeito. O projeto foi desenhado para integração, rastreabilidade e exploração descritiva dos dados; investigações causais exigiriam desenho metodológico, variáveis de controle e técnicas estatísticas específicas.
+A melhora dos indicadores históricos também não elimina a persistência da distorção idade-série, especialmente nos Anos Finais. A PND acrescenta um retrato distinto do desempenho em uma avaliação docente, sem explicar a evolução escolar observada. O alcance desses resultados é descritivo, conforme as restrições da Seção~\ref{sec:limitacoes-metodologicas}; sua contribuição está em tornar os contrastes consultáveis e orientar perguntas para investigações específicas.

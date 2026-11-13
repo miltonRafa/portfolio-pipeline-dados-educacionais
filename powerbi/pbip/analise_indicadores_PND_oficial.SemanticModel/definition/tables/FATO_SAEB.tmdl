@@ -1,0 +1,66 @@
+table FATO_SAEB
+	lineageTag: 54409c62-10b8-48a1-80c2-09ceb7a1bcc2
+
+	column ANO
+		dataType: int64
+		formatString: 0
+		lineageTag: 2059d39f-2e93-4a0a-8e9f-ec628e15e487
+		summarizeBy: none
+		sourceColumn: ANO
+
+		annotation SummarizationSetBy = Automatic
+
+	column UF
+		dataType: string
+		lineageTag: 68c8a03d-3f1c-490c-98e8-cf927d9bda15
+		summarizeBy: none
+		sourceColumn: UF
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETAPA
+		dataType: string
+		lineageTag: 423687d4-8e76-410c-9394-20572e363913
+		summarizeBy: none
+		sourceColumn: ETAPA
+
+		annotation SummarizationSetBy = Automatic
+
+	column REDE
+		dataType: string
+		lineageTag: 43917edb-479f-4b93-a34e-183ed05a481d
+		summarizeBy: none
+		sourceColumn: REDE
+
+		annotation SummarizationSetBy = Automatic
+
+	column DISCIPLINA
+		dataType: string
+		lineageTag: 66293d8a-ee92-46b5-8a8d-f5f5b3b79315
+		summarizeBy: none
+		sourceColumn: DISCIPLINA
+
+		annotation SummarizationSetBy = Automatic
+
+	column PROFICIENCIA
+		dataType: double
+		lineageTag: d371aa8a-d9d5-4891-abbe-1ae25e9c0905
+		summarizeBy: sum
+		sourceColumn: PROFICIENCIA
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition FATO_SAEB = m
+		mode: import
+		source =
+				let
+				    Fonte = fnParquetGold("fato_saeb.parquet")
+				in
+				    Fonte
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

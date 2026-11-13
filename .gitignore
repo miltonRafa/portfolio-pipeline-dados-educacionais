@@ -22,8 +22,19 @@ __pycache__/
 # Artefatos temporarios
 tmp/
 
-# Referencias academicas mantidas apenas localmente
-referencias/*.pdf
+# Materiais internos e copias de trabalho
+docs/auditoria/
+docs/revisao_tcc_atualizacao_projeto.md
+instrucoes.md
+referencias.zip
+referencias/auditoria*.md
+referencias/downloads_referencias_*.md
+referencias/downloads_referencias_*.json
+powerbi/pbibAntigo/
+powerbi/pbip_aud04b/
+powerbi/pbix/*_copia.pbix
+**/.pbi/
+*.abf
 
 # Arquivos auxiliares gerados pelo LaTeX
 *.aux

@@ -159,18 +159,20 @@ Não é aplicado filtro \texttt{TP\_SIT\_DISC=555}. Os códigos 333, 335 e 336 p
 \begin{table}[H]
 \centering
 \scriptsize
-\caption{Classificação de desempenho derivada de \texttt{NT\_OBJ}.}
+\caption{Níveis de Desempenho Docente materializados a partir de \texttt{NT\_GER}.}
 \label{tab:ap-padrao-pnd}
 \renewcommand{\arraystretch}{1.15}
 \begin{tabular}{|p{5.0cm}|p{5.0cm}|p{4.0cm}|}
 \hline
 \textbf{Condição} & \textbf{Categoria materializada} & \textbf{Uso semântico} \\ \hline
-\texttt{NT\_OBJ < 50} & \texttt{NAO\_PROFICIENTE} & não proficiente \\ \hline
-\texttt{50 <= NT\_OBJ < 70} & \texttt{PADRAO\_1} & proficiente, padrão 1 \\ \hline
-\texttt{NT\_OBJ >= 70} & \texttt{PADRAO\_2} & proficiente, padrão 2 \\ \hline
+\texttt{NT\_GER < 50} & \texttt{ABAIXO\_DO\_BASICO} & Abaixo do Básico \\ \hline
+\texttt{50 <= NT\_GER < 70} & \texttt{BASICO} & Básico \\ \hline
+\texttt{NT\_GER >= 70} & \texttt{ADEQUADO} & Adequado \\ \hline
 \end{tabular}
-\legend{Fonte: Notas Técnicas oficiais do INEP citadas no corpo do trabalho.}
+\legend{Fonte: Nota Técnica nº 44/2025 do INEP, item 9.3/Tabela 2, p. 6.}
 \end{table}
+
+A coluna \texttt{PADRAO\_DESEMPENHO} utiliza exclusivamente a nota geral publicada. Ausências ou notas inválidas são rejeitadas pelo classificador compartilhado, sem categoria automática para valores nulos. A nomenclatura segue a Tabela 2 da Nota Técnica nº 44/2025; a Nota Técnica nº 4/2026 apresenta descritores pedagógicos complementares \cite{inep2025notatecnica44,inep2026notatecnica4}.
 
 \section{Marcadores de ausência e conversão numérica}
 
@@ -192,4 +194,4 @@ PND & nulo, vazio e literal \texttt{NA} & preservado quando publicado como resul
 \legend{Fonte: Elaborado pelo autor a partir das regras dos transformadores (2026).}
 \end{table}
 
-Não é realizada imputação. Na PND, valores negativos de \texttt{PROFICIENCIA} são preservados por pertencerem à escala publicada; nenhum limite inferior não documentado é imposto a \texttt{PROFICIENCIA}, \texttt{NT\_OBJ}, \texttt{NT\_DIS} ou \texttt{NT\_GER}.
+Não é realizada imputação. Na Silver PND, os resultados são preservados conforme a Bronze, incluindo valores negativos publicados de \texttt{PROFICIENCIA}. Na Gold, os validadores verificam adicionalmente \texttt{NT\_OBJ} entre 0 e 100 e \texttt{QT\_ACERTOS} não negativo. Esses controles não devem ser confundidos com limites inferiores aplicados indistintamente a todas as notas.

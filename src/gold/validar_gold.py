@@ -4,6 +4,11 @@ import sys
 import numpy as np
 import pandas as pd
 
+if __package__:
+    from .pnd.classificacao import PADROES_ESPERADOS as PADROES_PND, classificar_nivel_desempenho
+else:
+    from pnd.classificacao import PADROES_ESPERADOS as PADROES_PND, classificar_nivel_desempenho
+
 
 DIM_DIR = Path(
     "data/gold/dimensoes"
@@ -157,14 +162,6 @@ DISCIPLINAS_SAEB = {
     "MT",
 }
 
-PADROES_PND = {
-    "NAO_PROFICIENTE",
-    "PADRAO_1",
-    "PADRAO_2",
-}
-
-CORTE_BASICO_PND = 50.0
-CORTE_ADEQUADO_PND = 70.0
 
 
 def texto_limpo(
@@ -1069,25 +1066,6 @@ def validar_fato_saeb(
     return fato
 
 
-def classificar_pnd(
-    nt_obj,
-):
-    return pd.Series(
-        np.select(
-            [
-                nt_obj < CORTE_BASICO_PND,
-                nt_obj < CORTE_ADEQUADO_PND,
-            ],
-            [
-                "NAO_PROFICIENTE",
-                "PADRAO_1",
-            ],
-            default="PADRAO_2",
-        ),
-        index=nt_obj.index,
-        dtype="string",
-    )
-
 
 def validar_fato_pnd(
     fato,
@@ -1222,8 +1200,8 @@ def validar_fato_pnd(
             f"{nome}: QT_ACERTOS negativo."
         )
 
-    esperado = classificar_pnd(
-        nt_obj
+    esperado = classificar_nivel_desempenho(
+        fato["NT_GER"]
     )
 
     if not fato[
@@ -1616,19 +1594,19 @@ def main():
         .to_dict()
     )
 
-    proficientes = (
+    basico_ou_adequado = (
         contagens_pnd.get(
-            "PADRAO_1",
+            "BASICO",
             0,
         )
         + contagens_pnd.get(
-            "PADRAO_2",
+            "ADEQUADO",
             0,
         )
     )
 
-    percentual_proficientes = (
-        proficientes
+    percentual_basico_ou_adequado = (
+        basico_ou_adequado
         / len(
             fatos[
                 "FATO_PND"
@@ -1696,16 +1674,16 @@ def main():
         "PND — PADRÃO OFICIAL DE DESEMPENHO"
     )
     print(
-        f"Não proficientes: {contagens_pnd.get('NAO_PROFICIENTE', 0):,}"
+        f"Abaixo do Básico: {contagens_pnd.get('ABAIXO_DO_BASICO', 0):,}"
     )
     print(
-        f"Padrão 1: {contagens_pnd.get('PADRAO_1', 0):,}"
+        f"Básico: {contagens_pnd.get('BASICO', 0):,}"
     )
     print(
-        f"Padrão 2: {contagens_pnd.get('PADRAO_2', 0):,}"
+        f"Adequado: {contagens_pnd.get('ADEQUADO', 0):,}"
     )
     print(
-        f"Proficientes: {proficientes:,} ({percentual_proficientes:.2f}%)"
+        f"Básico ou Adequado: {basico_ou_adequado:,} ({percentual_basico_ou_adequado:.2f}%)"
     )
     print()
     print(

@@ -1,0 +1,38 @@
+table DIM_ETAPA
+	lineageTag: 0f1a7358-2c65-4899-9dc1-340622aed070
+
+	column ETAPA
+		dataType: string
+		lineageTag: f3c7b682-c8a0-49e5-b279-fcd6d3c92c9c
+		summarizeBy: none
+		sourceColumn: ETAPA
+		sortByColumn: ORDEM_ETAPA
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column ORDEM_ETAPA
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 83e906b9-3554-4e47-bc58-bee9cb3af9a8
+		summarizeBy: sum
+		sourceColumn: ORDEM_ETAPA
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DIM_ETAPA = m
+		mode: import
+		source =
+				let
+				    Fonte = fnParquetGold("dim_etapa.parquet")
+				in
+				    Fonte
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

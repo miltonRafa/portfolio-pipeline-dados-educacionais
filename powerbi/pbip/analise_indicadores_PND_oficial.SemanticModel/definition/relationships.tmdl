@@ -1,0 +1,64 @@
+relationship AutoDetected_9a3553c6-68bd-4e87-a0da-6ba93aabe7e4
+	fromColumn: FATO_RENDIMENTO.UF
+	toColumn: DIM_UF.UF
+
+relationship AutoDetected_68c2c7e3-f39a-4d3c-954e-a344d5e70432
+	fromColumn: FATO_TDI.UF
+	toColumn: DIM_UF.UF
+
+relationship AutoDetected_2dd02817-f7e4-468e-b0a3-bbfcf83eb5af
+	fromColumn: FATO_IDEB.UF
+	toColumn: DIM_UF.UF
+
+relationship AutoDetected_6300bde3-232f-4e6c-8910-bce32e5ac15a
+	fromColumn: FATO_SAEB.UF
+	toColumn: DIM_UF.UF
+
+relationship AutoDetected_08c7458e-a9c1-474a-8407-372ff9173541
+	fromColumn: FATO_RENDIMENTO.ANO
+	toColumn: DIM_TEMPO.ANO
+
+relationship AutoDetected_435010d6-3377-4b17-8eaa-0c5142a5984a
+	fromColumn: FATO_TDI.ANO
+	toColumn: DIM_TEMPO.ANO
+
+relationship AutoDetected_070fcdca-ca76-43bf-b77d-079ea2328aef
+	fromColumn: FATO_IDEB.ANO
+	toColumn: DIM_TEMPO.ANO
+
+relationship AutoDetected_b3a6effb-d09b-46e9-97e9-a1f45f500e94
+	fromColumn: FATO_SAEB.ANO
+	toColumn: DIM_TEMPO.ANO
+
+relationship AutoDetected_98c93583-21a6-4c66-a467-fc35642210d5
+	fromColumn: FATO_PND.ANO
+	toColumn: DIM_TEMPO.ANO
+
+relationship AutoDetected_ddff25cc-a94e-43d8-8809-cc0d664c4919
+	fromColumn: FATO_RENDIMENTO.ETAPA
+	toColumn: DIM_ETAPA.ETAPA
+
+relationship AutoDetected_8c793d92-d76b-40fb-8773-ab5a8b6f9816
+	fromColumn: FATO_TDI.ETAPA
+	toColumn: DIM_ETAPA.ETAPA
+
+relationship AutoDetected_c8864ef8-072a-44bf-abcc-50b966b38333
+	fromColumn: FATO_IDEB.ETAPA
+	toColumn: DIM_ETAPA.ETAPA
+
+relationship AutoDetected_3115ca0a-96dc-4b6f-9174-1723f3f2ed94
+	fromColumn: FATO_SAEB.ETAPA
+	toColumn: DIM_ETAPA.ETAPA
+
+relationship AutoDetected_967ebfb2-a3db-46dd-a85d-2eae6abe1493
+	fromColumn: FATO_PND.CO_GRUPO
+	toColumn: DIM_AREA_PND.CO_GRUPO
+
+relationship cd5e7fbe-3844-6c2e-03e2-2eade4d7d67a
+	fromColumn: FATO_PND.UF_PROVA
+	toColumn: DIM_UF.UF
+
+relationship 6a7f1728-42b6-a091-c671-6353edf46233
+	fromColumn: FATO_PND.CO_MUNICIPIO_PROVA
+	toColumn: DIM_MUNICIPIO.CO_MUNICIPIO
+

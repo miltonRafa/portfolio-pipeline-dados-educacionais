@@ -1505,3 +1505,40 @@ A etapa subsequente do pipeline e a camada Silver, responsavel pelas harmonizaco
 | 19/08/2026 | Incorporado ao RAW `Resultados_Saeb_2023_Brasil_Estados_Municipios.xlsb` e criada uma segunda Bronze de 2023 em granularidade UF, preservando separadamente a Bronze escolar existente |
 | 19/08/2026 | Bronze agregada oficial do SAEB 2023 validada integralmente: 1.553 linhas, 177 colunas, 274.881 celulas RAW ↔ Bronze e SHA-256 `e593b547f608b2377ac3d90491d02097326d3b276d4539a93201922466207a01` |
 | 19/08/2026 | Atualizado o total do SAEB Bronze para 10 Parquets e 84.800 linhas fisicas, mantendo 9 edicoes e duas fontes oficiais distintas em 2023 |
+
+## 22. Contrato de inventário SAEB corrigido — AUD-01 (13/11/2026)
+
+Os nove arquivos `saeb_AAAA.parquet` continuam obrigatórios, incluindo o
+arquivo escolar de 2023. O agregado oficial `saeb_2023_resultados_uf.parquet`
+é um segundo grupo, com granularidade UF, e não uma décima edição histórica.
+
+`src/bronze/saeb/contratos_saeb.py` define um inventário estrito compartilhado
+pela ingestão histórica e por seu validador: aceita somente os nove nomes
+históricos e o nome exato do agregado. Nomes alternativos, cópias, extensões
+indevidas, arquivos inesperados e diretórios nesse inventário são rejeitados.
+Nenhum arquivo histórico pode ser substituído pelo agregado.
+
+Na primeira construção, o agregado ainda não existe quando os históricos são
+validados; sua etapa de ingestão e validação vem em seguida e permanece
+obrigatória antes da Silver. Quando o agregado já existe, o validador histórico
+também chama o validador específico, conferindo conteúdo e proveniência contra
+o XLSB oficial. A ingestão histórica preserva o agregado existente.
+
+Para validar um conjunto Bronze completo, exigindo também o agregado:
+
+```powershell
+python src/bronze/saeb/validar_bronze_saeb.py --exigir-agregado-2023
+```
+
+Os controles históricos de hash, esquema, cabeçalho, metadados, granularidade,
+quantidade e sequência de linhas foram preservados. O agregado continua sendo
+conferido por reprodução integral da aba `Estados`, com 27 UFs e quatro
+proficiências preenchidas no estrato público (108 observações).
+
+A execução isolada também identificou uma dependência de ordenação na Gold:
+as dimensões, derivadas da Silver, precisam ser construídas e validadas antes
+dos validadores das fatos que verificam suas chaves. O orquestrador foi
+ajustado nessa ordem, mantendo as 35 etapas e as transformações existentes.
+
+Os testes de regressão do inventário estão em
+[`tests/test_saeb_bronze_contracts.py`](../tests/test_saeb_bronze_contracts.py).

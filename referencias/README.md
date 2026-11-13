@@ -1,19 +1,18 @@
 # Referencias academicas
 
-Esta pasta e reservada aos documentos consultados durante a elaboracao do TCC.
-Os arquivos PDF sao mantidos apenas no ambiente local e nao sao versionados,
-pois algumas obras podem possuir restricoes de redistribuicao e o conjunto
-acrescentaria aproximadamente 54,5 MB ao repositorio.
+Esta pasta reune copias dos documentos consultados durante a elaboracao do TCC,
+incluindo PDFs e paginas HTML em `paginas_web/`. Foi selecionada uma copia de
+cada documento, sem duplicatas. Os direitos de cada obra permanecem com seus
+respectivos titulares; a disponibilidade nesta pasta nao altera sua licenca.
 
 A identificacao bibliografica utilizada pelo trabalho esta no arquivo
 [`tcc/bib/abntex2-modelo-references.bib`](../tcc/bib/abntex2-modelo-references.bib).
 O arquivo `.bib` e a fonte de referencia para autoria, titulo, ano, instituicao,
 periodico, DOI e URL, conforme a disponibilidade desses elementos em cada obra.
 
-## Convencao local
+## Organizacao dos arquivos
 
-Quando uma copia local legalmente obtida for necessaria para consulta, o nome
-deve seguir o formato:
+Os documentos seguem, em geral, o formato:
 
 ```text
 Autor_Ano_Titulo_resumido.pdf
@@ -22,6 +21,11 @@ Autor_Ano_Titulo_resumido.pdf
 Os nomes devem usar caracteres ASCII, sem espacos, para manter compatibilidade
 com Windows, Git e Overleaf. A ausencia de um PDF nesta pasta nao impede a
 compilacao do TCC: o LaTeX utiliza apenas os registros do arquivo `.bib`.
+
+Os arquivos de Kimball/Ross (capitulo 1), Ferreira (50 paginas) e Gil
+(84 paginas) sao copias parciais. As paginas HTML preservam o conteudo de
+consulta e nao possuem paginacao impressa. A nota tecnica do IDEB e o
+dicionario de indicadores complementam as fontes metodologicas do INEP.
 
 ## Identificadores de acesso
 
@@ -73,10 +77,6 @@ sem presumir revisao por pares. A pagina editorial consultada de Moreno e
 Oliveira informa derivacao de TCC e adaptacao com apoio de ferramenta de IA;
 isso nao substitui a leitura critica do metodo e do trabalho original.
 
-As oito entradas institucionais do INEP e da Microsoft permanecem identificadas
+As entradas institucionais do INEP e da Microsoft permanecem identificadas
 pelas URLs oficiais no `.bib`. Sao as fontes de procedencia dos dados, das
 regras oficiais e da documentacao do software, conforme o assunto citado.
-
-Esta conferencia nao identificou quais obras foram retiradas antes da primeira
-versao Git: ela ja registra as mesmas 23 chaves atuais. Nao se deve inferir uma
-lista de exclusoes apenas da antiga contagem incorreta de 26 entradas.

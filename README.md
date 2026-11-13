@@ -36,10 +36,11 @@ separada da série histórica.
 - validações independentes por camada;
 - modelo dimensional com 5 dimensões e 5 fatos;
 - Power BI Desktop com medidas DAX versionadas;
-- documentação metodológica e auditorias por fonte;
-- auditoria específica do SAEB 2023;
-- classificação PND baseada em `NT_OBJ`, conforme documentação oficial usada no
-  projeto.
+- documentação metodológica e validadores por fonte;
+- validação específica do agregado oficial do SAEB 2023;
+- nível oficial de Desempenho Docente PND por `NT_GER`, aplicado ao recorte
+  analítico do projeto, conforme a [documentação da Gold](docs/camada_gold.md);
+- Power BI atualizado, com [medidas e relacionamentos documentados](docs/modelagem_power_bi.md).
 
 ## Arquitetura
 
@@ -65,7 +66,9 @@ flowchart LR
 
 O arquivo Power BI Desktop está em:
 
-[powerbi/pbix/analise dos indicadores da educação.pbix](powerbi/pbix/analise%20dos%20indicadores%20da%20educação.pbix)
+[powerbi/pbix/analise_indicadores_PND_oficial.pbix](powerbi/pbix/analise_indicadores_PND_oficial.pbix)
+
+[Projeto Power BI em formato PBIP](powerbi/pbip/analise_indicadores_PND_oficial.pbip)
 
 Para atualizar o relatório no seu computador, siga [a configuração do PBIX](#6-abrir-e-configurar-o-power-bi).
 
@@ -82,9 +85,13 @@ Prévia das páginas:
 </p>
 
 <p>
-  <img src="prints/PND%202025.png" width="48%" alt="PND 2025">
+  <img src="prints/PND%202025.png" width="48%" alt="PND 2025 — níveis por nota geral">
   <img src="prints/Metodologia%20e%20Dados.png" width="48%" alt="Metodologia e Dados">
 </p>
+
+A captura PND acima mostra os níveis por nota geral.
+A validação confirmou o modelo exportado e os resultados gerais,
+de MG e de MG com Pedagogia, sem certificar todas as interações possíveis.
 
 [Ver todas as páginas do dashboard](prints/)
 
@@ -247,7 +254,7 @@ data/gold/
     └── fato_tdi.parquet
 ```
 
-Abra `powerbi/pbix/analise dos indicadores da educação.pbix` no Power BI Desktop
+Abra `powerbi/pbix/analise_indicadores_PND_oficial.pbix` no Power BI Desktop
 e ajuste a origem para o local em que você clonou o projeto:
 
 1. Em **Página Inicial**, clique em **Transformar dados** para abrir o Editor do Power Query.
@@ -338,7 +345,6 @@ FATO_PND: 759.140
 - [docs/camada_gold.md](docs/camada_gold.md)
 - [docs/definicao_rede_publica.md](docs/definicao_rede_publica.md)
 - [docs/modelagem_power_bi.md](docs/modelagem_power_bi.md)
-- [docs/auditoria/](docs/auditoria/)
 - [Fonte LaTeX do TCC](tcc/README.md)
 - [PDF do TCC](output/pdf/Template_TCC_UEMG_revisado.pdf)
 - [Slides, roteiro e imagens de apoio da defesa](tcc/apresentacao/README.md)

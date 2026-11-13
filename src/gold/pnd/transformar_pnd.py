@@ -1,7 +1,11 @@
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
+
+if __package__:
+    from .classificacao import PADROES_ESPERADOS, classificar_nivel_desempenho
+else:
+    from classificacao import PADROES_ESPERADOS, classificar_nivel_desempenho
 
 
 SILVER_FILE = Path(
@@ -43,31 +47,7 @@ UFS_ESPERADAS = {
 AREAS_ESPERADAS = 17
 MUNICIPIOS_ESPERADOS = 750
 
-# Padrões oficiais da PND 2025.
-#
-# Referências:
-# INEP. Nota Técnica nº 1/2026/GPP/GAB-INEP.
-# Após a transposição dos pontos de corte definidos pelo Método de
-# Angoff Modificado para a escala de proficiência da TRI:
-#   Básico = 50
-#   Adequado = 70
-#
-# INEP. Nota Técnica nº 44/2025/CEI/CGGI/DAES-INEP.
-# A NT_OBJ é a transformação da proficiência objetiva estimada pela
-# TRI para a escala de divulgação 0–100, utilizando constantes
-# específicas por área ancoradas nos pontos de corte do Angoff.
-#
-# INEP. PND e Enade das Licenciaturas 2025 — apresentação de
-# resultados. São considerados proficientes os participantes com
-# desempenho igual ou superior a 50 pontos na escala de cada área.
-CORTE_BASICO = 50.0
-CORTE_ADEQUADO = 70.0
-
-PADROES_ESPERADOS = {
-    "NAO_PROFICIENTE",
-    "PADRAO_1",
-    "PADRAO_2",
-}
+# Classificacao compartilhada por NT_GER publicada (AUD-04B).
 
 
 def texto_limpo(
@@ -98,25 +78,6 @@ def validar_estrutura_silver(
             f"{faltantes}"
         )
 
-
-def classificar_padrao_desempenho(
-    nt_obj,
-):
-    return pd.Series(
-        np.select(
-            [
-                nt_obj < CORTE_BASICO,
-                nt_obj < CORTE_ADEQUADO,
-            ],
-            [
-                "NAO_PROFICIENTE",
-                "PADRAO_1",
-            ],
-            default="PADRAO_2",
-        ),
-        index=nt_obj.index,
-        dtype="string",
-    )
 
 
 def construir_fato(
@@ -195,14 +156,12 @@ def construir_fato(
         "int64"
     )
 
-    # A classificação oficial é derivada de NT_OBJ, e não de NT_GER
-    # ou NT_DIS. NT_OBJ é a escala objetiva ancorada nos pontos de
-    # corte definidos pelo Inep.
+    # Nivel oficial DD pela nota geral, incluindo a componente discursiva.
     fato[
         "PADRAO_DESEMPENHO"
-    ] = classificar_padrao_desempenho(
+    ] = classificar_nivel_desempenho(
         fato[
-            "NT_OBJ"
+            "NT_GER"
         ]
     )
 
@@ -359,9 +318,9 @@ def validar_fato(
             f"Atual={sorted(padroes)}"
         )
 
-    esperado = classificar_padrao_desempenho(
+    esperado = classificar_nivel_desempenho(
         fato[
-            "NT_OBJ"
+            "NT_GER"
         ]
     )
 
@@ -372,7 +331,7 @@ def validar_fato(
     ):
         raise RuntimeError(
             "PADRAO_DESEMPENHO não corresponde aos cortes oficiais "
-            "aplicados sobre NT_OBJ."
+            "aplicados sobre NT_GER."
         )
 
 
@@ -454,19 +413,19 @@ def main():
         .to_dict()
     )
 
-    proficientes = int(
+    basico_ou_adequado = int(
         fato[
             "PADRAO_DESEMPENHO"
         ].isin(
             [
-                "PADRAO_1",
-                "PADRAO_2",
+                "BASICO",
+                "ADEQUADO",
             ]
         ).sum()
     )
 
-    percentual_proficientes = (
-        proficientes
+    percentual_basico_ou_adequado = (
+        basico_ou_adequado
         / len(
             fato
         )
@@ -497,23 +456,23 @@ def main():
     )
     print()
     print(
-        "PADRÃO OFICIAL DE DESEMPENHO — NT_OBJ"
+        "NÍVEL DE DESEMPENHO DOCENTE — NT_GER"
     )
     print(
-        f"Não proficiente (NT_OBJ < 50): "
-        f"{contagens.get('NAO_PROFICIENTE', 0):,}"
+        f"Abaixo do Básico (NT_GER < 50): "
+        f"{contagens.get('ABAIXO_DO_BASICO', 0):,}"
     )
     print(
-        f"Padrão 1 (50 <= NT_OBJ < 70): "
-        f"{contagens.get('PADRAO_1', 0):,}"
+        f"Básico (50 <= NT_GER < 70): "
+        f"{contagens.get('BASICO', 0):,}"
     )
     print(
-        f"Padrão 2 (NT_OBJ >= 70): "
-        f"{contagens.get('PADRAO_2', 0):,}"
+        f"Adequado (NT_GER >= 70): "
+        f"{contagens.get('ADEQUADO', 0):,}"
     )
     print(
-        f"Proficientes (Padrão 1 + Padrão 2): "
-        f"{proficientes:,} ({percentual_proficientes:.2f}%)"
+        f"Básico ou Adequado: "
+        f"{basico_ou_adequado:,} ({percentual_basico_ou_adequado:.2f}%)"
     )
     print()
     print(

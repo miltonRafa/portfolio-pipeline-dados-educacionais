@@ -3,6 +3,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+if __package__:
+    from .classificacao import PADROES_ESPERADOS, classificar_nivel_desempenho
+else:
+    from classificacao import PADROES_ESPERADOS, classificar_nivel_desempenho
+
 
 SILVER_FILE = Path(
     "data/silver/pnd/pnd_2025.parquet"
@@ -61,14 +66,6 @@ COLUNAS_RESULTADO = [
     "QT_ACERTOS",
 ]
 
-CORTE_BASICO = 50.0
-CORTE_ADEQUADO = 70.0
-
-PADROES_ESPERADOS = {
-    "NAO_PROFICIENTE",
-    "PADRAO_1",
-    "PADRAO_2",
-}
 
 
 def texto_limpo(
@@ -80,25 +77,6 @@ def texto_limpo(
         .str.strip()
     )
 
-
-def classificar_padrao_desempenho(
-    nt_obj,
-):
-    return pd.Series(
-        np.select(
-            [
-                nt_obj < CORTE_BASICO,
-                nt_obj < CORTE_ADEQUADO,
-            ],
-            [
-                "NAO_PROFICIENTE",
-                "PADRAO_1",
-            ],
-            default="PADRAO_2",
-        ),
-        index=nt_obj.index,
-        dtype="string",
-    )
 
 
 def preparar_base(
@@ -399,15 +377,15 @@ def comparar_com_silver(
 def validar_padrao_oficial(
     gold,
 ):
-    nt_obj = pd.to_numeric(
+    nt_ger = pd.to_numeric(
         gold[
-            "NT_OBJ"
+            "NT_GER"
         ],
         errors="raise",
     )
 
-    esperado = classificar_padrao_desempenho(
-        nt_obj
+    esperado = classificar_nivel_desempenho(
+        nt_ger
     )
 
     atual = texto_limpo(
@@ -426,7 +404,7 @@ def validar_padrao_oficial(
                 ),
                 [
                     "CO_GRUPO",
-                    "NT_OBJ",
+                    "NT_GER",
                     "PADRAO_DESEMPENHO",
                 ],
             ]
@@ -435,7 +413,7 @@ def validar_padrao_oficial(
 
         raise RuntimeError(
             "PADRAO_DESEMPENHO diverge dos cortes oficiais "
-            "aplicados a NT_OBJ.\n"
+            "aplicados a NT_GER.\n"
             + divergencias.to_string(
                 index=False
             )
@@ -776,19 +754,19 @@ def main():
         .to_dict()
     )
 
-    proficientes = int(
+    basico_ou_adequado = int(
         gold[
             "PADRAO_DESEMPENHO"
         ].isin(
             [
-                "PADRAO_1",
-                "PADRAO_2",
+                "BASICO",
+                "ADEQUADO",
             ]
         ).sum()
     )
 
-    percentual_proficientes = (
-        proficientes
+    percentual_basico_ou_adequado = (
+        basico_ou_adequado
         / len(
             gold
         )
@@ -825,20 +803,20 @@ def main():
         "PADRÃO OFICIAL DE DESEMPENHO — VALIDADO"
     )
     print(
-        f"Não proficiente (NT_OBJ < 50): "
-        f"{contagens.get('NAO_PROFICIENTE', 0):,}"
+        f"Abaixo do Básico (NT_GER < 50): "
+        f"{contagens.get('ABAIXO_DO_BASICO', 0):,}"
     )
     print(
-        f"Padrão 1 (50 <= NT_OBJ < 70): "
-        f"{contagens.get('PADRAO_1', 0):,}"
+        f"Básico (50 <= NT_GER < 70): "
+        f"{contagens.get('BASICO', 0):,}"
     )
     print(
-        f"Padrão 2 (NT_OBJ >= 70): "
-        f"{contagens.get('PADRAO_2', 0):,}"
+        f"Adequado (NT_GER >= 70): "
+        f"{contagens.get('ADEQUADO', 0):,}"
     )
     print(
-        f"Proficientes (Padrão 1 + Padrão 2): "
-        f"{proficientes:,} ({percentual_proficientes:.2f}%)"
+        f"Básico ou Adequado: "
+        f"{basico_ou_adequado:,} ({percentual_basico_ou_adequado:.2f}%)"
     )
     print(
         "NT_OBJ na escala oficial 0–100: OK"
@@ -877,7 +855,7 @@ def main():
         "PROFICIENCIA negativa é preservada quando publicada pela fonte."
     )
     print(
-        "A classificação oficial usa NT_OBJ; NT_GER e NT_DIS permanecem medidas descritivas."
+        "O nível DD usa NT_GER publicada; NT_OBJ e NT_DIS são preservadas."
     )
     print()
     print(

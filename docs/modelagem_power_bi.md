@@ -367,110 +367,99 @@ CALCULATE(
 
 ### 6.5 PND 2025
 
-Cada linha da `FATO_PND` representa um registro individual válido da prova.
-
-Por isso, a quantidade de participantes no contexto selecionado é calculada por
-contagem de linhas:
-
-```DAX
-Participantes PND =
-COUNTROWS(FATO_PND)
-```
-
-```DAX
-Nota Objetiva Média =
-AVERAGE(FATO_PND[NT_OBJ])
-```
-
-```DAX
-Nota Discursiva Média =
-AVERAGE(FATO_PND[NT_DIS])
-```
-
-```DAX
-Nota Geral Média =
-AVERAGE(FATO_PND[NT_GER])
-```
-
-```DAX
-Média de Acertos =
-AVERAGE(FATO_PND[QT_ACERTOS])
-```
+AUD-04B (13/11/2026): `PADRAO_DESEMPENHO` agora classifica a nota geral publicada
+`NT_GER`. A coluna e o esquema permanecem; seus valores passam a
+`ABAIXO_DO_BASICO`, `BASICO` e `ADEQUADO`. `Registros analisados — PND` continua contando
+registros analíticos por COUNTROWS, sem deduplicação ou prova de pessoas únicas.
 
 ### 6.6 Padrão oficial de desempenho
 
-A Gold materializa `PADRAO_DESEMPENHO` com base nos pontos de corte oficiais do
-Inep aplicados a `NT_OBJ`:
+A Nota Técnica 44/2025, item 9.3/Tabela 2 (p. 6), define Abaixo do Básico
+para `NT_GER < 50`, Básico para `50 <= NT_GER < 70` e Adequado para `NT_GER >= 70`.
+A classificação usa a nota publicada, sem recalcular TRI ou nota geral. A Nota
+4/2026, itens 4.2–4.4, complementa os descritores com a nomenclatura Não
+Proficiente, Proficiente Básico e Proficiente Adequado; os rótulos do projeto
+seguem a Tabela 2 da Nota 44. A soma Básico ou Adequado é descritiva, sem inferir
+aprovação ou habilitação.
 
-```text
-NT_OBJ < 50           → NAO_PROFICIENTE
-50 <= NT_OBJ < 70     → PADRAO_1
-NT_OBJ >= 70          → PADRAO_2
-```
+**Estado de implantação:** Gold e atualização manual do Power BI validadas
+nos artefatos e recortes registrados. A nova exportação TMDL corresponde às
+27 medidas versionadas, e a captura real mostra os níveis por nota geral.
+O [projeto PBIP](../powerbi/pbip/analise_indicadores_PND_oficial.pbip)
+disponibiliza as definições do modelo e do relatório. A validação realizada
+abrange os resultados gerais e os filtros de MG e de MG com Pedagogia;
+não certifica todas as interações.
 
 ```DAX
-Não Proficientes =
+Registros analisados — PND =
+COUNTROWS(FATO_PND)
+
+Nota Objetiva Média =
+AVERAGE(FATO_PND[NT_OBJ])
+
+Nota Discursiva Média =
+AVERAGE(FATO_PND[NT_DIS])
+
+Nota Geral Média =
+AVERAGE(FATO_PND[NT_GER])
+
+Média de Acertos =
+AVERAGE(FATO_PND[QT_ACERTOS])
+
+Abaixo do Básico =
 CALCULATE(
     COUNTROWS(FATO_PND),
-    FATO_PND[PADRAO_DESEMPENHO] = "NAO_PROFICIENTE"
+    FATO_PND[PADRAO_DESEMPENHO] = "ABAIXO_DO_BASICO"
 )
-```
 
-```DAX
-Padrão 1 =
+Básico =
 CALCULATE(
     COUNTROWS(FATO_PND),
-    FATO_PND[PADRAO_DESEMPENHO] = "PADRAO_1"
+    FATO_PND[PADRAO_DESEMPENHO] = "BASICO"
 )
-```
 
-```DAX
-Padrão 2 =
+Adequado =
 CALCULATE(
     COUNTROWS(FATO_PND),
-    FATO_PND[PADRAO_DESEMPENHO] = "PADRAO_2"
+    FATO_PND[PADRAO_DESEMPENHO] = "ADEQUADO"
 )
-```
 
-```DAX
-Proficientes =
-[Padrão 1] + [Padrão 2]
-```
+Básico ou Adequado =
+[Básico] + [Adequado]
 
-```DAX
-% Proficientes =
+% Básico ou Adequado =
 DIVIDE(
-    [Proficientes],
-    [Participantes PND]
+    [Básico ou Adequado],
+    [Registros analisados — PND]
 )
-```
 
-```DAX
-% Não Proficientes =
+% Abaixo do Básico =
 DIVIDE(
-    [Não Proficientes],
-    [Participantes PND]
+    [Abaixo do Básico],
+    [Registros analisados — PND]
 )
-```
 
-```DAX
-% Padrão 1 =
+% Básico =
 DIVIDE(
-    [Padrão 1],
-    [Participantes PND]
+    [Básico],
+    [Registros analisados — PND]
 )
-```
 
-```DAX
-% Padrão 2 =
+% Adequado =
 DIVIDE(
-    [Padrão 2],
-    [Participantes PND]
+    [Adequado],
+    [Registros analisados — PND]
 )
 ```
 
-Os percentuais não são materializados na Gold porque dependem do contexto de
-filtro aplicado no Power BI.
+As quatro razões foram conferidas com duas casas decimais em percentual. O total
+deve ter título visual "Registros analíticos PND". Na população atual: 265.915
+Abaixo do Básico, 309.425 Básicos e 183.800 Adequados, total 759.140; Básico ou
+Adequado soma 493.225 (64,9715467503%). A população é o recorte do projeto,
+não a publicação oficial integral. Os critérios e testes estão documentados na
+[camada Gold](camada_gold.md) e em
+[`tests/test_pnd_classificacao.py`](../tests/test_pnd_classificacao.py).
+
 
 ### 6.7 Medida de apoio
 
@@ -679,10 +668,10 @@ As medidas abaixo são razões entre 0 e 1 e devem ser formatadas no Power BI co
 percentual:
 
 ```text
-% Proficientes
-% Não Proficientes
-% Padrão 1
-% Padrão 2
+% Básico ou Adequado
+% Abaixo do Básico
+% Básico
+% Adequado
 ```
 
 IDEB e SAEB devem ser exibidos com uma ou duas casas decimais.

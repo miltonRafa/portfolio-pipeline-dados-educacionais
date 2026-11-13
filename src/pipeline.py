@@ -46,6 +46,8 @@ SILVER_STEPS = [
 ]
 
 GOLD_BUILD_STEPS = [
+    Step("Gold Dimensoes - transformacao", "src/gold/dimensoes/transformar_dimensoes.py"),
+    Step("Gold Dimensoes - validacao", "src/gold/dimensoes/validar_dimensoes.py"),
     Step("Gold Rendimento - fato", "src/gold/rendimento/transformar_rendimento.py"),
     Step("Gold Rendimento - validacao", "src/gold/rendimento/validar_fato_rendimento.py"),
     Step("Gold TDI - fato", "src/gold/tdi/transformar_tdi.py"),
@@ -56,8 +58,6 @@ GOLD_BUILD_STEPS = [
     Step("Gold SAEB - validacao", "src/gold/saeb/validar_fato_saeb.py"),
     Step("Gold PND - fato", "src/gold/pnd/transformar_pnd.py"),
     Step("Gold PND - validacao", "src/gold/pnd/validar_fato_pnd.py"),
-    Step("Gold Dimensoes - transformacao", "src/gold/dimensoes/transformar_dimensoes.py"),
-    Step("Gold Dimensoes - validacao", "src/gold/dimensoes/validar_dimensoes.py"),
 ]
 
 VALIDATE_GOLD_STEPS = [

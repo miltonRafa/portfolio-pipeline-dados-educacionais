@@ -50,9 +50,11 @@ CALCULATE(
     FATO_SAEB[DISCIPLINA] = "MT"
 )
 
-// PND 2025
+// PND 2025 — AUD-04B: NT_GER publicada, Nota 44/2025, item 9.3/Tabela 2.
+// Definições destinadas à atualização MANUAL do Desktop; PBIX/PBIP preservados.
+// Registros analisados — PND conta registros analíticos, sem deduplicação de pessoas.
 
-Participantes PND =
+Registros analisados — PND =
 COUNTROWS(FATO_PND)
 
 Nota Objetiva Média =
@@ -67,49 +69,49 @@ AVERAGE(FATO_PND[NT_GER])
 Média de Acertos =
 AVERAGE(FATO_PND[QT_ACERTOS])
 
-Não Proficientes =
+Abaixo do Básico =
 CALCULATE(
     COUNTROWS(FATO_PND),
-    FATO_PND[PADRAO_DESEMPENHO] = "NAO_PROFICIENTE"
+    FATO_PND[PADRAO_DESEMPENHO] = "ABAIXO_DO_BASICO"
 )
 
-Padrão 1 =
+Básico =
 CALCULATE(
     COUNTROWS(FATO_PND),
-    FATO_PND[PADRAO_DESEMPENHO] = "PADRAO_1"
+    FATO_PND[PADRAO_DESEMPENHO] = "BASICO"
 )
 
-Padrão 2 =
+Adequado =
 CALCULATE(
     COUNTROWS(FATO_PND),
-    FATO_PND[PADRAO_DESEMPENHO] = "PADRAO_2"
+    FATO_PND[PADRAO_DESEMPENHO] = "ADEQUADO"
 )
 
-Proficientes =
-[Padrão 1] + [Padrão 2]
+Básico ou Adequado =
+[Básico] + [Adequado]
 
-% Proficientes =
+% Básico ou Adequado =
 DIVIDE(
-    [Proficientes],
-    [Participantes PND]
+    [Básico ou Adequado],
+    [Registros analisados — PND]
 )
 
-% Não Proficientes =
+% Abaixo do Básico =
 DIVIDE(
-    [Não Proficientes],
-    [Participantes PND]
+    [Abaixo do Básico],
+    [Registros analisados — PND]
 )
 
-% Padrão 1 =
+% Básico =
 DIVIDE(
-    [Padrão 1],
-    [Participantes PND]
+    [Básico],
+    [Registros analisados — PND]
 )
 
-% Padrão 2 =
+% Adequado =
 DIVIDE(
-    [Padrão 2],
-    [Participantes PND]
+    [Adequado],
+    [Registros analisados — PND]
 )
 
 // APOIO PARA PÁGINAS QUE COMPARAM IDEB E SAEB

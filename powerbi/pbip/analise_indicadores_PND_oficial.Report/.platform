@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "analise_indicadores_PND_oficial"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "a56ebb23-7d42-4bf1-8817-e379e3132f6b"
+  }
+}

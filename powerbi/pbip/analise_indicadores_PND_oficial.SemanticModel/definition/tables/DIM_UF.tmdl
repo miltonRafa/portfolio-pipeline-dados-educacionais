@@ -1,0 +1,23 @@
+table DIM_UF
+	lineageTag: 423ec16e-66f1-4e60-b881-26e2b8147203
+
+	column UF
+		dataType: string
+		lineageTag: 52045a3e-8b29-41ac-85d0-4583b0620be0
+		summarizeBy: none
+		sourceColumn: UF
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DIM_UF = m
+		mode: import
+		source =
+				let
+				    Fonte = fnParquetGold("dim_uf.parquet")
+				in
+				    Fonte
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
