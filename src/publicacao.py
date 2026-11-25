@@ -141,6 +141,47 @@ def verify(root, required, allow_previous=False):
     return manifest
 
 
+def archived_pnd_dictionary(root, publication, relative_path):
+    root = Path(root)
+    relative_path = Path(relative_path)
+    identifier = publication.get("id", "")
+    insumos = publication.get("insumos")
+    if (relative_path.is_absolute() or ".." in relative_path.parts
+            or not isinstance(identifier, str) or len(identifier) != 32
+            or any(c not in "0123456789abcdef" for c in identifier)):
+        raise RuntimeError("Referência inválida ao dicionário PND arquivado.")
+    if not isinstance(insumos, dict):
+        raise RuntimeError("Inventário de insumos da publicação inválido.")
+
+    run = root / "data/execucoes" / identifier
+    archived_manifest = run / "fontes_dados.csv"
+    if not archived_manifest.is_file():
+        raise FileNotFoundError(f"Manifesto Raw arquivado ausente: {archived_manifest}")
+    if digest(archived_manifest) != publication.get("manifesto_raw"):
+        raise RuntimeError("Hash do manifesto Raw arquivado divergente.")
+
+    raw_path = (Path("data/raw") / relative_path).as_posix()
+    with archived_manifest.open(encoding="utf-8-sig", newline="") as stream:
+        matches = [row for row in csv.DictReader(stream)
+                   if row.get("caminho_local") == raw_path]
+    if len(matches) != 1:
+        raise RuntimeError(f"Manifesto Raw arquivado não identifica unicamente {raw_path}.")
+
+    expected_hash = matches[0].get("sha256", "")
+    published_hash = insumos.get(relative_path.as_posix())
+    valid_hash = (isinstance(expected_hash, str) and len(expected_hash) == 64
+                  and all(c in "0123456789abcdef" for c in expected_hash))
+    if not valid_hash or published_hash != expected_hash:
+        raise RuntimeError("Hash do dicionário diverge entre os manifestos arquivados.")
+
+    dictionary = run / "trabalho/data/raw" / relative_path
+    if not dictionary.is_file():
+        raise FileNotFoundError(f"Dicionário PND arquivado ausente: {dictionary}")
+    if digest(dictionary) != expected_hash:
+        raise RuntimeError("Hash do dicionário PND arquivado divergente.")
+    return dictionary.resolve()
+
+
 def execute(root, command, steps, required, run_step):
     root = Path(root)
     with execution_lock(root):

@@ -6,6 +6,7 @@ import pandas as pd
 
 if not __package__:  # Execução direta pelo pipeline.
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from src import referencias_pnd
 from src.referencias_pnd import validar_dim_area_oficial, validar_intervalos_oficiais
 
 
@@ -1707,7 +1708,13 @@ if __name__ == "__main__":
     parser.add_argument("--structure-only", action="store_true",
                         help="Somente estrutura; nao certifica publicacao nem atualidade.")
     parser.add_argument("--last-valid", action="store_true")
+    parser.add_argument("--pnd-dictionary", type=Path,
+                        help="Usa um dicionario PND explicitamente selecionado e verificado.")
     args = parser.parse_args()
+    if args.pnd_dictionary is not None:
+        if not args.pnd_dictionary.is_file():
+            raise FileNotFoundError(f"Dicionário PND informado ausente: {args.pnd_dictionary}")
+        referencias_pnd.DICIONARIO = args.pnd_dictionary
     if args.structure_only:
         print("SOMENTE ESTRUTURA: esta execucao nao certifica uma publicacao.")
         main()
@@ -1718,5 +1725,9 @@ if __name__ == "__main__":
                     + VALIDATE_GOLD_STEPS if "validar_" in s.script]
         with publicacao.execution_lock(Path.cwd()):
             publicacao.recover(Path.cwd())
-            publicacao.verify(Path.cwd(), required, args.last_valid)
+            publication = publicacao.verify(Path.cwd(), required, args.last_valid)
+            if args.last_valid:
+                referencias_pnd.DICIONARIO = publicacao.archived_pnd_dictionary(
+                    Path.cwd(), publication, referencias_pnd.DICIONARIO_RELATIVE
+                )
             main()

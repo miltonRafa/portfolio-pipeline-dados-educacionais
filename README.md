@@ -426,8 +426,13 @@ da publicação, sua atualidade em relação à Raw e o estado da última tentat
 Uma execução bem-sucedida de bronze ou silver não substitui nem invalida uma Gold
 atual. Após falha ou mudança dos insumos, a opção --last-valid permite verificar
 explicitamente a publicação anterior, identificando-a como desatualizada quando
-aplicável. Conjuntos legados sem manifesto precisam de uma execução validada para
-receber certificação. Para diagnóstico estritamente estrutural, use
+aplicável. Nessa modalidade, os validadores PND usam o dicionário do snapshot Raw
+arquivado daquela publicação, após conferir sua identidade com o manifesto Raw
+arquivado e o inventário publicado. Se o arquivo estiver ausente ou divergente,
+a verificação falha; não há fallback para o dicionário Raw atual. Sem
+--last-valid, a validação continua usando a Raw atual. Conjuntos legados sem
+manifesto precisam de uma execução validada para receber certificação. Para
+diagnóstico estritamente estrutural, use
 python src/gold/validar_gold.py --structure-only.
 
 A troca usa renomeações de diretórios no mesmo volume e um diário de recuperação.

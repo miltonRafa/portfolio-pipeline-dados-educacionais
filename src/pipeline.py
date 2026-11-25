@@ -149,8 +149,16 @@ def main() -> None:
     if args.command == "validate-gold" and not args.dry_run:
         with publicacao.execution_lock(ROOT):
             publicacao.recover(ROOT)
-            publicacao.verify(ROOT, required, args.last_valid)
-            run_step(VALIDATE_GOLD_STEPS[0], False, "--structure-only")
+            publication = publicacao.verify(ROOT, required, args.last_valid)
+            validation_args = ["--structure-only"]
+            if args.last_valid:
+                from src.referencias_pnd import DICIONARIO_RELATIVE
+
+                dictionary = publicacao.archived_pnd_dictionary(
+                    ROOT, publication, DICIONARIO_RELATIVE
+                )
+                validation_args.extend(["--pnd-dictionary", str(dictionary)])
+            run_step(VALIDATE_GOLD_STEPS[0], False, *validation_args)
         return
     if args.dry_run:
         if args.command == "full":

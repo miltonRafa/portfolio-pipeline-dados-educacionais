@@ -5,7 +5,8 @@ import re
 import pandas as pd
 
 
-DICIONARIO = Path("data/raw/pnd/Dicionário_arquivos_variáveis_PND_2025.xlsx")
+DICIONARIO_RELATIVE = Path("pnd/Dicionário_arquivos_variáveis_PND_2025.xlsx")
+DICIONARIO = Path("data/raw") / DICIONARIO_RELATIVE
 
 
 def ler_areas_oficiais():

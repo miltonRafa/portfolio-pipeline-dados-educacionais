@@ -1,13 +1,15 @@
 """RAW-02: falhas isoladas, publicação e recuperação sem insumos externos."""
 import csv
 import shutil
+import sys
 import tempfile
 import unittest
+from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from src import publicacao as pub
+from src import pipeline, publicacao as pub, referencias_pnd
 
 
 class PublicacaoTest(unittest.TestCase):
@@ -43,9 +45,125 @@ class PublicacaoTest(unittest.TestCase):
     def verify(self, previous=False):
         return pub.verify(self.root, self.required, previous)
 
+    def publish_with_pnd_dictionary(self):
+        relative = referencias_pnd.DICIONARIO_RELATIVE
+        dictionary = self.root / "data/raw" / relative
+        dictionary.parent.mkdir(parents=True)
+        dictionary.write_bytes(b"published PND dictionary")
+        manifest_path = self.root / "docs/fontes_dados.csv"
+        with manifest_path.open(encoding="utf-8", newline="") as stream:
+            rows = list(csv.DictReader(stream))
+        rows.append({
+            "caminho_local": (Path("data/raw") / relative).as_posix(),
+            "sha256": pub.digest(dictionary),
+        })
+        with manifest_path.open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=["caminho_local", "sha256"])
+            writer.writeheader()
+            writer.writerows(rows)
+        self.execute()
+        publication = self.verify(previous=True)
+        archived = (self.root / "data/execucoes" / publication["id"]
+                    / "trabalho/data/raw" / relative)
+        return publication, dictionary, archived
+
     def test_success(self):
         self.execute()
         self.assertEqual(self.verify()["estado"], "concluida")
+
+    def test_published_pnd_dictionary_is_verified_against_both_manifests(self):
+        publication, dictionary, archived = self.publish_with_pnd_dictionary()
+        self.assertTrue(dictionary.is_file())
+        self.assertEqual(pub.archived_pnd_dictionary(
+            self.root, publication, referencias_pnd.DICIONARIO_RELATIVE
+        ), archived.resolve())
+
+    def test_missing_current_dictionary_uses_published_snapshot(self):
+        publication, dictionary, archived = self.publish_with_pnd_dictionary()
+        dictionary.unlink()
+        resolved = pub.archived_pnd_dictionary(
+            self.root, publication, referencias_pnd.DICIONARIO_RELATIVE
+        )
+        self.assertEqual(resolved, archived.resolve())
+        self.assertTrue(resolved.is_file())
+
+    def test_divergent_current_dictionary_is_not_used_for_last_valid(self):
+        publication, dictionary, archived = self.publish_with_pnd_dictionary()
+        dictionary.write_bytes(b"current dictionary diverged")
+        resolved = pub.archived_pnd_dictionary(
+            self.root, publication, referencias_pnd.DICIONARIO_RELATIVE
+        )
+        self.assertEqual(resolved, archived.resolve())
+        self.assertEqual(pub.digest(resolved), publication["insumos"][
+            referencias_pnd.DICIONARIO_RELATIVE.as_posix()
+        ])
+
+    def test_missing_archived_pnd_dictionary_fails_explicitly(self):
+        publication, _, archived = self.publish_with_pnd_dictionary()
+        archived.unlink()
+        with self.assertRaisesRegex(FileNotFoundError, "Dicionário PND arquivado ausente"):
+            pub.archived_pnd_dictionary(
+                self.root, publication, referencias_pnd.DICIONARIO_RELATIVE
+            )
+
+    def test_adulterated_archived_pnd_dictionary_fails_hash_check(self):
+        publication, _, archived = self.publish_with_pnd_dictionary()
+        archived.write_bytes(b"tampered archived dictionary")
+        with self.assertRaisesRegex(RuntimeError, "Hash do dicionário PND arquivado"):
+            pub.archived_pnd_dictionary(
+                self.root, publication, referencias_pnd.DICIONARIO_RELATIVE
+            )
+
+    def test_adulterated_published_parquet_is_rejected_with_last_valid(self):
+        self.execute()
+        parquet = self.root / "data/gold" / (self.required[0] + ".parquet")
+        parquet.write_bytes(b"tampered publication")
+        with self.assertRaisesRegex(RuntimeError, "Inventário Gold divergente"):
+            self.verify(previous=True)
+
+    def test_validate_gold_last_valid_dispatches_verified_snapshot(self):
+        publication = {"id": "a" * 32}
+        dictionary = self.root / "archived-dictionary.xlsx"
+        required = [s.script for s in pipeline.BRONZE_STEPS + pipeline.SILVER_STEPS
+                    + pipeline.GOLD_BUILD_STEPS + pipeline.VALIDATE_GOLD_STEPS
+                    if "validar_" in s.script]
+        with (
+            patch.object(sys, "argv", ["pipeline.py", "validate-gold", "--last-valid"]),
+            patch.object(pipeline.publicacao, "execution_lock", return_value=nullcontext()),
+            patch.object(pipeline.publicacao, "recover"),
+            patch.object(pipeline.publicacao, "verify", return_value=publication) as verify,
+            patch.object(pipeline.publicacao, "archived_pnd_dictionary",
+                         return_value=dictionary) as archived_dictionary,
+            patch.object(pipeline, "run_step") as run_step,
+        ):
+            pipeline.main()
+        verify.assert_called_once_with(pipeline.ROOT, required, True)
+        archived_dictionary.assert_called_once_with(
+            pipeline.ROOT, publication, referencias_pnd.DICIONARIO_RELATIVE
+        )
+        run_step.assert_called_once_with(
+            pipeline.VALIDATE_GOLD_STEPS[0], False, "--structure-only",
+            "--pnd-dictionary", str(dictionary),
+        )
+
+    def test_validate_gold_without_last_valid_keeps_current_dictionary_behavior(self):
+        required = [s.script for s in pipeline.BRONZE_STEPS + pipeline.SILVER_STEPS
+                    + pipeline.GOLD_BUILD_STEPS + pipeline.VALIDATE_GOLD_STEPS
+                    if "validar_" in s.script]
+        with (
+            patch.object(sys, "argv", ["pipeline.py", "validate-gold"]),
+            patch.object(pipeline.publicacao, "execution_lock", return_value=nullcontext()),
+            patch.object(pipeline.publicacao, "recover"),
+            patch.object(pipeline.publicacao, "verify", return_value={}) as verify,
+            patch.object(pipeline.publicacao, "archived_pnd_dictionary") as archived_dictionary,
+            patch.object(pipeline, "run_step") as run_step,
+        ):
+            pipeline.main()
+        verify.assert_called_once_with(pipeline.ROOT, required, False)
+        archived_dictionary.assert_not_called()
+        run_step.assert_called_once_with(
+            pipeline.VALIDATE_GOLD_STEPS[0], False, "--structure-only"
+        )
 
     def test_full_rebuilds_when_last_completed_workdir_is_missing(self):
         self.execute()
