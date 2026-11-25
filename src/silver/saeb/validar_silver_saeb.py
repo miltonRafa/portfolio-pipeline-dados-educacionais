@@ -170,14 +170,19 @@ def indice_cabecalho(df):
     )
 
 
+def linha_cabecalho(df, numero_linha):
+    linhas = df.loc[df["_linha_origem"].eq(numero_linha), colunas_origem(df)]
+    if len(linhas) != 1:
+        raise RuntimeError(f"Linha física de cabeçalho ausente ou ambígua: {numero_linha}.")
+    return linhas.iloc[0]
+
+
 def mapa_cabecalho(df):
     indice = indice_cabecalho(
         df
     )
 
-    linha = df.iloc[
-        indice
-    ]
+    linha = linha_cabecalho(df, indice + 1)
 
     mapa = {}
 
@@ -189,6 +194,8 @@ def mapa_cabecalho(df):
         )
 
         if valor:
+            if valor in mapa:
+                raise RuntimeError(f"Cabeçalho ambíguo: {valor!r}.")
             mapa[
                 valor
             ] = coluna
@@ -219,50 +226,16 @@ def coluna(mapa, variavel):
 
 
 def obter_uf(linha, mapa):
-    for chave in [
-        "CO_UF",
-        "ID_UF",
-    ]:
-        if chave in mapa:
-            codigo = inteiro(
-                linha[
-                    mapa[chave]
-                ]
-            )
-
-            if codigo in UF_CODIGO_SIGLA:
-                return UF_CODIGO_SIGLA[
-                    codigo
-                ]
-
-    if "SIGLA_UF" in mapa:
-        sigla = texto(
-            linha[
-                mapa["SIGLA_UF"]
-            ]
-        )
-
-        if sigla:
-            sigla = sigla.upper()
-
-            if sigla in UFS:
-                return sigla
-
-    if "NO_UF" in mapa:
-        nome = texto(
-            linha[
-                mapa["NO_UF"]
-            ]
-        )
-
-        if nome:
-            return UF_NOME_SIGLA.get(
-                remover_acentos(
-                    nome
-                ).upper()
-            )
-
-    return None
+    # O código e a identificação textual estão publicados na mesma linha.
+    if "ID_UF" in mapa:
+        codigo = linha[coluna(mapa, "ID_UF")]
+        sigla = texto(linha[coluna(mapa, "SIGLA_UF")])
+    else:
+        codigo = linha[coluna(mapa, "CO_UF")]
+        sigla = obter_uf_por_nome(linha[coluna(mapa, "NO_UF")])
+    if sigla not in UFS or UF_CODIGO_SIGLA.get(inteiro(codigo)) != sigla:
+        raise RuntimeError(f"Identificações da UF divergentes na Bronze: {codigo!r}, {sigla!r}.")
+    return sigla
 
 
 def obter_uf_por_nome(valor):
@@ -278,6 +251,84 @@ def obter_uf_por_nome(valor):
             nome
         ).upper()
     )
+
+
+def rede_publica(rotulos, ano):
+    # A composição publicada muda em 2013. A palavra "Total" sozinha
+    # também está presente no agregado que inclui a rede privada.
+    componentes = {"Estadual", "Municipal"}
+    if ano >= 2013:
+        componentes.add("Federal")
+
+    def corresponde(rotulo):
+        prefixo, separador, nomes = str(rotulo).strip().partition(" - ")
+        return (prefixo == "Total" and bool(separador)
+                and set(nomes.replace(" e ", ", ").split(", ")) == componentes)
+
+    return rotulos.map(corresponde)
+
+
+def disciplinas_tecnicas(ano):
+    series = (4, 8) if ano <= 2009 else (5, 9)
+    return {
+        (etapa, disciplina): f"MEDIA_{serie}_{disciplina}"
+        for etapa, serie in zip(("ANOS_INICIAIS", "ANOS_FINAIS"), series)
+        for disciplina in ("LP", "MT")
+    }
+
+
+def codigos_2011(arquivo=Path("data/raw/saeb/Dicionario_SAEB_2011.xlsx")):
+    # Na aba TS_RESULTADO_UF as linhas de continuação pertencem à última variável.
+    dicionario = pd.read_excel(
+        arquivo, sheet_name="TS_RESULTADO_UF",
+        usecols=[0, 4], header=None, names=["variavel", "categoria"],
+    )
+    dicionario["variavel"] = dicionario["variavel"].ffill()
+
+    def codigo(variavel, descricao):
+        categorias = dicionario.loc[dicionario.variavel.eq(variavel), "categoria"].dropna()
+        encontrados = [item.partition(" - ")[0] for item in categorias
+                       if item.partition(" - ")[2] == descricao]
+        if len(encontrados) != 1:
+            raise RuntimeError(f"Dicionário SAEB 2011: {variavel}/{descricao} ausente ou ambíguo.")
+        return int(encontrados[0])
+
+    return {
+        "ANOS_INICIAIS": codigo("ID_SERIE", "4ª série/5º ano Ensino Fundamental"),
+        "ANOS_FINAIS": codigo("ID_SERIE", "8ª série/9º ano Ensino Fundamental"),
+        "rede": codigo("ID_TIPO_REDE", "Pública"),
+        "localizacao": codigo("ID_LOCALIZACAO", "Todas"),
+        "capital": codigo("ID_CAPITAL", "Todas"),
+    }
+
+
+def cabecalho_hierarquico(df):
+    inicio = indice_cabecalho(df) + 1
+    grupos = linha_cabecalho(df, inicio)
+    titulos = linha_cabecalho(df, inicio + 1)
+    etapas = titulos.ffill()
+    disciplinas = linha_cabecalho(df, inicio + 2)
+
+    def unica(mascara, rotulo):
+        encontradas = grupos.index[mascara.fillna(False)]
+        if len(encontradas) != 1:
+            raise RuntimeError(f"Cabeçalho hierárquico ausente ou ambíguo: {rotulo}.")
+        return encontradas[0]
+
+    dimensoes = {nome: unica(grupos.eq(nome), nome)
+                 for nome in ("UF", "REDE", "LOCALIZAÇÃO", "CAPITAL")}
+    # Cada etapa começa sob seu próprio título de médias na linha superior.
+    medias = grupos.fillna("").eq("MÉDIAS DE PROFICIÊNCIA")
+    proficiencia = medias.where(titulos.notna()).ffill().fillna(False)
+    metricas = {}
+    for etapa, titulo in [("ANOS_INICIAIS", "ANOS INICIAIS - 5º ANO"),
+                          ("ANOS_FINAIS", "ANOS FINAIS - 9º ANO")]:
+        for disciplina, nome in [("LP", "LÍNGUA PORTUGUESA"), ("MT", "MATEMÁTICA")]:
+            metricas[etapa, disciplina] = unica(
+                proficiencia & etapas.fillna("").eq(titulo) & disciplinas.fillna("").eq(nome),
+                f"{titulo}/{nome}"
+            )
+    return dimensoes, metricas
 
 
 def extrair_esperados_2007_2009(
@@ -306,12 +357,7 @@ def extrair_esperados_2007_2009(
     )
 
     alvo = dados[
-        (
-            dados[rede_col]
-            .astype(str)
-            .str.strip()
-            == "Total - Estadual e Municipal"
-        )
+        rede_publica(dados[rede_col], ano)
         & (
             dados[loc_col]
             .astype(str)
@@ -326,12 +372,7 @@ def extrair_esperados_2007_2009(
         )
     ].copy()
 
-    metricas = {
-        ("ANOS_INICIAIS", "LP"): "MEDIA_4_LP",
-        ("ANOS_INICIAIS", "MT"): "MEDIA_4_MT",
-        ("ANOS_FINAIS", "LP"): "MEDIA_8_LP",
-        ("ANOS_FINAIS", "MT"): "MEDIA_8_MT",
-    }
+    metricas = disciplinas_tecnicas(ano)
 
     registros = []
 
@@ -428,10 +469,9 @@ def extrair_esperados_2011(
 
     registros = []
 
-    for etapa, serie in {
-        "ANOS_INICIAIS": 5,
-        "ANOS_FINAIS": 9,
-    }.items():
+    codigos = codigos_2011()
+    for etapa in ("ANOS_INICIAIS", "ANOS_FINAIS"):
+        serie = codigos[etapa]
         alvo = dados[
             (
                 dados[serie_col]
@@ -441,17 +481,17 @@ def extrair_esperados_2011(
             & (
                 dados[rede_col]
                 .map(inteiro)
-                == 5
+                == codigos["rede"]
             )
             & (
                 dados[loc_col]
                 .map(inteiro)
-                == 0
+                == codigos["localizacao"]
             )
             & (
                 dados[cap_col]
                 .map(inteiro)
-                == 0
+                == codigos["capital"]
             )
         ].copy()
 
@@ -464,10 +504,8 @@ def extrair_esperados_2011(
             if uf not in UFS:
                 continue
 
-            for disciplina, variavel in {
-                "LP": "MEDIA_LP",
-                "MT": "MEDIA_MT",
-            }.items():
+            for disciplina in ("LP", "MT"):
+                variavel = f"MEDIA_{disciplina}"
                 origem_col = coluna(
                     mapa,
                     variavel,
@@ -522,79 +560,19 @@ def extrair_esperados_2013_2015(
     ano,
     df,
 ):
-    """
-    Referência independente para as fontes hierárquicas de 2013 e 2015.
-    A estrutura física foi confirmada pela auditoria da Bronze e não
-    depende das funções do transformador.
-    """
-    necessarias = {
-        "col_001",
-        "col_002",
-        "col_003",
-        "col_004",
-        "col_005",
-        "col_006",
-        "col_007",
-        "col_008",
-    }
-
-    faltantes = sorted(
-        necessarias.difference(
-            df.columns
-        )
-    )
-
-    if faltantes:
-        raise RuntimeError(
-            f"SAEB {ano}: colunas auditadas ausentes: {faltantes}"
-        )
-
-    indice = indice_cabecalho(
-        df
-    )
-
-    primeira_linha_dados = (
-        indice + 4
-    )
-
-    dados = df[
-        df["_linha_origem"]
-        >= primeira_linha_dados
-    ].copy()
-
-    alvo = dados[
-        (
-            dados["col_002"]
-            .astype(str)
-            .str.strip()
-            == "Total - Federal, Estadual e Municipal"
-        )
-        & (
-            dados["col_003"]
-            .astype(str)
-            .str.strip()
-            == "Total"
-        )
-        & (
-            dados["col_004"]
-            .astype(str)
-            .str.strip()
-            == "Total"
-        )
-    ].copy()
-
-    metricas = {
-        ("ANOS_INICIAIS", "LP"): "col_005",
-        ("ANOS_INICIAIS", "MT"): "col_006",
-        ("ANOS_FINAIS", "LP"): "col_007",
-        ("ANOS_FINAIS", "MT"): "col_008",
-    }
+    dimensoes, metricas = cabecalho_hierarquico(df)
+    dados = df.loc[df["_linha_origem"] >= indice_cabecalho(df) + 4]
+    alvo = dados.loc[
+        rede_publica(dados[dimensoes["REDE"]], ano)
+        & dados[dimensoes["LOCALIZAÇÃO"]].str.strip().eq("Total")
+        & dados[dimensoes["CAPITAL"]].str.strip().eq("Total")
+    ]
 
     registros = []
 
     for _, linha in alvo.iterrows():
         uf = obter_uf_por_nome(
-            linha["col_001"]
+            linha[dimensoes["UF"]]
         )
 
         if uf not in UFS:
@@ -629,13 +607,13 @@ def extrair_esperados_2013_2015(
                         else None
                     ),
                     "REDE_ORIGEM_ESPERADA": texto(
-                        linha["col_002"]
+                        linha[dimensoes["REDE"]]
                     ),
                     "LOCALIZACAO_ORIGEM_ESPERADA": texto(
-                        linha["col_003"]
+                        linha[dimensoes["LOCALIZAÇÃO"]]
                     ),
                     "CAPITAL_ORIGEM_ESPERADA": texto(
-                        linha["col_004"]
+                        linha[dimensoes["CAPITAL"]]
                     ),
                     "ARQUIVO_ORIGEM_ESPERADO": linha[
                         "_arquivo_origem"
@@ -684,12 +662,7 @@ def extrair_esperados_2013_2023(
     )
 
     alvo = dados[
-        (
-            dados[rede_col]
-            .astype(str)
-            .str.strip()
-            == "Total - Federal, Estadual e Municipal"
-        )
+        rede_publica(dados[rede_col], ano)
         & (
             dados[loc_col]
             .astype(str)
@@ -704,12 +677,7 @@ def extrair_esperados_2013_2023(
         )
     ].copy()
 
-    metricas = {
-        ("ANOS_INICIAIS", "LP"): "MEDIA_5_LP",
-        ("ANOS_INICIAIS", "MT"): "MEDIA_5_MT",
-        ("ANOS_FINAIS", "LP"): "MEDIA_9_LP",
-        ("ANOS_FINAIS", "MT"): "MEDIA_9_MT",
-    }
+    metricas = disciplinas_tecnicas(ano)
 
     registros = []
 
@@ -801,6 +769,16 @@ def construir_referencia_bronze():
         df = pd.read_parquet(
             arquivo
         )
+
+        if not df["_ano_referencia"].eq(ano).fillna(False).all():
+            raise RuntimeError(f"SAEB {ano}: edição da Bronze divergente.")
+        if not df["_granularidade_origem"].eq("UF").fillna(False).all():
+            raise RuntimeError(f"SAEB {ano}: esperada a publicação agregada por UF.")
+        if ano in (2007, 2009, 2011, 2023):
+            variavel = "ID_SAEB" if ano == 2011 else "ANO_SAEB"
+            campo = coluna(mapa_cabecalho(df), variavel)
+            if not dados_fonte(df)[campo].eq(str(ano)).fillna(False).all():
+                raise RuntimeError(f"SAEB {ano}: ano publicado em {variavel} divergente.")
 
         if ano in {
             2007,
