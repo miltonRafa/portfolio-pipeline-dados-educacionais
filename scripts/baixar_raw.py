@@ -31,7 +31,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from atualizacao_raw import ManifestUpdates
+from atualizacao_raw import ManifestUpdates, recover_interrupted_update
 from compatibilidade_raw import Incompatible
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -208,18 +208,31 @@ def accept(source, row, destination):
             row["_rejeicao"] = {**exc.details, "sha256_esperado": row["sha256"], "sha256_recebido": source_hash,
                                 "fallback": "Arquivo atual e manifesto preservados; nenhuma atualização deste candidato foi aceita."}
             return False
-    target = destination / Path(row["caminho_local"]).relative_to("data/raw")
-    target.parent.mkdir(parents=True, exist_ok=True)
-    if target.exists():
-        if digest(target) != source_hash:
-            raise FileExistsError(f"Destino divergente preservado: {target}")
+
+    def install_identical():
+        target = destination / Path(row["caminho_local"]).relative_to("data/raw")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists():
+            if digest(target) != source_hash:
+                raise FileExistsError(f"Destino divergente preservado: {target}")
+        else:
+            staging = target.with_suffix(target.suffix + ".part")
+            try:
+                shutil.copyfile(source, staging)
+                if digest(staging) != source_hash:
+                    raise OSError("Cópia preparada diverge do arquivo validado.")
+                staging.replace(target)
+            finally:
+                staging.unlink(missing_ok=True)
+
+    if destination.resolve() == (ROOT / "data/raw").resolve():
+        from src.publicacao import execution_lock
+
+        with execution_lock(ROOT):
+            recover_interrupted_update(ROOT)
+            install_identical()
     else:
-        staging = target.with_suffix(target.suffix + ".part")
-        try:
-            shutil.copyfile(source, staging)
-            staging.replace(target)
-        finally:
-            staging.unlink(missing_ok=True)
+        install_identical()
     return True
 
 
@@ -364,6 +377,10 @@ def main():
     parser.add_argument("--rebaixar", action="store_true", help="Consulta e transfere novamente arquivos já validados no destino")
     parser.add_argument("--estrito", action="store_true", help="Exige identidade binária; desativa atualização automática por conteúdo equivalente")
     args = parser.parse_args()
+    from src.publicacao import execution_lock
+
+    with execution_lock(ROOT):
+        recover_interrupted_update(ROOT)
     destination = args.destino.resolve()
     scratch = destination / ".download"
     scratch.mkdir(parents=True, exist_ok=True)

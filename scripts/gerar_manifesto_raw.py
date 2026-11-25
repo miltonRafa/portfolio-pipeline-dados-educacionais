@@ -863,11 +863,17 @@ def main() -> None:
     if args.check:
         sys.exit(check_manifest())
 
-    DOCS_DIR.mkdir(exist_ok=True)
-    rows = inventory_with_hashes()
-    write_csv(rows)
-    write_checksums(rows)
-    write_markdown(rows)
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from src import publicacao
+
+    with publicacao.execution_lock(ROOT):
+        publicacao.recover(ROOT)
+        DOCS_DIR.mkdir(exist_ok=True)
+        rows = inventory_with_hashes()
+        write_csv(rows)
+        write_checksums(rows)
+        write_markdown(rows)
     print(f"Arquivos inventariados: {len(rows)}")
     print("Gerado: docs/fontes_dados.md")
     print("Gerado: docs/fontes_dados.csv")

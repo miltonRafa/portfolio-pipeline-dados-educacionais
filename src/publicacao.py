@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shutil
+import sys
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -75,6 +76,12 @@ def execution_lock(root):
 
 def recover(root):
     root = Path(root)
+    scripts = str(Path(__file__).resolve().parents[1] / "scripts")
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    from atualizacao_raw import recover_interrupted_update
+
+    recover_interrupted_update(root)
     latest = root / "data/execucoes/ultima.json"
     if not latest.exists():
         return

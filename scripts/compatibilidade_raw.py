@@ -6,6 +6,7 @@ import csv
 from itertools import zip_longest
 from pathlib import Path
 import re
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -65,12 +66,16 @@ def compare_records(before, after, context):
 
 def ideb_projection(frame, sheet):
     """Protege identidades e todas as colunas históricas até 2023 nas três etapas."""
-    headers = [i for i, values in enumerate(frame.itertuples(index=False, name=None))
-               if "VL_OBSERVADO_2007" in values and "VL_OBSERVADO_2023" in values]
-    if len(headers) != 1:
-        raise Incompatible("cabecalho_ideb", "Esperado um único cabeçalho técnico histórico do IDEB.",
-                           aba=sheet, encontrados=len(headers))
-    index = headers[0]
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from src.bronze.ideb.ingest_ideb import localizar_cabecalho_tecnico
+
+    try:
+        index, _ = localizar_cabecalho_tecnico(frame, sheet)
+    except RuntimeError as exc:
+        raise Incompatible("contrato_bronze_ideb",
+                           "A planilha não atende ao contrato de cabeçalho técnico usado pela Bronze.",
+                           aba=sheet, erro_original=str(exc)) from exc
     labels = list(frame.iloc[index])
     expected = [f"VL_OBSERVADO_{year}" for year in range(2007, 2024, 2)]
     for name in expected:

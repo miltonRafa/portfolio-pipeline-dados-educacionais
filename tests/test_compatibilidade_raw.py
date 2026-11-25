@@ -14,6 +14,7 @@ from openpyxl import Workbook, load_workbook
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
+from src import publicacao
 from compatibilidade_raw import compare_content, config, Incompatible
 from atualizacao_raw import ManifestUpdates
 import atualizacao_raw as updates
@@ -52,6 +53,23 @@ class ContentTest(unittest.TestCase):
             with self.assertRaises(Incompatible) as caught:
                 compare_content(a, b, row)
             self.assertEqual(caught.exception.details["codigo"], "conteudo_alterado")
+
+    def test_ideb_rejects_observed_marker_on_an_additional_row(self):
+        with tempfile.TemporaryDirectory() as folder:
+            original, candidate = Path(folder) / "original.xlsx", Path(folder) / "candidate.xlsx"
+            sheets = [v["aba"] for v in config("src/bronze/ideb/ingest_ideb.py", "CONFIG_ABAS").values()]
+            workbook(original, sheets)
+            workbook(candidate, sheets)
+            book = load_workbook(candidate)
+            for name in sheets:
+                book[name].cell(3, 13, "VL_OBSERVADO_2025")
+            book.save(candidate)
+            book.close()
+
+            with self.assertRaises(Incompatible) as caught:
+                compare_content(original, candidate, {"nome_local": "fonte.xlsx", "indicador": "IDEB"})
+
+            self.assertEqual(caught.exception.details["codigo"], "contrato_bronze_ideb")
 
     def test_support_workbooks_accept_metadata_but_reject_changed_cell_or_sheet(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -191,6 +209,59 @@ class TransactionTest(unittest.TestCase):
                 self.assertEqual(p.read_bytes(), content)
             self.assertFalse((destination / ".download/historico_atualizacoes.json").exists())
 
+    def test_interrupted_update_is_recovered_before_the_next_full_run(self):
+        for interruption in ("before_raw", "after_raw", "during_manifest"):
+            with self.subTest(interruption=interruption), tempfile.TemporaryDirectory() as folder:
+                root, destination, target, candidate, row = self.prepare(folder)
+                raw_before = target.read_bytes()
+                docs_before = {path: path.read_bytes() for path in (root / "docs").iterdir()}
+                original_promote = getattr(updates, "promote_file", lambda source, target: Path(source).replace(target))
+
+                def interrupt_promotion(source, target_path):
+                    target_path = Path(target_path)
+                    if target_path == target and interruption == "before_raw":
+                        raise KeyboardInterrupt("simulated interruption before Raw promotion")
+                    result = original_promote(source, target_path)
+                    if target_path == target and interruption == "after_raw":
+                        raise KeyboardInterrupt("simulated interruption after Raw promotion")
+                    return result
+
+                def interrupt_manifest(path, data):
+                    result = original_atomic(path, data)
+                    if Path(path) == root / "docs/fontes_dados.csv":
+                        raise KeyboardInterrupt("simulated interruption during manifest promotion")
+                    return result
+
+                with patch.object(manifest, "write_markdown", side_effect=self.writer):
+                    if interruption == "during_manifest":
+                        original_atomic = updates.atomic_bytes
+                        with patch.object(updates, "atomic_bytes", side_effect=interrupt_manifest):
+                            with self.assertRaises(KeyboardInterrupt):
+                                ManifestUpdates(root).accept_changed(candidate, row, destination)
+                    else:
+                        with patch.object(updates, "promote_file", side_effect=interrupt_promotion, create=True):
+                            with self.assertRaises(KeyboardInterrupt):
+                                ManifestUpdates(root).accept_changed(candidate, row, destination)
+
+                self.assertTrue((destination / ".download/atualizacao_pendente.json").is_file())
+                publicacao.execute(root, "full", [], [], lambda step, work: None)
+
+                self.assertEqual(target.read_bytes(), raw_before)
+                self.assertEqual({path: path.read_bytes() for path in docs_before}, docs_before)
+                self.assertFalse((destination / ".download/atualizacao_pendente.json").exists())
+                publication = json.loads((root / "data/gold/publicacao.json").read_text(encoding="utf-8"))
+                self.assertEqual(publication["insumos"]["pnd/fonte.txt"], digest(target))
+
+    def test_update_cannot_run_while_pipeline_holds_execution_lock(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root, destination, target, candidate, row = self.prepare(folder)
+            original = target.read_bytes()
+            with publicacao.execution_lock(root):
+                with patch.object(manifest, "write_markdown", side_effect=self.writer):
+                    with self.assertRaisesRegex(RuntimeError, "Outra execução"):
+                        ManifestUpdates(root).accept_changed(candidate, row, destination)
+            self.assertEqual(target.read_bytes(), original)
+
     def test_ideb_update_regenerates_real_documentation_and_source_metadata(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
@@ -222,6 +293,44 @@ class TransactionTest(unittest.TestCase):
                 current = next(r for r in csv.DictReader(file) if r["indicador"] == "IDEB")
             self.assertIn("2027", current["anos_disponiveis"])
             self.assertIn("2007-2023", current["edicao_fonte"])
+
+    def test_ideb_candidate_outside_bronze_contract_preserves_raw_and_manifest(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            docs = root / "docs"
+            docs.mkdir()
+            destination = root / "data/raw"
+            (destination / ".download").mkdir(parents=True)
+            with (ROOT / "docs/fontes_dados.csv").open(encoding="utf-8-sig", newline="") as file:
+                rows = list(csv.DictReader(file))
+            row = next(item for item in rows if item["indicador"] == "IDEB")
+            target = root / row["caminho_local"]
+            target.parent.mkdir(parents=True)
+            sheets = [v["aba"] for v in config("src/bronze/ideb/ingest_ideb.py", "CONFIG_ABAS").values()]
+            workbook(target, sheets)
+            row["sha256"] = digest(target)
+            candidate = root / "candidate.xlsx"
+            workbook(candidate, sheets)
+            book = load_workbook(candidate)
+            for name in sheets:
+                book[name].cell(3, 13, "VL_OBSERVADO_2025")
+            book.save(candidate)
+            book.close()
+            with (docs / "fontes_dados.csv").open("w", encoding="utf-8", newline="") as file:
+                writer = csv.DictWriter(file, fieldnames=manifest.FIELDS)
+                writer.writeheader()
+                writer.writerows(rows)
+            (docs / "fontes_dados.md").write_text("anterior", encoding="utf-8")
+            (docs / "raw_checksums_sha256.txt").write_text("anterior", encoding="utf-8")
+            manifest_before = (docs / "fontes_dados.csv").read_bytes()
+            raw_before = target.read_bytes()
+
+            with self.assertRaises(Incompatible) as caught:
+                ManifestUpdates(root).accept_changed(candidate, row, destination)
+
+            self.assertEqual(caught.exception.details["codigo"], "contrato_bronze_ideb")
+            self.assertEqual(target.read_bytes(), raw_before)
+            self.assertEqual((docs / "fontes_dados.csv").read_bytes(), manifest_before)
 
     def test_changed_history_and_missing_reference_never_update_manifest(self):
         with tempfile.TemporaryDirectory() as folder:

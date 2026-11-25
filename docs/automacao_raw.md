@@ -76,15 +76,18 @@ instalação direta. Um hash diferente segue esta sequência:
 
 1. Localizar a cópia anterior e confirmar seu hash contra o manifesto.
 2. Ler e comparar integralmente o conteúdo protegido, sem amostragem.
-3. Se houver equivalência, guardar backup da versão anterior e preparar a
-   nova Raw, o CSV, o Markdown e os checksums antes de substituí-los.
-4. Instalar a atualização e registrar hashes anterior/novo, fonte, membro do
-   pacote, instante UTC, política e quantidade de linhas/abas comparadas.
-5. Em erro de instalação tratado, restaurar o arquivo e os documentos anteriores.
+3. Validar também os contratos de estrutura usados pela Bronze. Se houver
+   equivalência e compatibilidade, guardar backup da versão anterior e preparar
+   a nova Raw, o CSV, o Markdown e os checksums antes de substituí-los.
+4. Gravar um diário transacional e promover Raw, manifesto, documentação e
+   histórico; verificar cada hash antes de confirmar a atualização.
+5. Em falha tratada, restaurar os arquivos anteriores. Se o processo for
+   interrompido, a próxima execução do pipeline ou do downloader recupera os
+   backups antes de ler ou atualizar a Raw.
 
 | Insumo | Conteúdo protegido |
 |---|---|
-| IDEB | Três abas lidas pela Bronze (AI, AF, EM); geografia/rede e todas as colunas técnicas sem ano ou com anos até 2023, incluindo 2005. Exige os nove `VL_OBSERVADO_2007` a `VL_OBSERVADO_2023`. Compara todas as linhas na mesma ordem. Colunas de anos posteriores a 2023 são ignoradas na comparação. |
+| IDEB | Três abas lidas pela Bronze (AI, AF, EM); geografia/rede e todas as colunas técnicas sem ano ou com anos até 2023, incluindo 2005. Exige os nove `VL_OBSERVADO_2007` a `VL_OBSERVADO_2023` e exatamente uma linha com marcadores `VL_OBSERVADO_YYYY`, conforme o localizador usado pela Bronze. Novos anos na própria linha técnica são aceitos; marcador em uma linha adicional é rejeitado. Compara todas as linhas na mesma ordem. Colunas de anos posteriores a 2023 são ignoradas na comparação. |
 | Rendimento e TDI | Todas as células das abas configuradas na Bronze para cada edição anual. |
 | SAEB agregado | Todas as células da aba configurada para a edição; CSV inteiro em 2011. |
 | CSVs escolares SAEB e TXT PND | Todas as linhas e campos, incluindo cabeçalho, ordem, duplicatas e campos não selecionados pela Silver. |
@@ -129,9 +132,14 @@ motivo informado. O script não aceita uma divergência apenas para continuar.
 
 Cada atualização é tratada por arquivo. Se uma atualização for aceita e uma
 outra falhar, a aceita permanece registrada; o comando retorna erro para o
-conjunto incompleto. Interrupções forçadas ou falhas do sistema podem exigir
-conferir `--check` e restaurar backups: a restauração automática cobre erros
-tratados durante a instalação, não interrupção abrupta do processo.
+conjunto incompleto. O pipeline e as promoções do downloader compartilham o
+bloqueio de `data/execucoes/lock`: uma atualização não substitui arquivos
+enquanto o pipeline executa, e o pipeline não inicia durante uma promoção.
+Uma interrupção depois da gravação do diário é revertida automaticamente na
+próxima execução do pipeline ou do downloader. O gerador do manifesto também
+usa o bloqueio e recupera uma transação pendente antes de reescrever os
+documentos. Se algum backup estiver ausente ou divergente, a recuperação
+interrompe com erro explícito e preserva o diário para diagnóstico.
 
 ## Seleção, extração e limpeza
 
@@ -168,6 +176,9 @@ Registros operacionais e backups permanecem em `data/raw/.download`:
 - `relatorio_planejamento.json`: resultado do último planejamento;
 - `historico_atualizacoes.json`: registro cumulativo das atualizações equivalentes;
 - `historico/<caminho relativo>/<hash anterior>`: cópias anteriores para recuperação;
+- `atualizacao_pendente.json` e `transacoes/<id>/`: diário e backups temporários
+  usados para reverter promoções interrompidas; o diário é removido somente
+  depois de verificar todos os hashes promovidos;
 - `verificacao_comparadores.json`: evidência local da leitura dos 54 insumos atuais.
 
 Esses registros e backups não são insumos analíticos, não entram no manifesto dos 54
