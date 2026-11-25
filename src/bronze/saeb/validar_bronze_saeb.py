@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 import argparse
 import hashlib
 
@@ -10,6 +11,11 @@ if __package__:
 else:
     from contratos_saeb import validar_inventario_bronze
     import validar_bronze_saeb_resultados_2023 as agregado_2023
+
+
+if not __package__:  # Execução direta pelo pipeline.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.bronze.fidelidade import validar_delimitado, validar_planilha
 
 
 RAW_DIR = Path("data/raw/saeb")
@@ -57,6 +63,7 @@ CONFIG = {
     },
     2011: {
         "arquivo_raw": "TS_RESULTADO_UF_2011.csv",
+        "encoding": "utf-8-sig",
         "arquivo_bronze": "saeb_2011.parquet",
         "aba": None,
         "granularidade": "UF",
@@ -170,6 +177,7 @@ CONFIG = {
     },
     2023: {
         "arquivo_raw": "TS_ESCOLA_2023.csv",
+        "encoding": "cp1252",
         "arquivo_bronze": "saeb_2023.parquet",
         "aba": None,
         "granularidade": "ESCOLA",
@@ -403,6 +411,11 @@ def validar_arquivo(ano, configuracao):
         ano,
     )
 
+    if configuracao["aba"] is None:
+        celulas = validar_delimitado(raw, parquet, configuracao["encoding"], remover_vazias=True)
+    else:
+        celulas = validar_planilha(raw, df, configuracao["aba"])
+    print(f"Células Raw/Bronze comparadas: {celulas:,}")
     print(f"ANO {ano}")
     print("-" * 100)
     print(f"Linhas: {len(df):,}")

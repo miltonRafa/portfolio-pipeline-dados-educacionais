@@ -1,9 +1,15 @@
 from pathlib import Path
+import sys
 import hashlib
 import re
 import unicodedata
 
 import pandas as pd
+
+
+if not __package__:  # Execução direta pelo pipeline.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.bronze.fidelidade import comparar_planilha
 
 
 RAW_DIR = Path("data/raw/ideb")
@@ -127,35 +133,36 @@ def localizar_cabecalho_tecnico_raw(dados, etapa):
 
 
 def estrutura_raw(caminho_raw):
-    excel = pd.ExcelFile(caminho_raw, engine="openpyxl")
-    encontradas = excel.sheet_names
-    esperadas = [config["aba"] for config in CONFIG.values()]
-    ausentes = [aba for aba in esperadas if aba not in encontradas]
+    with pd.ExcelFile(caminho_raw, engine="calamine") as excel:
+        encontradas = excel.sheet_names
+        esperadas = [config["aba"] for config in CONFIG.values()]
+        ausentes = [aba for aba in esperadas if aba not in encontradas]
 
-    if ausentes:
-        raise RuntimeError(
-            f"Abas IDEB ausentes no RAW: {ausentes}; encontradas={encontradas}"
-        )
+        if ausentes:
+            raise RuntimeError(
+                f"Abas IDEB ausentes no RAW: {ausentes}; encontradas={encontradas}"
+            )
 
-    estrutura = {}
+        estrutura = {}
 
-    for etapa, config in CONFIG.items():
-        dados = pd.read_excel(
-            caminho_raw,
-            sheet_name=config["aba"],
-            header=None,
-            engine="openpyxl",
-            dtype=object,
-        )
-        dados_sem_vazias = dados.dropna(axis=0, how="all")
-        indice, anos = localizar_cabecalho_tecnico_raw(dados, etapa)
-        estrutura[etapa] = {
-            "linhas": len(dados_sem_vazias),
-            "colunas_fonte": len(dados.columns),
-            "indice_cabecalho": indice,
-            "ano_referencia": max(anos),
-            "anos_observados": anos,
-        }
+        for etapa, config in CONFIG.items():
+            dados = excel.parse(
+                sheet_name=config["aba"],
+                header=None,
+                dtype=object,
+                keep_default_na=False,
+                na_values=[""],
+            )
+            dados_sem_vazias = dados.dropna(axis=0, how="all")
+            indice, anos = localizar_cabecalho_tecnico_raw(dados, etapa)
+            estrutura[etapa] = {
+                "raw": dados,
+                "linhas": len(dados_sem_vazias),
+                "colunas_fonte": len(dados.columns),
+                "indice_cabecalho": indice,
+                "ano_referencia": max(anos),
+                "anos_observados": anos,
+            }
 
     return estrutura
 
@@ -183,6 +190,8 @@ def validar_etapa(etapa, configuracao, esperado, hash_raw, erros):
         print("[ERRO] Falha ao ler Parquet")
         return
 
+    celulas = comparar_planilha(RAW_DIR / ARQUIVO_ORIGEM, configuracao["aba"], esperado["raw"], dados)
+    print(f"Células Raw/Bronze comparadas: {celulas:,}")
     if dados.empty:
         registrar_erro(erros, etapa, "Parquet vazio")
 

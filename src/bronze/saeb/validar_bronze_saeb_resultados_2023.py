@@ -1,7 +1,13 @@
 from pathlib import Path
 import hashlib
+import sys
 
 import pandas as pd
+
+
+if not __package__:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.bronze.fidelidade import comparar_bloco, conferir_colunas
 
 
 RAW_FILE = Path(
@@ -72,6 +78,8 @@ def carregar_raw():
         header=None,
         engine="pyxlsb",
         dtype=object,
+        keep_default_na=False,
+        na_values=[""],
     )
 
 
@@ -106,104 +114,10 @@ def normalizar_raw(raw):
 
 
 def validar_reproducao_integral(raw, bronze):
-    raw_normalizado = normalizar_raw(
-        raw
-    )
-
-    source_cols = list(
-        raw_normalizado.columns
-    )
-
-    bronze_origem = bronze[
-        source_cols
-    ].copy()
-
-    if len(bronze_origem) != len(raw_normalizado):
-        raise RuntimeError(
-            "Quantidade de linhas diferente entre RAW e Bronze."
-        )
-
-    if list(bronze_origem.columns) != source_cols:
-        raise RuntimeError(
-            "Ordem das colunas de origem diferente entre RAW e Bronze."
-        )
-
-    # Padroniza os tipos antes da comparação.
-    for coluna in source_cols:
-        bronze_origem[coluna] = (
-            bronze_origem[coluna]
-            .astype("string")
-        )
-
-    marcador_ausencia = "__AUSENTE_SAEB_2023__"
-
-    esperado = (
-        raw_normalizado
-        .fillna(marcador_ausencia)
-    )
-
-    atual = (
-        bronze_origem
-        .fillna(marcador_ausencia)
-    )
-
-    mascara_igualdade = esperado.eq(
-        atual
-    )
-
-    total_celulas = (
-        len(esperado)
-        * len(source_cols)
-    )
-
-    total_iguais = int(
-        mascara_igualdade
-        .to_numpy()
-        .sum()
-    )
-
-    if total_iguais != total_celulas:
-        divergencias = []
-
-        linhas, colunas = (
-            ~mascara_igualdade
-        ).to_numpy().nonzero()
-
-        for i, j in zip(
-            linhas[:20],
-            colunas[:20],
-        ):
-            coluna = source_cols[j]
-
-            divergencias.append(
-                (
-                    int(i) + 1,
-                    coluna,
-                    esperado.iloc[i, j],
-                    atual.iloc[i, j],
-                )
-            )
-
-        texto = "\n".join(
-            (
-                f"linha={linha} | coluna={coluna} | "
-                f"RAW_normalizado={raw_val!r} | "
-                f"Bronze={bronze_val!r}"
-            )
-            for (
-                linha,
-                coluna,
-                raw_val,
-                bronze_val,
-            ) in divergencias
-        )
-
-        raise RuntimeError(
-            "Foram encontradas divergências RAW → Bronze:\n"
-            + texto
-        )
-
-    return total_celulas
+    esperado = normalizar_raw(raw)
+    conferir_colunas(RAW_FILE, SHEET_NAME, list(esperado.columns), bronze.columns)
+    esperado.insert(0, "_linha_origem", range(1, len(raw) + 1))
+    return comparar_bloco(RAW_FILE, SHEET_NAME, esperado, bronze)
 
 
 def validar_proveniencia(bronze, sha):

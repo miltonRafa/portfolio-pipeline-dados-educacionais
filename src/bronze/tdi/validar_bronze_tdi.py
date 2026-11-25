@@ -1,7 +1,13 @@
 from pathlib import Path
+import sys
 import hashlib
 
 import pandas as pd
+
+
+if not __package__:  # Execução direta pelo pipeline.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.bronze.fidelidade import validar_planilha
 
 
 RAW_DIR = Path("data/raw/tdi")
@@ -394,6 +400,9 @@ def validar_ano(
     # --------------------------------------------------
     # STATUS
     # --------------------------------------------------
+
+    celulas = validar_planilha(origem, dados)
+    print(f"Células Raw/Bronze comparadas: {celulas:,}")
 
     erros_ano = [
         erro
