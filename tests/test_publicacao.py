@@ -1,5 +1,6 @@
 """RAW-02: falhas isoladas, publicação e recuperação sem insumos externos."""
 import csv
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -45,6 +46,33 @@ class PublicacaoTest(unittest.TestCase):
     def test_success(self):
         self.execute()
         self.assertEqual(self.verify()["estado"], "concluida")
+
+    def test_full_rebuilds_when_last_completed_workdir_is_missing(self):
+        self.execute()
+        previous = pub.read_json(self.root / "data/execucoes/ultima.json")
+        shutil.rmtree(previous["trabalho"])
+
+        def rebuild(step, work):
+            if step is not None:
+                self.assertEqual((work / "data/raw/fonte").read_bytes(), b"fonte")
+                bronze = work / "data/bronze/intermediario.parquet"
+                silver = work / "data/silver/intermediario.parquet"
+                if step.script == "bronze":
+                    bronze.parent.mkdir(parents=True)
+                    bronze.write_bytes(b"bronze reconstruida")
+                elif step.script == "silver":
+                    self.assertEqual(bronze.read_bytes(), b"bronze reconstruida")
+                    silver.parent.mkdir(parents=True)
+                    silver.write_bytes(b"silver reconstruida")
+                else:
+                    self.assertEqual(silver.read_bytes(), b"silver reconstruida")
+            self.runner(step, work)
+
+        pub.execute(self.root, "full", self.steps, self.required, rebuild)
+        self.assertEqual(self.verify()["estado"], "concluida")
+        current = pub.read_json(self.root / "data/execucoes/ultima.json")
+        self.assertTrue((Path(current["trabalho"]) / "data/bronze/intermediario.parquet").is_file())
+        self.assertTrue((Path(current["trabalho"]) / "data/silver/intermediario.parquet").is_file())
 
     def test_every_failure_preserves_previous_and_identifies_it(self):
         self.execute()
