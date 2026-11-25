@@ -269,6 +269,24 @@ class PublicacaoTest(unittest.TestCase):
 
         pub.execute(self.root, "silver", self.steps[1:2], self.required, check_intermediate)
 
+    def test_partial_after_failure_uses_last_completed_work(self):
+        def build(step, work):
+            if step:
+                path = work / "data/bronze/a.parquet"
+                path.parent.mkdir(parents=True)
+                path.write_bytes(b"nova")
+        pub.execute(self.root, "bronze", self.steps[:1], self.required, build)
+        stale = self.root / "data/bronze/a.parquet"
+        stale.parent.mkdir(parents=True)
+        stale.write_bytes(b"antiga")
+        self.fail = "silver"
+        with self.assertRaises(RuntimeError):
+            self.execute()
+        def check(step, work):
+            if step:
+                self.assertEqual((work / "data/bronze/a.parquet").read_bytes(), b"nova")
+        pub.execute(self.root, "silver", self.steps[1:2], self.required, check)
+
     def test_archived_raw_manifest_hash_is_verified(self):
         self.execute()
         identifier = pub.read_json(self.root / "data/gold/publicacao.json")["id"]
