@@ -2,22 +2,106 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import csv
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import subprocess
 import tempfile
 import sys
+import threading
+import time
 import unittest
 from unittest.mock import patch
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
+import atualizacao_raw as updates
+import gerar_manifesto_raw as manifest
 spec = importlib.util.spec_from_file_location("baixar_raw", ROOT / "scripts/baixar_raw.py")
 raw = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(raw)
 
 
 class DownloadTest(unittest.TestCase):
+    def test_downloader_threads_serialize_identical_and_equivalent_installs(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            docs = root / "docs"
+            docs.mkdir()
+            destination = root / "data/raw"
+            (destination / ".download").mkdir(parents=True)
+
+            old_file = destination / "pnd/alterado.txt"
+            old_file.parent.mkdir()
+            old_file.write_bytes(b"ano;valor\r\n2025;10\r\n")
+            equivalent = root / "equivalente.txt"
+            equivalent.write_bytes(b"ano;valor\n2025;10\n")
+
+            def row_for(name, content_hash):
+                row = {field: "" for field in manifest.FIELDS}
+                row.update(
+                    indicador="PND",
+                    ano="2025",
+                    nome_local=name,
+                    caminho_local=f"data/raw/pnd/{name}",
+                    sha256=content_hash,
+                )
+                return row
+
+            changed_row = row_for(old_file.name, raw.digest(old_file))
+            same_sources = []
+            rows = [changed_row]
+            for index in range(2):
+                source = root / f"identico-{index}.txt"
+                source.write_bytes(f"conteudo-{index}\n".encode("utf-8"))
+                same_row = row_for(source.name, raw.digest(source))
+                same_sources.append((source, same_row))
+                rows.append(same_row)
+
+            with (docs / "fontes_dados.csv").open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=manifest.FIELDS)
+                writer.writeheader()
+                writer.writerows(rows)
+            (docs / "fontes_dados.md").write_text("anterior", encoding="utf-8")
+            (docs / "raw_checksums_sha256.txt").write_text("anterior", encoding="utf-8")
+
+            update_started = threading.Event()
+            release_update = threading.Event()
+
+            def slow_manifest(rows_to_write):
+                update_started.set()
+                if not release_update.wait(5):
+                    raise TimeoutError("A atualização equivalente não foi liberada.")
+                (manifest.DOCS_DIR / "fontes_dados.md").write_text("atualizado", encoding="utf-8")
+
+            def call_accept(source, row):
+                try:
+                    return raw.accept(source, row, destination)
+                except Exception as exc:
+                    return exc
+
+            with patch.object(raw, "ROOT", root), \
+                    patch.object(raw, "ManifestUpdates", side_effect=lambda: updates.ManifestUpdates(root)), \
+                    patch.object(manifest, "write_markdown", side_effect=slow_manifest):
+                with ThreadPoolExecutor(max_workers=3) as executor:
+                    changed = executor.submit(call_accept, equivalent, changed_row)
+                    self.assertTrue(update_started.wait(5), "A atualização equivalente não iniciou.")
+                    identical = [
+                        executor.submit(call_accept, source, row)
+                        for source, row in same_sources
+                    ]
+                    time.sleep(0.1)
+                    release_update.set()
+                    results = [changed.result(timeout=10)]
+                    results.extend(future.result(timeout=10) for future in identical)
+
+            self.assertEqual(results, [True, True, True])
+            self.assertEqual(raw.digest(old_file), raw.digest(equivalent))
+            for source, row in same_sources:
+                target = destination / Path(row["caminho_local"]).relative_to("data/raw")
+                self.assertEqual(raw.digest(target), raw.digest(source))
+
     def _rar_case(self, temp, content=b"dados oficiais"):
         temp = Path(temp)
         scratch = temp / ".download"

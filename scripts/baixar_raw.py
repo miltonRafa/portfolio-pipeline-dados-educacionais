@@ -22,6 +22,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from threading import RLock
 import time
 import unicodedata
 from urllib.parse import urljoin, urlparse
@@ -35,6 +36,7 @@ from atualizacao_raw import ManifestUpdates, recover_interrupted_update
 from compatibilidade_raw import Incompatible
 
 ROOT = Path(__file__).resolve().parents[1]
+INSTALL_LOCK = RLock()
 MICRO_SAEB = "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/saeb"
 
 
@@ -198,6 +200,11 @@ def download(url, destination):
 
 
 def accept(source, row, destination):
+    with INSTALL_LOCK:
+        return _accept(source, row, destination)
+
+
+def _accept(source, row, destination):
     source_hash = digest(source)
     if source_hash != row["sha256"]:
         try:
