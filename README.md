@@ -407,11 +407,14 @@ O manifesto data/gold/publicacao.json registra a execução, os controles aprova
 os insumos Raw e os hashes dos arquivos publicados. As cópias e estados anteriores
 ficam em data/execucoes; considere esse espaço ao executar novamente.
 
-O comando python src/pipeline.py validate-gold verifica integridade e atualidade,
-além da estrutura. Após falha, a opção --last-valid permite verificar explicitamente
-a publicação anterior. Conjuntos legados sem manifesto precisam de uma execução
-validada para receber certificação. Para diagnóstico estritamente estrutural,
-use python src/gold/validar_gold.py --structure-only.
+O comando python src/pipeline.py validate-gold verifica separadamente a integridade
+da publicação, sua atualidade em relação à Raw e o estado da última tentativa.
+Uma execução bem-sucedida de bronze ou silver não substitui nem invalida uma Gold
+atual. Após falha ou mudança dos insumos, a opção --last-valid permite verificar
+explicitamente a publicação anterior, identificando-a como desatualizada quando
+aplicável. Conjuntos legados sem manifesto precisam de uma execução validada para
+receber certificação. Para diagnóstico estritamente estrutural, use
+python src/gold/validar_gold.py --structure-only.
 
 A troca usa renomeações de diretórios no mesmo volume e um diário de recuperação.
 Uma interrupção é recuperada na próxima execução ou verificação, restaurando o
