@@ -181,3 +181,85 @@ class PublicacaoTest(unittest.TestCase):
         pub.write_json(path, manifest)
         with self.assertRaisesRegex(RuntimeError, "controles"):
             self.verify()
+
+    def test_changed_raw_is_not_current(self):
+        self.execute()
+        (self.root / "data/raw/fonte").write_bytes(b"fonte alterada")
+        with self.assertRaisesRegex(RuntimeError, "desatualizada"):
+            self.verify()
+        self.verify(previous=True)
+
+    def test_changed_raw_manifest_is_not_current(self):
+        self.execute()
+        with (self.root / "docs/fontes_dados.csv").open("a") as stream:
+            stream.write("\n")
+        with self.assertRaisesRegex(RuntimeError, "desatualizada"):
+            self.verify()
+        self.verify(previous=True)
+
+    def test_download_directory_does_not_make_raw_stale(self):
+        self.execute()
+        scratch = self.root / "data/raw/.download"
+        scratch.mkdir()
+        (scratch / "relatorio.json").write_text("temporario")
+        self.verify()
+
+    def test_partial_success_preserves_gold_and_reports_latest_attempt(self):
+        self.execute()
+        publication = pub.read_json(self.root / "data/gold/publicacao.json")["id"]
+        for command in ("bronze", "silver"):
+            pub.execute(self.root, command, self.steps[:1], self.required, lambda step, work: None)
+            latest = pub.read_json(self.root / "data/execucoes/ultima.json")
+            self.assertEqual((latest["estado"], latest["comando"]), ("concluida", command))
+            self.assertEqual(self.verify()["id"], publication)
+            self.assertEqual(pub.read_json(self.root / "data/gold/publicacao.json")["id"],
+                             publication)
+
+    def test_failed_attempt_then_partial_reuses_last_completed_intermediates(self):
+        def completed_full(step, work):
+            if step is None:
+                return
+            bronze = work / "data/bronze"
+            bronze.mkdir(parents=True, exist_ok=True)
+            (bronze / "intermediario.parquet").write_bytes(b"ultimo completo")
+            gold = work / "data/gold"
+            gold.mkdir(parents=True, exist_ok=True)
+            (gold / "publicado.parquet").write_bytes(b"gold anterior")
+
+        pub.execute(self.root, "full", self.steps, self.required, completed_full)
+        stale = self.root / "data/bronze/intermediario.parquet"
+        stale.parent.mkdir(parents=True)
+        stale.write_bytes(b"copia obsoleta")
+        self.fail = "silver"
+        with self.assertRaises(RuntimeError):
+            self.execute()
+
+        def check_intermediate(step, work):
+            if step is not None:
+                intermediate = work / "data/bronze/intermediario.parquet"
+                self.assertEqual(intermediate.read_bytes(), b"ultimo completo")
+
+        pub.execute(self.root, "silver", self.steps[1:2], self.required, check_intermediate)
+
+    def test_archived_raw_manifest_hash_is_verified(self):
+        self.execute()
+        identifier = pub.read_json(self.root / "data/gold/publicacao.json")["id"]
+        archived = self.root / "data/execucoes" / identifier / "fontes_dados.csv"
+        archived.write_bytes(b"manifesto arquivado divergente")
+        with self.assertRaisesRegex(RuntimeError, "manifesto Raw arquivado"):
+            self.verify(previous=True)
+
+    def test_manifest_copy_race_cannot_publish(self):
+        copy = pub.shutil.copy2
+
+        def alter_copy(source, target, **kwargs):
+            result = copy(source, target, **kwargs)
+            if Path(target).name == "fontes_dados.csv":
+                with Path(target).open("a") as stream:
+                    stream.write("\n")
+            return result
+
+        with patch.object(pub.shutil, "copy2", side_effect=alter_copy):
+            with self.assertRaisesRegex(RuntimeError, "Cópia do manifesto Raw"):
+                self.execute()
+        self.assertFalse((self.root / "data/gold").exists())

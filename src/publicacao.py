@@ -19,9 +19,10 @@ def digest(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def inventory(directory):
+def inventory(directory, exclude_download=False):
     return {p.relative_to(directory).as_posix(): digest(p)
-            for p in sorted(Path(directory).rglob("*")) if p.is_file()}
+            for p in sorted(Path(directory).rglob("*"))
+            if p.is_file() and not (exclude_download and ".download" in p.relative_to(directory).parts)}
 
 
 def write_json(path, value):
@@ -110,16 +111,26 @@ def verify(root, required, allow_previous=False):
     archived = read_json(root / "data/execucoes" / identifier / "publicacao.json")
     if manifest != archived:
         raise RuntimeError("Manifesto de publicacao diverge do registro da execucao.")
+    archived_raw = root / "data/execucoes" / identifier / "fontes_dados.csv"
+    if not archived_raw.is_file() or digest(archived_raw) != manifest["manifesto_raw"]:
+        raise RuntimeError("Hash do manifesto Raw arquivado divergente.")
     actual = inventory(root / "data/gold")
     actual.pop("publicacao.json", None)
     if actual != manifest.get("arquivos"):
         raise RuntimeError("Inventário Gold divergente: arquivo ausente, adicional ou adulterado.")
-    current = latest["estado"] == "concluida" and latest["id"] == manifest["id"]
-    if not current and not allow_previous:
-        raise RuntimeError(f"Última execução {latest['id']}: {latest['estado']}. "
-                           f"Gold pertence à execução anterior {manifest['id']}. "
-                           "Use --last-valid para verificar explicitamente a publicação anterior.")
-    print(f"Publicação {manifest['id']} íntegra. Última execução {latest['id']}: {latest['estado']}.")
+    raw_manifest = root / "docs/fontes_dados.csv"
+    fresh = (raw_manifest.is_file()
+             and digest(raw_manifest) == manifest["manifesto_raw"]
+             and inventory(root / "data/raw", exclude_download=True) == manifest["insumos"])
+    latest_ok = (latest["estado"] == "concluida"
+                 and (latest["id"] == manifest["id"] or latest.get("comando") in ("bronze", "silver")))
+    status = (f"Publicação {manifest['id']} íntegra. "
+              f"Atualidade em relação aos insumos: {'atual' if fresh else 'desatualizada'}. "
+              f"Última tentativa {latest['id']}: {latest['estado']} "
+              f"({latest.get('comando', 'comando desconhecido')}).")
+    if not allow_previous and (not fresh or not latest_ok):
+        raise RuntimeError(status + " Use --last-valid para verificar explicitamente a publicação anterior.")
+    print(status)
     return manifest
 
 
@@ -127,11 +138,17 @@ def execute(root, command, steps, required, run_step):
     root = Path(root)
     with execution_lock(root):
         recover(root)
-        previous_path = root / "data/execucoes/ultima.json"
-        previous = read_json(previous_path) if previous_path.exists() else {}
         source_root = root
-        if previous.get("estado") == "concluida" and previous.get("trabalho"):
+        completed = []
+        for path in (root / "data/execucoes").glob("*/estado.json"):
+            record = read_json(path)
+            if record.get("estado") == "concluida" and record.get("trabalho"):
+                completed.append(record)
+        if completed:
+            previous = max(completed, key=lambda record: record["fim"])
             source_root = Path(previous["trabalho"])
+            if not source_root.is_dir():
+                raise RuntimeError("Intermediarios da ultima execucao concluida ausentes.")
         identifier = uuid.uuid4().hex
         run = root / "data/execucoes" / identifier
         work = run / "trabalho"
@@ -149,8 +166,11 @@ def execute(root, command, steps, required, run_step):
                             ignore=shutil.ignore_patterns(".download"))
             raw = inventory(work / "data/raw")
             manifest_hash = digest(root / "docs/fontes_dados.csv")
-            shutil.copy2(root / "docs/fontes_dados.csv", run / "fontes_dados.csv")
-            with (run / "fontes_dados.csv").open(encoding="utf-8-sig", newline="") as stream:
+            archived_raw = run / "fontes_dados.csv"
+            shutil.copy2(root / "docs/fontes_dados.csv", archived_raw)
+            if digest(archived_raw) != manifest_hash:
+                raise RuntimeError("Cópia do manifesto Raw diverge do hash registrado.")
+            with archived_raw.open(encoding="utf-8-sig", newline="") as stream:
                 expected = {Path(row["caminho_local"]).relative_to("data/raw").as_posix(): row["sha256"]
                             for row in csv.DictReader(stream)}
             if raw != expected:
@@ -167,7 +187,9 @@ def execute(root, command, steps, required, run_step):
                 if step.script in required:
                     state["controles"].append(step.script)
                 save()
-            if inventory(work / "data/raw") != raw or digest(root / "docs/fontes_dados.csv") != manifest_hash:
+            if (inventory(work / "data/raw") != raw
+                    or digest(root / "docs/fontes_dados.csv") != manifest_hash
+                    or digest(archived_raw) != manifest_hash):
                 raise RuntimeError("Insumos ou manifesto Raw alterados durante a execução.")
             if command in ("full", "gold"):
                 if set(state["controles"]) != set(required):
