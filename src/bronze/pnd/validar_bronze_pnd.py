@@ -1,8 +1,14 @@
 from pathlib import Path
+import sys
 import hashlib
 import csv
 
 import pyarrow.parquet as pq
+
+
+if not __package__:  # Execução direta pelo pipeline.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.bronze.fidelidade import validar_delimitado
 
 
 RAW_DIR = Path("data/raw/pnd")
@@ -357,6 +363,9 @@ def main():
     validar_esquema(
         parquet
     )
+
+    celulas = validar_delimitado(caminho_raw, caminho_parquet, "utf-8-sig")
+    print(f"Células Raw/Bronze comparadas: {celulas:,}")
 
     validar_primeira_linha(
         parquet

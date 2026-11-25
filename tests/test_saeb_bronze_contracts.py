@@ -152,11 +152,13 @@ class ConteudoHistoricoTest(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.folder = Path(self.temp.name)
         self.cfg = dict(historico.CONFIG[2007])
-        self.cfg.update(linhas=2, sha256=hashlib.sha256(b"raw ficticio").hexdigest())
-        (self.folder / self.cfg["arquivo_raw"]).write_bytes(b"raw ficticio")
+        self.cfg.update(linhas=2)
         cols = [f"col_{i:03d}" for i in range(1, 13)]
         header = self.cfg["marcadores"] + ["campo"] * (12 - len(self.cfg["marcadores"]))
         self.df = pd.DataFrame([header, ["1"] * 12], columns=cols)
+        raw = self.folder / self.cfg["arquivo_raw"]
+        self.df.to_excel(raw, sheet_name=self.cfg["aba"], header=False, index=False)
+        self.cfg["sha256"] = hashlib.sha256(raw.read_bytes()).hexdigest()
         for key, value in {"_fonte": "SAEB", "_sha256_arquivo": self.cfg["sha256"],
                            "_arquivo_origem": self.cfg["arquivo_raw"], "_aba_origem": self.cfg["aba"],
                            "_ano_referencia": 2007, "_granularidade_origem": "UF",
@@ -246,6 +248,17 @@ class ConteudoAgregadoTest(unittest.TestCase):
     def test_conteudo_agregado_alterado_rejeitado(self):
         self.df.loc[1, "col_007"] = "999"
         with self.assertRaisesRegex(RuntimeError, "divergências RAW"):
+            self.validate()
+
+    def test_ordem_fisica_de_colunas_agregadas(self):
+        self.df = self.df[self.df.columns[::-1]]
+        with self.assertRaisesRegex(RuntimeError, "campos de origem"):
+            self.validate()
+
+    def test_ausencia_nao_equivale_a_texto_sentinela(self):
+        self.raw.iloc[1, 6] = None
+        self.df.loc[1, "col_007"] = "__AUSENTE_SAEB_2023__"
+        with self.assertRaisesRegex(RuntimeError, "linha=2, coluna=col_007"):
             self.validate()
 
     def test_esquema_agregado_incompleto_rejeitado(self):

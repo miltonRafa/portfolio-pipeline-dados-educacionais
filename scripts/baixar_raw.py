@@ -22,6 +22,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from threading import RLock
 import time
 import unicodedata
 from urllib.parse import urljoin, urlparse
@@ -31,10 +32,11 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from atualizacao_raw import ManifestUpdates
+from atualizacao_raw import ManifestUpdates, recover_interrupted_update
 from compatibilidade_raw import Incompatible
 
 ROOT = Path(__file__).resolve().parents[1]
+INSTALL_LOCK = RLock()
 MICRO_SAEB = "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/saeb"
 
 
@@ -198,6 +200,11 @@ def download(url, destination):
 
 
 def accept(source, row, destination):
+    with INSTALL_LOCK:
+        return _accept(source, row, destination)
+
+
+def _accept(source, row, destination):
     source_hash = digest(source)
     if source_hash != row["sha256"]:
         try:
@@ -208,18 +215,31 @@ def accept(source, row, destination):
             row["_rejeicao"] = {**exc.details, "sha256_esperado": row["sha256"], "sha256_recebido": source_hash,
                                 "fallback": "Arquivo atual e manifesto preservados; nenhuma atualização deste candidato foi aceita."}
             return False
-    target = destination / Path(row["caminho_local"]).relative_to("data/raw")
-    target.parent.mkdir(parents=True, exist_ok=True)
-    if target.exists():
-        if digest(target) != source_hash:
-            raise FileExistsError(f"Destino divergente preservado: {target}")
+
+    def install_identical():
+        target = destination / Path(row["caminho_local"]).relative_to("data/raw")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists():
+            if digest(target) != source_hash:
+                raise FileExistsError(f"Destino divergente preservado: {target}")
+        else:
+            staging = target.with_suffix(target.suffix + ".part")
+            try:
+                shutil.copyfile(source, staging)
+                if digest(staging) != source_hash:
+                    raise OSError("Cópia preparada diverge do arquivo validado.")
+                staging.replace(target)
+            finally:
+                staging.unlink(missing_ok=True)
+
+    if destination.resolve() == (ROOT / "data/raw").resolve():
+        from src.publicacao import execution_lock
+
+        with execution_lock(ROOT):
+            recover_interrupted_update(ROOT)
+            install_identical()
     else:
-        staging = target.with_suffix(target.suffix + ".part")
-        try:
-            shutil.copyfile(source, staging)
-            staging.replace(target)
-        finally:
-            staging.unlink(missing_ok=True)
+        install_identical()
     return True
 
 
@@ -241,6 +261,39 @@ def package_directory(scratch):
                 if attempt == 4:
                     raise
                 time.sleep(0.2 * (attempt + 1))
+
+
+def list_rar_members(archive):
+    tools = []
+    for name in ("bsdtar", "tar"):
+        tool = shutil.which(name)
+        if tool and tool not in tools:
+            tools.append(tool)
+    if not tools:
+        raise RuntimeError("RAR exige bsdtar ou tar baseado em libarchive no PATH; GNU tar não oferece suporte a RAR.")
+
+    errors = []
+    for tool in tools:
+        try:
+            version = subprocess.run([tool, "--version"], capture_output=True, check=True)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            errors.append(f"{tool}: não foi possível identificar a implementação ({exc})")
+            continue
+        version_text = b" ".join(part for part in (version.stdout, version.stderr) if part)
+        if not re.search(rb"\bbsdtar\b|\blibarchive\b", version_text, re.I):
+            errors.append(f"{tool}: implementação incompatível; é necessário bsdtar/libarchive (GNU tar não suporta RAR)")
+            continue
+        try:
+            listing = subprocess.run([tool, "-tf", str(archive)], capture_output=True, check=True)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            stderr = getattr(exc, "stderr", None)
+            detail = stderr.decode(locale.getpreferredencoding(False), errors="replace").strip() if isinstance(stderr, bytes) else str(stderr or exc)
+            errors.append(f"{tool}: falha ao listar o RAR ({detail})")
+            continue
+        return tool, listing.stdout
+
+    raise RuntimeError("Nenhum extrator RAR compatível conseguiu ler o arquivo. "
+                       "Instale bsdtar/libarchive e confira o pacote. " + "; ".join(errors))
 
 
 def process_group(item, destination, scratch, http):
@@ -280,10 +333,7 @@ def process_group(item, destination, scratch, http):
         elif url.lower().endswith(".rar"):
             local = temp / "fonte.rar"
             download(url, local)
-            tar = shutil.which("tar")
-            if not tar:
-                raise RuntimeError("RAR exige tar com suporte libarchive (disponível no Windows) no PATH")
-            listing_bytes = subprocess.run([tar, "-tf", str(local)], capture_output=True, check=True).stdout
+            tar, listing_bytes = list_rar_members(local)
             try:
                 listing = listing_bytes.decode("utf-8").splitlines()
             except UnicodeDecodeError:
@@ -294,7 +344,13 @@ def process_group(item, destination, scratch, http):
                     row["_membro"] = member
                     candidate = temp / ("candidato" + Path(row["nome_local"]).suffix)
                     with candidate.open("wb") as dst:
-                        subprocess.run([tar, "-xOf", str(local), "--", member], stdout=dst, stderr=subprocess.PIPE, check=True)
+                        try:
+                            subprocess.run([tar, "-xOf", str(local), "--", member],
+                                           stdout=dst, stderr=subprocess.PIPE, check=True)
+                        except (OSError, subprocess.CalledProcessError) as exc:
+                            stderr = getattr(exc, "stderr", None)
+                            detail = stderr.decode(locale.getpreferredencoding(False), errors="replace").strip() if isinstance(stderr, bytes) else str(stderr or exc)
+                            raise RuntimeError(f"Falha ao extrair o membro {member!r} do RAR com {tar}: {detail}") from exc
                     if accept(candidate, row, destination):
                         break
                     attempts.append({"membro": member, "sha256": digest(candidate), "erro": row.get("_rejeicao")})
@@ -328,6 +384,10 @@ def main():
     parser.add_argument("--rebaixar", action="store_true", help="Consulta e transfere novamente arquivos já validados no destino")
     parser.add_argument("--estrito", action="store_true", help="Exige identidade binária; desativa atualização automática por conteúdo equivalente")
     args = parser.parse_args()
+    from src.publicacao import execution_lock
+
+    with execution_lock(ROOT):
+        recover_interrupted_update(ROOT)
     destination = args.destino.resolve()
     scratch = destination / ".download"
     scratch.mkdir(parents=True, exist_ok=True)

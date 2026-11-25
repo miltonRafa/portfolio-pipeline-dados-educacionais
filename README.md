@@ -33,7 +33,7 @@ separada da série histórica.
 - aquisição, seleção, extração e nomenclatura da Raw automatizadas;
 - hashes SHA-256 para rastreabilidade dos insumos;
 - camadas Raw, Bronze, Silver e Gold;
-- validações independentes por camada;
+- validações de estrutura e de correspondência entre camadas;
 - modelo dimensional com 5 dimensões e 5 fatos;
 - Power BI Desktop com medidas DAX versionadas;
 - documentação metodológica e validadores por fonte;
@@ -156,22 +156,34 @@ cd portfolio-pipeline-dados-educacionais
 Windows PowerShell:
 
 ```powershell
-python -m venv .venv
+py -3.12 --version
+py -3.12 -c "import sys; assert sys.version_info[:3] == (3, 12, 10)"
+py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.lock
+python -m pip check
 ```
 
 Linux/macOS:
 
 ```bash
+python3 --version
+python3 -c 'import sys; assert sys.version_info[:3] == (3, 12, 10)'
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.lock
+python -m pip check
 ```
 
-O projeto é validado em Python 3.12. Para pacotes RAR, disponibilize `tar`
-com suporte libarchive; o `tar.exe` do Windows utilizado no projeto atende
-a esse requisito.
+Instale CPython **3.12.10** (64-bit) pela
+[distribuição oficial](https://www.python.org/downloads/release/python-31210/)
+e confirme essa versao antes de criar o ambiente. `requirements.txt` declara as
+dependencias diretas com versoes exatas;
+`requirements.lock` fixa tambem as dependencias transitivas e e o arquivo usado
+para instalacao e pela integracao continua. Para pacotes RAR, disponibilize
+`bsdtar` ou `tar` baseado em libarchive. O script verifica a implementacao; GNU
+tar sem suporte a RAR e rejeitado. Consulte o [registro do ambiente e das
+limitacoes historicas](docs/reproducibilidade_ambiente.md).
 
 ### 3. Dados Raw
 
@@ -180,13 +192,14 @@ A pasta `data/raw` não é versionada no Git.
 Para preparar a Raw, execute o download automático das fontes oficiais:
 
 ```bash
-python scripts/baixar_raw.py
+python scripts/baixar_raw.py --estrito
 ```
 
 O script baixa, extrai e organiza os 54 arquivos diretamente em `data/raw`,
 valida os hashes do manifesto e remove os pacotes e candidatos temporários.
-Arquivos existentes corretos são reaproveitados. Para consultar novamente as
-fontes e verificar atualizações, execute:
+Arquivos existentes corretos são reaproveitados. `--estrito` impede atualizar
+o manifesto quando uma fonte oficial divergir do hash registrado. Para consultar
+novamente as fontes e verificar atualizações, execute:
 
 ```bash
 python scripts/baixar_raw.py --rebaixar
@@ -204,8 +217,9 @@ preserva a versão atual e mostra o motivo no terminal e no relatório em
 anterior só aceita diretamente os hashes já registrados. Use `--estrito` para
 exigir sempre identidade binária e impedir atualizações automáticas.
 
-Para os pacotes RAR, é necessário `tar` com suporte libarchive.
-Se o HTTPS do servidor de downloads falhar, use `python scripts/baixar_raw.py --http`.
+Para os pacotes RAR, o download dá preferência a `bsdtar` quando disponível.
+Se o HTTPS do servidor de downloads falhar, use
+`python scripts/baixar_raw.py --estrito --http`.
 Veja [o procedimento de download](docs/automacao_raw.md) para opções e relatórios.
 O manifesto já inclui a revisão oficial de 09/09/2026 do dicionário PND.
 
@@ -225,8 +239,9 @@ Ele não reescreve `docs/fontes_dados.md`, `docs/fontes_dados.csv` nem
 python src/pipeline.py full
 ```
 
-O comando executa Bronze, Silver, Gold e validações. Em um clone limpo, a
-execução completa exige que os arquivos Raw estejam disponíveis em `data/raw`.
+O comando verifica os arquivos em `data/raw` contra o manifesto antes de
+executar as 35 etapas de transformação e validação das camadas Bronze, Silver
+e Gold. Se a verificação falhar, a execução é interrompida antes da ingestão.
 
 ### 6. Abrir e Configurar o Power BI
 
@@ -235,6 +250,9 @@ o download prepara a Raw, e `python src/pipeline.py full` gera e valida a Gold.
 Clonar o repositório ou baixar somente a Raw não prepara os arquivos lidos pelo
 PBIX. O pipeline Python é executado no terminal; as consultas do relatório leem
 Parquet, sem exigir configuração de Python dentro do Power BI.
+
+Para incorporar ao PBIX publicado as alterações do modelo, abra o projeto
+PBIP no Power BI Desktop e salve um novo PBIX.
 
 Ao final, a estrutura esperada é:
 
@@ -310,8 +328,8 @@ python -m compileall -q src scripts tests
 ```
 
 A integração contínua executa essas verificações e confere a sequência do
-pipeline. A integridade da Raw e a validação dos dados Gold são verificações
-locais adicionais, pois os dados não são versionados.
+pipeline em modo de simulação. A verificação da Raw e a validação dos dados
+Gold ocorrem na execução completa com os insumos locais.
 
 ## Resultado Validado
 
@@ -388,3 +406,45 @@ licenciamento separado pelo autor.
 O arquivo [LICENSE](LICENSE) define as condições jurídicas de utilização do
 código. O arquivo [CITATION.cff](CITATION.cff) registra os metadados de autoria
 e orienta a citação acadêmica do projeto.
+
+### Publicação validada da Gold
+
+Cada tentativa do pipeline recebe um identificador em data/execucoes, com estado
+em_andamento, concluida ou malsucedida. Os intermediários ficam na pasta trabalho
+da execução, indicada no terminal. Os comandos bronze, silver e gold aproveitam
+os intermediários da última execução concluída quando disponíveis. O comando gold
+também exige aprovação dos validadores Bronze e Silver antes de publicar.
+
+A Gold é preparada em isolamento e passa pelos validadores específicos, dimensionais
+e global. Após aprovação, o diretório completo substitui data/gold.
+O manifesto data/gold/publicacao.json registra a execução, os controles aprovados,
+os insumos Raw e os hashes dos arquivos publicados. As cópias e estados anteriores
+ficam em data/execucoes; considere esse espaço ao executar novamente.
+
+O comando python src/pipeline.py validate-gold verifica separadamente a integridade
+da publicação, sua atualidade em relação à Raw e o estado da última tentativa.
+Uma execução bem-sucedida de bronze ou silver não substitui nem invalida uma Gold
+atual. Após falha ou mudança dos insumos, a opção --last-valid permite verificar
+explicitamente a publicação anterior, identificando-a como desatualizada quando
+aplicável. Nessa modalidade, os validadores PND usam o dicionário do snapshot Raw
+arquivado daquela publicação, após conferir sua identidade com o manifesto Raw
+arquivado e o inventário publicado. Se o arquivo estiver ausente ou divergente,
+a verificação falha; não há fallback para o dicionário Raw atual. Sem
+--last-valid, a validação continua usando a Raw atual. Conjuntos legados sem
+manifesto precisam de uma execução validada para receber certificação. Para
+diagnóstico estritamente estrutural, use
+python src/gold/validar_gold.py --structure-only.
+
+A troca usa renomeações de diretórios no mesmo volume e um diário de recuperação.
+Uma interrupção é recuperada na próxima execução ou verificação, restaurando o
+conjunto anterior quando a publicação ainda não foi confirmada. O bloqueio do
+sistema operacional impede execuções concorrentes pelo orquestrador.
+Os scripts individuais de transformação são ferramentas de diagnóstico e não
+registram publicação; alterações posteriores da Gold invalidam seus hashes.
+
+O caminho consumido pelo Power BI permanece data/gold. Durante a troca há uma
+breve janela em que esse diretório pode estar indisponível. Faça a atualização do
+Power BI depois de validate-gold concluir, sem executar o pipeline simultaneamente.
+Uma atualização já em andamento no Power BI não participa do bloqueio do Python
+e pode ler arquivos em momentos diferentes. Garantir uma leitura transacional no
+Power BI exigiria alterar suas consultas para fixar uma versão, fora desta correção.

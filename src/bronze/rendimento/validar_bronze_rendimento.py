@@ -1,7 +1,13 @@
 from pathlib import Path
+import sys
 import hashlib
 
 import pandas as pd
+
+
+if not __package__:  # Execução direta pelo pipeline.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.bronze.fidelidade import validar_planilha
 
 
 RAW_DIR = Path("data/raw/rendimento")
@@ -105,6 +111,8 @@ for ano, arquivo_origem in ARQUIVOS_ORIGEM.items():
             f"{ano}: Parquet vazio"
         )
 
+    celulas = validar_planilha(origem, dados)
+    print(f"Células Raw/Bronze comparadas: {celulas:,}")
     total_linhas += len(dados)
 
     # -----------------------------------------------------

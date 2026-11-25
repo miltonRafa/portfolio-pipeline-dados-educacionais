@@ -1,7 +1,14 @@
 from pathlib import Path
+import sys
 
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
+
+if not __package__:  # Execução direta pelo pipeline.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.referencias_pnd import ler_areas_oficiais
+
 
 
 BRONZE_FILE = Path(
@@ -15,6 +22,7 @@ SILVER_FILE = Path(
 TOTAL_DADOS_ESPERADO = 1_087_359
 TOTAL_RESULTADOS_COMPLETOS_ESPERADO = 759_152
 TOTAL_POPULACAO_ANALITICA_ESPERADO = 759_140
+TOTAL_555_ESPERADO = 760_106
 TOTAL_555_SEM_RESULTADO_ESPERADO = 966
 TOTAL_888_COM_RESULTADO_ESPERADO = 12
 
@@ -25,43 +33,6 @@ UFS = {
     "RO", "RR", "SC", "SP", "SE", "TO",
 }
 
-AREAS = {
-    702: "MATEMÁTICA (LICENCIATURA)",
-    904: "LETRAS - PORTUGUÊS (LICENCIATURA)",
-    905: "LETRAS - PORTUGUÊS E INGLÊS (LICENCIATURA)",
-    906: "LETRAS - PORTUGUÊS E ESPANHOL (LICENCIATURA)",
-    1402: "FÍSICA (LICENCIATURA)",
-    1502: "QUÍMICA (LICENCIATURA)",
-    1602: "CIÊNCIAS BIOLÓGICAS (LICENCIATURA)",
-    2001: "PEDAGOGIA (LICENCIATURA)",
-    2402: "HISTÓRIA (LICENCIATURA)",
-    2501: "ARTES VISUAIS (LICENCIATURA)",
-    3002: "GEOGRAFIA (LICENCIATURA)",
-    3202: "FILOSOFIA (LICENCIATURA)",
-    3502: "EDUCAÇÃO FÍSICA (LICENCIATURA)",
-    4005: "CIÊNCIA DA COMPUTAÇÃO (LICENCIATURA)",
-    4301: "MÚSICA (LICENCIATURA)",
-    5402: "CIÊNCIAS SOCIAIS (LICENCIATURA)",
-    6407: "LETRAS - INGLÊS (LICENCIATURA)",
-}
-
-MAPA = {
-    "NU_ANO": "col_001",
-    "CO_GRUPO": "col_002",
-    "CO_MUNICIPIO_PROVA": "col_003",
-    "SG_UF_MUNICIPIO_PROVA": "col_004",
-    "TP_INSCRICAO_PND": "col_005",
-    "IN_REAPLICACAO": "col_006",
-    "CO_CADERNO": "col_007",
-    "TP_PRES": "col_011",
-    "TP_SIT_DISC": "col_012",
-    "PROFICIENCIA": "col_013",
-    "NT_OBJ": "col_014",
-    "NT_DIS": "col_015",
-    "NT_GER": "col_016",
-    "QT_ACERTOS": "col_017",
-}
-
 CAMPOS_RESULTADO = [
     "PROFICIENCIA",
     "NT_OBJ",
@@ -70,17 +41,11 @@ CAMPOS_RESULTADO = [
     "QT_ACERTOS",
 ]
 
-COLUNAS_BRONZE = list(
-    dict.fromkeys(
-        [
-            *MAPA.values(),
-            "_arquivo_origem",
-            "_granularidade_origem",
-            "_linha_origem",
-            "_indice_cabecalho_origem",
-        ]
-    )
-)
+CAMPOS_FONTE = [
+    "NU_ANO", "CO_GRUPO", "CO_MUNICIPIO_PROVA", "SG_UF_MUNICIPIO_PROVA",
+    "TP_INSCRICAO_PND", "IN_REAPLICACAO", "CO_CADERNO", "TP_PRES",
+    "TP_SIT_DISC", *CAMPOS_RESULTADO,
+]
 
 COLUNAS_SILVER = [
     "ANO",
@@ -166,117 +131,65 @@ def inteiro(serie, nome):
     )
 
 
-def validar_cabecalho(bronze):
-    indices = (
-        bronze[
-            "_indice_cabecalho_origem"
-        ]
-        .dropna()
-        .unique()
-        .tolist()
-    )
-
-    if indices != [0]:
-        raise RuntimeError(
-            "Índice de cabeçalho da Bronze diferente de 0."
-        )
-
-    cabecalho = bronze.loc[
-        bronze[
-            "_linha_origem"
-        ] == 1
-    ]
-
-    if len(cabecalho) != 1:
-        raise RuntimeError(
-            "Cabeçalho físico da PND não encontrado de forma única."
-        )
-
-    linha = cabecalho.iloc[0]
-
-    for nome, coluna in MAPA.items():
-        atual = str(
-            linha[
-                coluna
-            ]
-        ).strip()
-
-        if atual != nome:
-            raise RuntimeError(
-                f"Cabeçalho divergente em {coluna}: "
-                f"esperado={nome!r}; atual={atual!r}"
-            )
+def ler_dados_bronze(caminho):
+    # Ler todos os rótulos antes de projetar as colunas: uma duplicata pode
+    # estar inclusive em uma coluna que a Silver não consome.
+    with pq.ParquetFile(caminho) as parquet:
+        primeiro = next(parquet.iter_batches(batch_size=1), None)
+        if primeiro is None:
+            raise RuntimeError("Bronze da PND vazia.")
+        linha = primeiro.to_pylist()[0]
+        if linha["_linha_origem"] != 1 or linha["_indice_cabecalho_origem"] != 0:
+            raise RuntimeError("Cabeçalho físico da PND não encontrado na primeira linha.")
+        nomes = {}
+        for coluna, rotulo in linha.items():
+            if coluna.startswith("col_") and rotulo in CAMPOS_FONTE:
+                if rotulo in nomes.values():
+                    raise RuntimeError(f"Cabeçalho ambíguo na Bronze PND: {rotulo}.")
+                nomes[coluna] = rotulo
+        faltantes = set(CAMPOS_FONTE).difference(nomes.values())
+        if faltantes:
+            raise RuntimeError(f"Campos ausentes no cabeçalho da PND: {sorted(faltantes)}.")
+        metadados = ["_linha_origem", "_arquivo_origem", "_granularidade_origem",
+                     "_indice_cabecalho_origem"]
+        bronze = parquet.read(columns=[*nomes, *metadados]).to_pandas().rename(columns=nomes)
+    if not bronze["_indice_cabecalho_origem"].eq(0).fillna(False).all():
+        raise RuntimeError("Índice de cabeçalho divergente na Bronze PND.")
+    if bronze["_linha_origem"].eq(1).sum() != 1:
+        raise RuntimeError("Cabeçalho físico da PND não é único.")
+    return bronze.iloc[1:]
 
 
-def reconstruir_referencia(bronze):
-    dados = bronze.loc[
-        bronze[
-            "_linha_origem"
-        ] > 1
-    ].copy()
-
+def reconstruir_referencia(dados):
     if len(dados) != TOTAL_DADOS_ESPERADO:
         raise RuntimeError(
             f"Registros Bronze={len(dados):,}; "
             f"esperado={TOTAL_DADOS_ESPERADO:,}."
         )
 
-    presentes_resultado = [
-        ~ausente(
-            dados[
-                MAPA[campo]
-            ]
-        )
-        for campo in CAMPOS_RESULTADO
-    ]
-
-    completos = presentes_resultado[0].copy()
-    todos_ausentes = ~presentes_resultado[0].copy()
-
-    for mascara in presentes_resultado[1:]:
-        completos &= mascara
-        todos_ausentes &= ~mascara
-
-    parciais = ~(
-        completos
-        | todos_ausentes
-    )
-
-    tp_pres = inteiro(
-        dados[
-            MAPA["TP_PRES"]
-        ],
-        "TP_PRES",
-    )
+    # A completude é apurada pelos cinco valores numéricos publicados.
+    # Um zero é um resultado. O TXT publicado usa NA para ausência.
+    resultados = pd.DataFrame(index=dados.index)
+    for campo in CAMPOS_RESULTADO:
+        valores = dados[campo].str.strip()
+        valores = valores.mask(valores.str.upper().isin(["", "NA", "."]))
+        resultados[campo] = pd.to_numeric(valores.str.replace(",", ".", regex=False), errors="raise")
+    preenchidos = resultados.notna().sum(axis=1)
+    completos = preenchidos.eq(len(CAMPOS_RESULTADO))
+    presente = dados["TP_PRES"].eq("555").fillna(False)
+    elegiveis = presente & completos
 
     contagens = {
-        "completos": int(
-            completos.sum()
-        ),
-        "parciais": int(
-            parciais.sum()
-        ),
-        "555_completo": int(
-            (
-                tp_pres.eq(555)
-                & completos
-            ).sum()
-        ),
-        "555_incompleto": int(
-            (
-                tp_pres.eq(555)
-                & ~completos
-            ).sum()
-        ),
-        "888_completo": int(
-            (
-                tp_pres.eq(888)
-                & completos
-            ).sum()
-        ),
+        "presentes": int(presente.sum()),
+        "completos": int(completos.sum()),
+        "parciais": int((preenchidos.gt(0) & ~completos).sum()),
+        "555_completo": int(elegiveis.sum()),
+        "555_incompleto": int((presente & ~completos).sum()),
+        "888_completo": int((dados["TP_PRES"].eq("888") & completos).sum()),
     }
 
     esperado = {
+        "presentes": TOTAL_555_ESPERADO,
         "completos": TOTAL_RESULTADOS_COMPLETOS_ESPERADO,
         "parciais": 0,
         "555_completo": TOTAL_POPULACAO_ANALITICA_ESPERADO,
@@ -291,10 +204,7 @@ def reconstruir_referencia(bronze):
             f"Atual={contagens}"
         )
 
-    selecionados = dados.loc[
-        tp_pres.eq(555)
-        & completos
-    ].copy()
+    selecionados = dados.loc[elegiveis]
 
     referencia = pd.DataFrame(
         index=selecionados.index
@@ -304,7 +214,7 @@ def reconstruir_referencia(bronze):
         "ANO"
     ] = inteiro(
         selecionados[
-            MAPA["NU_ANO"]
+            "NU_ANO"
         ],
         "NU_ANO",
     )
@@ -313,7 +223,7 @@ def reconstruir_referencia(bronze):
         "CO_GRUPO"
     ] = inteiro(
         selecionados[
-            MAPA["CO_GRUPO"]
+            "CO_GRUPO"
         ],
         "CO_GRUPO",
     )
@@ -323,16 +233,20 @@ def reconstruir_referencia(bronze):
     ] = referencia[
         "CO_GRUPO"
     ].map(
-        AREAS
+        ler_areas_oficiais()
     ).astype(
         "string"
     )
+
+    if referencia["AREA_PROVA"].isna().any():
+        codigos = referencia.loc[referencia["AREA_PROVA"].isna(), "CO_GRUPO"].unique()
+        raise RuntimeError(f"CO_GRUPO ausente no dicionário oficial: {codigos.tolist()}.")
 
     referencia[
         "CO_MUNICIPIO_PROVA"
     ] = inteiro(
         selecionados[
-            MAPA["CO_MUNICIPIO_PROVA"]
+            "CO_MUNICIPIO_PROVA"
         ],
         "CO_MUNICIPIO_PROVA",
     )
@@ -342,7 +256,7 @@ def reconstruir_referencia(bronze):
     ] = (
         texto_limpo(
             selecionados[
-                MAPA["SG_UF_MUNICIPIO_PROVA"]
+                "SG_UF_MUNICIPIO_PROVA"
             ]
         )
         .str.upper()
@@ -359,35 +273,13 @@ def reconstruir_referencia(bronze):
             campo
         ] = inteiro(
             selecionados[
-                MAPA[campo]
+                campo
             ],
             campo,
         )
 
-    for campo in [
-        "PROFICIENCIA",
-        "NT_OBJ",
-        "NT_DIS",
-        "NT_GER",
-    ]:
-        referencia[
-            campo
-        ] = numerico(
-            selecionados[
-                MAPA[campo]
-            ]
-        ).astype(
-            "Float64"
-        )
-
-    referencia[
-        "QT_ACERTOS"
-    ] = inteiro(
-        selecionados[
-            MAPA["QT_ACERTOS"]
-        ],
-        "QT_ACERTOS",
-    )
+    referencia[CAMPOS_RESULTADO] = resultados.loc[elegiveis, CAMPOS_RESULTADO]
+    referencia["QT_ACERTOS"] = referencia["QT_ACERTOS"].astype("Int64")
 
     referencia[
         "ARQUIVO_ORIGEM"
@@ -475,7 +367,7 @@ def validar_estrutura_silver(silver):
 
     if not silver[
         "TP_PRES"
-    ].eq(555).all():
+    ].eq(555).fillna(False).all():
         raise RuntimeError(
             "A Silver contém TP_PRES diferente de 555."
         )
@@ -548,7 +440,7 @@ def comparar(
                 silver_ord[
                     campo
                 ],
-                errors="coerce",
+                errors="raise",
             ).to_numpy(
                 dtype=float
             )
@@ -557,18 +449,12 @@ def comparar(
                 referencia[
                     campo
                 ],
-                errors="coerce",
+                errors="raise",
             ).to_numpy(
                 dtype=float
             )
 
-            iguais = np.isclose(
-                a,
-                b,
-                rtol=0.0,
-                atol=1e-12,
-                equal_nan=True,
-            )
+            iguais = a == b
         else:
             a = (
                 silver_ord[
@@ -643,6 +529,23 @@ def comparar(
             )
         )
 
+
+
+def validar_nota_geral(silver):
+    # NT 44/2025, itens 7.3, 8.1 e 9.2. No arquivo de 2025, NT_GER
+    # é publicada com até duas casas: admitir meia unidade da última casa.
+    calculada = 0.8 * silver["NT_OBJ"] + 2 * silver["NT_DIS"]
+    consistente = np.isclose(silver["NT_GER"].to_numpy(dtype=float),
+                             calculada.to_numpy(dtype=float), rtol=0, atol=0.005 + 1e-12)
+    if not consistente.all():
+        pos = np.flatnonzero(~consistente)[0]
+        linha = silver.iloc[pos]
+        raise RuntimeError(
+            f"NT_GER incompatível com a Nota Técnica 44/2025 na linha Bronze "
+            f"{linha['LINHA_ORIGEM_BRONZE']}: NT_OBJ={linha['NT_OBJ']}, "
+            f"NT_DIS={linha['NT_DIS']}, NT_GER publicada={linha['NT_GER']}, "
+            f"calculada={calculada.iloc[pos]}."
+        )
 
 
 def diagnosticar_resultados_numericos(silver):
@@ -728,27 +631,15 @@ def main():
         "3/4 Reconstruindo população e valores diretamente da Bronze..."
     )
 
-    bronze = pd.read_parquet(
-        BRONZE_FILE,
-        columns=COLUNAS_BRONZE,
-    )
-
-    validar_cabecalho(
-        bronze
-    )
-
-    referencia = reconstruir_referencia(
-        bronze
-    )
+    referencia = reconstruir_referencia(ler_dados_bronze(BRONZE_FILE))
 
     print(
         "4/4 Comparando os 759.140 registros Silver ↔ Bronze..."
     )
 
-    comparar(
-        silver,
-        referencia,
-    )
+    comparar(silver, referencia)
+    validar_nota_geral(silver)
+    print("Consistência da nota geral publicada (Nota Técnica 44/2025): OK")
 
     print()
     print(

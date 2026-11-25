@@ -1,6 +1,12 @@
 from pathlib import Path
+import sys
 
 import pandas as pd
+
+if not __package__:  # Execução direta pelo pipeline.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.referencias_pnd import validar_dim_area_oficial
+
 
 
 SILVER_FILES = {
@@ -376,6 +382,8 @@ def validar_dim_area_pnd():
         raise RuntimeError(
             f"DIM_AREA_PND: esquema inesperado {list(dim.columns)}"
         )
+
+    validar_dim_area_oficial(dim)
 
     if dim[
         "CO_GRUPO"

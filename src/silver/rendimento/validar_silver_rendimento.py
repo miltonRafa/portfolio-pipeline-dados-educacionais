@@ -187,10 +187,7 @@ def converter_valor_bronze_independente(valor):
             f"Valor Bronze não numérico inesperado: {valor!r}"
         ) from exc
 
-    return round(
-        numero,
-        1,
-    )
+    return numero
 
 
 def validar_esquema(df):
@@ -417,6 +414,46 @@ def validar_rede_e_localizacao_origem(df):
             )
 
 
+def identificar_colunas_pelo_cabecalho(bronze, ano):
+    """Resolve os agregados pelos rótulos publicados na planilha anual do Inep."""
+    inicio = int(bronze["_indice_cabecalho_origem"].iloc[0]) + 1
+    linhas = bronze.set_index("_linha_origem").filter(regex=r"^col_\d{3}$").sort_index(axis=1)
+    # Até 2015 a taxa e a faixa aparecem juntas. Desde 2016 a taxa
+    # e o nível de ensino ficam em títulos mesclados acima da etapa.
+    grupos = linhas.loc[inicio].ffill().map(normalizar_texto)
+    if ano <= 2015:
+        nivel = grupos
+        rotulos = linhas.loc[inicio + 1]
+    else:
+        nivel = linhas.loc[inicio + 1].ffill().map(normalizar_texto)
+        rotulos = linhas.loc[inicio + 2]
+
+    fundamental = nivel.str.contains("ensino fundamental", regex=False)
+    rotulos = rotulos.map(lambda valor: " ".join(normalizar_texto(valor).split()))
+    faixas = {
+        "ANOS_INICIAIS": ("1a a 4a serie/1o a 5o ano", "anos iniciais", "1o ao 5o ano"),
+        "ANOS_FINAIS": ("5a a 8a serie/ 6o ao 9o ano", "anos finais", "6o ao 9o ano"),
+    }
+    colunas = {}
+    for indicador in sorted(INDICADORES):
+        taxa = indicador.lower()
+        titulo = f"taxa de {taxa}"
+        if ano <= 2015:
+            titulo += " - ensino fundamental de 8 e 9 anos"
+        for etapa, (historico, nome, anos) in faixas.items():
+            if ano <= 2010:
+                rotulo = f"{taxa} {historico}"
+            elif ano <= 2015:
+                rotulo = f"{taxa} - {nome} ({anos})"
+            else:
+                rotulo = nome
+            candidatas = rotulos.index[(grupos == titulo) & fundamental & (rotulos == rotulo)]
+            if len(candidatas) != 1:
+                raise RuntimeError(f"{ano}/{indicador}/{etapa}: cabeçalho Bronze ausente ou ambíguo.")
+            colunas[indicador, etapa] = candidatas[0]
+    return colunas
+
+
 def validar_rastreabilidade_contra_bronze(df):
     total_comparado = 0
 
@@ -444,6 +481,7 @@ def validar_rastreabilidade_contra_bronze(df):
                 f"{ano}: _linha_origem duplicada na Bronze."
             )
 
+        colunas_esperadas = identificar_colunas_pelo_cabecalho(bronze, ano)
         por_linha = bronze.set_index(
             "_linha_origem",
             drop=False,
@@ -514,27 +552,19 @@ def validar_rastreabilidade_contra_bronze(df):
                     f"não pertence ao agregado público."
                 )
 
-            if linha.COLUNA_ORIGEM not in bronze.columns:
+            coluna_esperada = colunas_esperadas[linha.INDICADOR, linha.ETAPA]
+            if linha.COLUNA_ORIGEM != coluna_esperada:
                 raise RuntimeError(
-                    f"{ano}/{linha.UF}: coluna Bronze "
-                    f"{linha.COLUNA_ORIGEM!r} não existe."
+                    f"{ano}/{linha.UF}/{linha.INDICADOR}/{linha.ETAPA}: "
+                    f"COLUNA_ORIGEM={linha.COLUNA_ORIGEM}, cabeçalho indica {coluna_esperada}."
                 )
 
-            esperado = converter_valor_bronze_independente(
-                origem[
-                    linha.COLUNA_ORIGEM
-                ]
-            )
+            esperado = converter_valor_bronze_independente(origem[coluna_esperada])
 
             atual = linha.VALOR
 
             if pd.isna(atual):
                 atual = None
-            else:
-                atual = round(
-                    float(atual),
-                    1,
-                )
 
             if esperado is None:
                 if atual is not None:
@@ -553,11 +583,8 @@ def validar_rastreabilidade_contra_bronze(df):
                         f"Bronze={esperado}, Silver ausente."
                     )
 
-                if not math.isclose(
-                    esperado,
-                    atual,
-                    abs_tol=1e-9,
-                ):
+                # Resíduo máximo observado na leitura das planilhas oficiais.
+                if not math.isclose(atual, esperado, rel_tol=0, abs_tol=2 * math.ulp(esperado)):
                     raise RuntimeError(
                         f"{ano}/{linha.UF}/"
                         f"{linha.ETAPA}/"

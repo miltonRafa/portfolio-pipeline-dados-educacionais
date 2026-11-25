@@ -9,6 +9,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from src import publicacao
 
 
 @dataclass(frozen=True)
@@ -16,6 +19,8 @@ class Step:
     name: str
     script: str
 
+
+RAW_PREFLIGHT = Step("Raw - verificacao de integridade", "scripts/gerar_manifesto_raw.py")
 
 BRONZE_STEPS = [
     Step("Bronze Rendimento - ingestao", "src/bronze/rendimento/ingest_rendimento.py"),
@@ -73,13 +78,13 @@ COMMANDS = {
 }
 
 
-def run_step(step: Step, dry_run: bool) -> None:
+def run_step(step: Step, dry_run: bool, *args: str, workdir=None) -> None:
     script = ROOT / step.script
 
     if not script.is_file():
         raise FileNotFoundError(f"Script nao encontrado: {step.script}")
 
-    command = [sys.executable, str(script)]
+    command = [sys.executable, str(script), *args]
     print("=" * 100)
     print(step.name)
     print(" ".join(command))
@@ -90,7 +95,7 @@ def run_step(step: Step, dry_run: bool) -> None:
 
     environment = os.environ.copy()
     environment.setdefault("PYTHONIOENCODING", "utf-8")
-    subprocess.run(command, cwd=ROOT, check=True, env=environment)
+    subprocess.run(command, cwd=workdir or ROOT, check=True, env=environment)
 
 
 def list_commands() -> None:
@@ -123,6 +128,8 @@ def parse_args() -> argparse.Namespace:
         help="Mostra a sequencia de scripts sem executar.",
     )
 
+    parser.add_argument("--last-valid", action="store_true",
+                        help="Verifica explicitamente a ultima publicacao valida anterior.")
     return parser.parse_args()
 
 
@@ -137,10 +144,40 @@ def main() -> None:
         list_commands()
         return
 
-    steps = COMMANDS[args.command]
+    required = [step.script for step in BRONZE_STEPS + SILVER_STEPS + GOLD_BUILD_STEPS
+                + VALIDATE_GOLD_STEPS if "validar_" in step.script]
+    if args.command == "validate-gold" and not args.dry_run:
+        with publicacao.execution_lock(ROOT):
+            publicacao.recover(ROOT)
+            publication = publicacao.verify(ROOT, required, args.last_valid)
+            validation_args = ["--structure-only"]
+            if args.last_valid:
+                from src.referencias_pnd import DICIONARIO_RELATIVE
 
-    for step in steps:
-        run_step(step, dry_run=args.dry_run)
+                dictionary = publicacao.archived_pnd_dictionary(
+                    ROOT, publication, DICIONARIO_RELATIVE
+                )
+                validation_args.extend(["--pnd-dictionary", str(dictionary)])
+            run_step(VALIDATE_GOLD_STEPS[0], False, *validation_args)
+        return
+    if args.dry_run:
+        if args.command == "full":
+            run_step(RAW_PREFLIGHT, True, "--check")
+        for step in COMMANDS[args.command]:
+            run_step(step, True)
+        return
+
+    steps = COMMANDS[args.command]
+    if args.command == "gold":
+        steps = [s for s in BRONZE_STEPS + SILVER_STEPS if "validar_" in s.script] + steps
+    def run_isolated(step, work):
+        if step is None:
+            run_step(RAW_PREFLIGHT, False, "--check")
+        elif step in VALIDATE_GOLD_STEPS:
+            run_step(step, False, "--structure-only", workdir=work)
+        else:
+            run_step(step, False, workdir=work)
+    publicacao.execute(ROOT, args.command, steps, required, run_isolated)
 
     print("=" * 100)
     print(f"Pipeline concluido: {args.command}")

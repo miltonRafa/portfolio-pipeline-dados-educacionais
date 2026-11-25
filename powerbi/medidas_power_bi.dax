@@ -51,7 +51,7 @@ CALCULATE(
 )
 
 // PND 2025 — AUD-04B: NT_GER publicada, Nota 44/2025, item 9.3/Tabela 2.
-// Definições destinadas à atualização MANUAL do Desktop; PBIX/PBIP preservados.
+// Sincronizar estas definições com o PBIP e atualizar o PBIX no Desktop.
 // Registros analisados — PND conta registros analíticos, sem deduplicação de pessoas.
 
 Registros analisados — PND =
@@ -90,28 +90,41 @@ CALCULATE(
 Básico ou Adequado =
 [Básico] + [Adequado]
 
+// Os percentuais mostram a composição do recorte, incluindo todos os níveis no denominador.
 % Básico ou Adequado =
 DIVIDE(
     [Básico ou Adequado],
-    [Registros analisados — PND]
+    CALCULATE(
+        [Registros analisados — PND],
+        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+    )
 )
 
 % Abaixo do Básico =
 DIVIDE(
     [Abaixo do Básico],
-    [Registros analisados — PND]
+    CALCULATE(
+        [Registros analisados — PND],
+        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+    )
 )
 
 % Básico =
 DIVIDE(
     [Básico],
-    [Registros analisados — PND]
+    CALCULATE(
+        [Registros analisados — PND],
+        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+    )
 )
 
 % Adequado =
 DIVIDE(
     [Adequado],
-    [Registros analisados — PND]
+    CALCULATE(
+        [Registros analisados — PND],
+        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+    )
 )
 
 // APOIO PARA PÁGINAS QUE COMPARAM IDEB E SAEB

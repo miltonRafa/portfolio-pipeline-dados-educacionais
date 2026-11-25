@@ -4,6 +4,12 @@ import sys
 import numpy as np
 import pandas as pd
 
+if not __package__:  # Execução direta pelo pipeline.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from src import referencias_pnd
+from src.referencias_pnd import validar_dim_area_oficial, validar_intervalos_oficiais
+
+
 if __package__:
     from .pnd.classificacao import PADROES_ESPERADOS as PADROES_PND, classificar_nivel_desempenho
 else:
@@ -373,6 +379,7 @@ def validar_dimensoes(
         "DIM_AREA_PND"
     ].copy()
 
+    validar_dim_area_oficial(dim_area)
     dim_municipio = tabelas[
         "DIM_MUNICIPIO"
     ].copy()
@@ -1200,6 +1207,7 @@ def validar_fato_pnd(
             f"{nome}: QT_ACERTOS negativo."
         )
 
+    validar_intervalos_oficiais(fato)
     esperado = classificar_nivel_desempenho(
         fato["NT_GER"]
     )
@@ -1695,4 +1703,31 @@ def main():
 if __name__ == "__main__":
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(errors="backslashreplace")
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description="Verificacao da publicacao e estrutura Gold.")
+    parser.add_argument("--structure-only", action="store_true",
+                        help="Somente estrutura; nao certifica publicacao nem atualidade.")
+    parser.add_argument("--last-valid", action="store_true")
+    parser.add_argument("--pnd-dictionary", type=Path,
+                        help="Usa um dicionario PND explicitamente selecionado e verificado.")
+    args = parser.parse_args()
+    if args.pnd_dictionary is not None:
+        if not args.pnd_dictionary.is_file():
+            raise FileNotFoundError(f"Dicionário PND informado ausente: {args.pnd_dictionary}")
+        referencias_pnd.DICIONARIO = args.pnd_dictionary
+    if args.structure_only:
+        print("SOMENTE ESTRUTURA: esta execucao nao certifica uma publicacao.")
+        main()
+    else:
+        from src import publicacao
+        from src.pipeline import BRONZE_STEPS, SILVER_STEPS, GOLD_BUILD_STEPS, VALIDATE_GOLD_STEPS
+        required = [s.script for s in BRONZE_STEPS + SILVER_STEPS + GOLD_BUILD_STEPS
+                    + VALIDATE_GOLD_STEPS if "validar_" in s.script]
+        with publicacao.execution_lock(Path.cwd()):
+            publicacao.recover(Path.cwd())
+            publication = publicacao.verify(Path.cwd(), required, args.last_valid)
+            if args.last_valid:
+                referencias_pnd.DICIONARIO = publicacao.archived_pnd_dictionary(
+                    Path.cwd(), publication, referencias_pnd.DICIONARIO_RELATIVE
+                )
+            main()

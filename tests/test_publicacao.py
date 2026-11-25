@@ -1,0 +1,429 @@
+"""RAW-02: falhas isoladas, publicação e recuperação sem insumos externos."""
+import csv
+import shutil
+import sys
+import tempfile
+import unittest
+from contextlib import nullcontext
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
+
+from src import pipeline, publicacao as pub, referencias_pnd
+
+
+class PublicacaoTest(unittest.TestCase):
+    def setUp(self):
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        (self.root / "data/raw").mkdir(parents=True)
+        (self.root / "docs").mkdir()
+        (self.root / "data/raw/fonte").write_bytes(b"fonte")
+        with (self.root / "docs/fontes_dados.csv").open("w", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=["caminho_local", "sha256"])
+            writer.writeheader()
+            writer.writerow(dict(caminho_local="data/raw/fonte",
+                                 sha256=pub.digest(self.root / "data/raw/fonte")))
+        self.required = ["bronze", "silver", "dimensoes", "fato", "global"]
+        self.steps = [SimpleNamespace(script=name) for name in self.required]
+        self.fail = None
+        self.payload = b"primeira"
+
+    def runner(self, step, work):
+        if step is None:
+            if self.fail == "raw":
+                raise RuntimeError("raw")
+            return
+        gold = work / "data/gold"
+        gold.mkdir(parents=True, exist_ok=True)
+        (gold / (step.script + ".parquet")).write_bytes(self.payload)
+        if self.fail == step.script:
+            raise RuntimeError(step.script)
+
+    def execute(self):
+        pub.execute(self.root, "full", self.steps, self.required, self.runner)
+
+    def verify(self, previous=False):
+        return pub.verify(self.root, self.required, previous)
+
+    def publish_with_pnd_dictionary(self):
+        relative = referencias_pnd.DICIONARIO_RELATIVE
+        dictionary = self.root / "data/raw" / relative
+        dictionary.parent.mkdir(parents=True)
+        dictionary.write_bytes(b"published PND dictionary")
+        manifest_path = self.root / "docs/fontes_dados.csv"
+        with manifest_path.open(encoding="utf-8", newline="") as stream:
+            rows = list(csv.DictReader(stream))
+        rows.append({
+            "caminho_local": (Path("data/raw") / relative).as_posix(),
+            "sha256": pub.digest(dictionary),
+        })
+        with manifest_path.open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=["caminho_local", "sha256"])
+            writer.writeheader()
+            writer.writerows(rows)
+        self.execute()
+        publication = self.verify(previous=True)
+        archived = (self.root / "data/execucoes" / publication["id"]
+                    / "trabalho/data/raw" / relative)
+        return publication, dictionary, archived
+
+    def test_success(self):
+        self.execute()
+        self.assertEqual(self.verify()["estado"], "concluida")
+
+    def test_published_pnd_dictionary_is_verified_against_both_manifests(self):
+        publication, dictionary, archived = self.publish_with_pnd_dictionary()
+        self.assertTrue(dictionary.is_file())
+        self.assertEqual(pub.archived_pnd_dictionary(
+            self.root, publication, referencias_pnd.DICIONARIO_RELATIVE
+        ), archived.resolve())
+
+    def test_missing_current_dictionary_uses_published_snapshot(self):
+        publication, dictionary, archived = self.publish_with_pnd_dictionary()
+        dictionary.unlink()
+        resolved = pub.archived_pnd_dictionary(
+            self.root, publication, referencias_pnd.DICIONARIO_RELATIVE
+        )
+        self.assertEqual(resolved, archived.resolve())
+        self.assertTrue(resolved.is_file())
+
+    def test_divergent_current_dictionary_is_not_used_for_last_valid(self):
+        publication, dictionary, archived = self.publish_with_pnd_dictionary()
+        dictionary.write_bytes(b"current dictionary diverged")
+        resolved = pub.archived_pnd_dictionary(
+            self.root, publication, referencias_pnd.DICIONARIO_RELATIVE
+        )
+        self.assertEqual(resolved, archived.resolve())
+        self.assertEqual(pub.digest(resolved), publication["insumos"][
+            referencias_pnd.DICIONARIO_RELATIVE.as_posix()
+        ])
+
+    def test_missing_archived_pnd_dictionary_fails_explicitly(self):
+        publication, _, archived = self.publish_with_pnd_dictionary()
+        archived.unlink()
+        with self.assertRaisesRegex(FileNotFoundError, "Dicionário PND arquivado ausente"):
+            pub.archived_pnd_dictionary(
+                self.root, publication, referencias_pnd.DICIONARIO_RELATIVE
+            )
+
+    def test_adulterated_archived_pnd_dictionary_fails_hash_check(self):
+        publication, _, archived = self.publish_with_pnd_dictionary()
+        archived.write_bytes(b"tampered archived dictionary")
+        with self.assertRaisesRegex(RuntimeError, "Hash do dicionário PND arquivado"):
+            pub.archived_pnd_dictionary(
+                self.root, publication, referencias_pnd.DICIONARIO_RELATIVE
+            )
+
+    def test_adulterated_published_parquet_is_rejected_with_last_valid(self):
+        self.execute()
+        parquet = self.root / "data/gold" / (self.required[0] + ".parquet")
+        parquet.write_bytes(b"tampered publication")
+        with self.assertRaisesRegex(RuntimeError, "Inventário Gold divergente"):
+            self.verify(previous=True)
+
+    def test_validate_gold_last_valid_dispatches_verified_snapshot(self):
+        publication = {"id": "a" * 32}
+        dictionary = self.root / "archived-dictionary.xlsx"
+        required = [s.script for s in pipeline.BRONZE_STEPS + pipeline.SILVER_STEPS
+                    + pipeline.GOLD_BUILD_STEPS + pipeline.VALIDATE_GOLD_STEPS
+                    if "validar_" in s.script]
+        with (
+            patch.object(sys, "argv", ["pipeline.py", "validate-gold", "--last-valid"]),
+            patch.object(pipeline.publicacao, "execution_lock", return_value=nullcontext()),
+            patch.object(pipeline.publicacao, "recover"),
+            patch.object(pipeline.publicacao, "verify", return_value=publication) as verify,
+            patch.object(pipeline.publicacao, "archived_pnd_dictionary",
+                         return_value=dictionary) as archived_dictionary,
+            patch.object(pipeline, "run_step") as run_step,
+        ):
+            pipeline.main()
+        verify.assert_called_once_with(pipeline.ROOT, required, True)
+        archived_dictionary.assert_called_once_with(
+            pipeline.ROOT, publication, referencias_pnd.DICIONARIO_RELATIVE
+        )
+        run_step.assert_called_once_with(
+            pipeline.VALIDATE_GOLD_STEPS[0], False, "--structure-only",
+            "--pnd-dictionary", str(dictionary),
+        )
+
+    def test_validate_gold_without_last_valid_keeps_current_dictionary_behavior(self):
+        required = [s.script for s in pipeline.BRONZE_STEPS + pipeline.SILVER_STEPS
+                    + pipeline.GOLD_BUILD_STEPS + pipeline.VALIDATE_GOLD_STEPS
+                    if "validar_" in s.script]
+        with (
+            patch.object(sys, "argv", ["pipeline.py", "validate-gold"]),
+            patch.object(pipeline.publicacao, "execution_lock", return_value=nullcontext()),
+            patch.object(pipeline.publicacao, "recover"),
+            patch.object(pipeline.publicacao, "verify", return_value={}) as verify,
+            patch.object(pipeline.publicacao, "archived_pnd_dictionary") as archived_dictionary,
+            patch.object(pipeline, "run_step") as run_step,
+        ):
+            pipeline.main()
+        verify.assert_called_once_with(pipeline.ROOT, required, False)
+        archived_dictionary.assert_not_called()
+        run_step.assert_called_once_with(
+            pipeline.VALIDATE_GOLD_STEPS[0], False, "--structure-only"
+        )
+
+    def test_full_rebuilds_when_last_completed_workdir_is_missing(self):
+        self.execute()
+        previous = pub.read_json(self.root / "data/execucoes/ultima.json")
+        shutil.rmtree(previous["trabalho"])
+
+        def rebuild(step, work):
+            if step is not None:
+                self.assertEqual((work / "data/raw/fonte").read_bytes(), b"fonte")
+                bronze = work / "data/bronze/intermediario.parquet"
+                silver = work / "data/silver/intermediario.parquet"
+                if step.script == "bronze":
+                    bronze.parent.mkdir(parents=True)
+                    bronze.write_bytes(b"bronze reconstruida")
+                elif step.script == "silver":
+                    self.assertEqual(bronze.read_bytes(), b"bronze reconstruida")
+                    silver.parent.mkdir(parents=True)
+                    silver.write_bytes(b"silver reconstruida")
+                else:
+                    self.assertEqual(silver.read_bytes(), b"silver reconstruida")
+            self.runner(step, work)
+
+        pub.execute(self.root, "full", self.steps, self.required, rebuild)
+        self.assertEqual(self.verify()["estado"], "concluida")
+        current = pub.read_json(self.root / "data/execucoes/ultima.json")
+        self.assertTrue((Path(current["trabalho"]) / "data/bronze/intermediario.parquet").is_file())
+        self.assertTrue((Path(current["trabalho"]) / "data/silver/intermediario.parquet").is_file())
+
+    def test_every_failure_preserves_previous_and_identifies_it(self):
+        self.execute()
+        original = pub.inventory(self.root / "data/gold")
+        for failure in ["raw", *self.required]:
+            with self.subTest(failure=failure):
+                self.fail = failure
+                with self.assertRaises(RuntimeError):
+                    self.execute()
+                self.assertEqual(pub.inventory(self.root / "data/gold"), original)
+                with self.assertRaisesRegex(RuntimeError, "anterior"):
+                    self.verify()
+                self.verify(previous=True)
+
+    def test_failure_without_previous(self):
+        self.fail = "fato"
+        with self.assertRaises(RuntimeError):
+            self.execute()
+        self.assertFalse((self.root / "data/gold").exists())
+        self.assertEqual(pub.read_json(self.root / "data/execucoes/ultima.json")["estado"], "malsucedida")
+
+    def test_recovery_after_failure(self):
+        self.fail = "silver"
+        with self.assertRaises(RuntimeError):
+            self.execute()
+        self.fail = None
+        self.execute()
+        self.verify()
+
+    def test_missing_file(self):
+        self.execute()
+        (self.root / "data/gold/fato.parquet").unlink()
+        with self.assertRaisesRegex(RuntimeError, "Inventário"):
+            self.verify()
+
+    def test_changed_file_and_mixed_generation(self):
+        self.execute()
+        old = (self.root / "data/gold/fato.parquet").read_bytes()
+        self.payload = b"segunda"
+        self.execute()
+        (self.root / "data/gold/fato.parquet").write_bytes(old)
+        with self.assertRaisesRegex(RuntimeError, "Inventário"):
+            self.verify()
+
+    def test_missing_manifest(self):
+        self.execute()
+        (self.root / "data/gold/publicacao.json").unlink()
+        with self.assertRaises(FileNotFoundError):
+            self.verify()
+
+    def test_inconsistent_manifest(self):
+        self.execute()
+        path = self.root / "data/gold/publicacao.json"
+        manifest = pub.read_json(path)
+        manifest["insumos"] = {"falso": "hash"}
+        pub.write_json(path, manifest)
+        with self.assertRaisesRegex(RuntimeError, "registro"):
+            self.verify()
+
+    def test_global_alone_cannot_publish(self):
+        self.steps = self.steps[-1:]
+        with self.assertRaisesRegex(RuntimeError, "incompletos"):
+            self.execute()
+        self.assertFalse((self.root / "data/gold").exists())
+
+    def test_failure_between_directory_moves_restores_previous(self):
+        self.execute()
+        before = pub.inventory(self.root / "data/gold")
+        replace = pub.os.replace
+        def interrupt(source, target):
+            if Path(source).name == "gold" and "trabalho" in Path(source).parts:
+                raise OSError("publicação interrompida")
+            return replace(source, target)
+        with patch.object(pub.os, "replace", side_effect=interrupt):
+            with self.assertRaises(OSError):
+                self.execute()
+        self.assertEqual(pub.inventory(self.root / "data/gold"), before)
+        self.verify(previous=True)
+
+    def test_abrupt_interruption_after_install_rolls_back_on_recovery(self):
+        self.execute()
+        before = pub.inventory(self.root / "data/gold")
+        identifier = "a" * 32
+        run = self.root / "data/execucoes" / identifier
+        run.mkdir()
+        pub.write_json(self.root / "data/execucoes/ultima.json",
+                       dict(id=identifier, estado="em_andamento", publicando=True, tinha_gold=True))
+        pub.os.replace(self.root / "data/gold", run / "gold_anterior")
+        (self.root / "data/gold").mkdir()
+        (self.root / "data/gold/parcial").write_bytes(b"novo")
+        pub.recover(self.root)
+        self.assertEqual(pub.inventory(self.root / "data/gold"), before)
+        self.verify(previous=True)
+
+    def test_first_publication_interrupted_is_not_valid(self):
+        identifier = "b" * 32
+        (self.root / "data/execucoes" / identifier).mkdir(parents=True)
+        (self.root / "data/gold").mkdir()
+        pub.write_json(self.root / "data/execucoes/ultima.json",
+                       dict(id=identifier, estado="em_andamento", publicando=True, tinha_gold=False))
+        pub.recover(self.root)
+        self.assertFalse((self.root / "data/gold").exists())
+
+    def test_lock_blocks_concurrent_execution(self):
+        with pub.execution_lock(self.root):
+            with self.assertRaises(RuntimeError):
+                with pub.execution_lock(self.root):
+                    pass
+
+    def test_snapshot_must_match_manifest(self):
+        (self.root / "data/raw/fonte").write_bytes(b"mudou")
+        with self.assertRaisesRegex(RuntimeError, "Snapshot"):
+            self.execute()
+
+
+    def test_partial_commands_reuse_isolated_intermediates(self):
+        def bronze(step, work):
+            if step:
+                path = work / "data/bronze/a.parquet"
+                path.parent.mkdir(parents=True)
+                path.write_bytes(b"nova bronze")
+        pub.execute(self.root, "bronze", self.steps[:1], self.required, bronze)
+        def silver(step, work):
+            if step:
+                self.assertEqual((work / "data/bronze/a.parquet").read_bytes(), b"nova bronze")
+        pub.execute(self.root, "silver", self.steps[1:2], self.required, silver)
+        self.assertFalse((self.root / "data/gold").exists())
+
+    def test_manifest_without_required_control(self):
+        self.execute()
+        path = self.root / "data/gold/publicacao.json"
+        manifest = pub.read_json(path)
+        manifest["controles"].remove("fato")
+        pub.write_json(path, manifest)
+        with self.assertRaisesRegex(RuntimeError, "controles"):
+            self.verify()
+
+    def test_changed_raw_is_not_current(self):
+        self.execute()
+        (self.root / "data/raw/fonte").write_bytes(b"fonte alterada")
+        with self.assertRaisesRegex(RuntimeError, "desatualizada"):
+            self.verify()
+        self.verify(previous=True)
+
+    def test_changed_raw_manifest_is_not_current(self):
+        self.execute()
+        with (self.root / "docs/fontes_dados.csv").open("a") as stream:
+            stream.write("\n")
+        with self.assertRaisesRegex(RuntimeError, "desatualizada"):
+            self.verify()
+        self.verify(previous=True)
+
+    def test_download_directory_does_not_make_raw_stale(self):
+        self.execute()
+        scratch = self.root / "data/raw/.download"
+        scratch.mkdir()
+        (scratch / "relatorio.json").write_text("temporario")
+        self.verify()
+
+    def test_partial_success_preserves_gold_and_reports_latest_attempt(self):
+        self.execute()
+        publication = pub.read_json(self.root / "data/gold/publicacao.json")["id"]
+        for command in ("bronze", "silver"):
+            pub.execute(self.root, command, self.steps[:1], self.required, lambda step, work: None)
+            latest = pub.read_json(self.root / "data/execucoes/ultima.json")
+            self.assertEqual((latest["estado"], latest["comando"]), ("concluida", command))
+            self.assertEqual(self.verify()["id"], publication)
+            self.assertEqual(pub.read_json(self.root / "data/gold/publicacao.json")["id"],
+                             publication)
+
+    def test_failed_attempt_then_partial_reuses_last_completed_intermediates(self):
+        def completed_full(step, work):
+            if step is None:
+                return
+            bronze = work / "data/bronze"
+            bronze.mkdir(parents=True, exist_ok=True)
+            (bronze / "intermediario.parquet").write_bytes(b"ultimo completo")
+            gold = work / "data/gold"
+            gold.mkdir(parents=True, exist_ok=True)
+            (gold / "publicado.parquet").write_bytes(b"gold anterior")
+
+        pub.execute(self.root, "full", self.steps, self.required, completed_full)
+        stale = self.root / "data/bronze/intermediario.parquet"
+        stale.parent.mkdir(parents=True)
+        stale.write_bytes(b"copia obsoleta")
+        self.fail = "silver"
+        with self.assertRaises(RuntimeError):
+            self.execute()
+
+        def check_intermediate(step, work):
+            if step is not None:
+                intermediate = work / "data/bronze/intermediario.parquet"
+                self.assertEqual(intermediate.read_bytes(), b"ultimo completo")
+
+        pub.execute(self.root, "silver", self.steps[1:2], self.required, check_intermediate)
+
+    def test_partial_after_failure_uses_last_completed_work(self):
+        def build(step, work):
+            if step:
+                path = work / "data/bronze/a.parquet"
+                path.parent.mkdir(parents=True)
+                path.write_bytes(b"nova")
+        pub.execute(self.root, "bronze", self.steps[:1], self.required, build)
+        stale = self.root / "data/bronze/a.parquet"
+        stale.parent.mkdir(parents=True)
+        stale.write_bytes(b"antiga")
+        self.fail = "silver"
+        with self.assertRaises(RuntimeError):
+            self.execute()
+        def check(step, work):
+            if step:
+                self.assertEqual((work / "data/bronze/a.parquet").read_bytes(), b"nova")
+        pub.execute(self.root, "silver", self.steps[1:2], self.required, check)
+
+    def test_archived_raw_manifest_hash_is_verified(self):
+        self.execute()
+        identifier = pub.read_json(self.root / "data/gold/publicacao.json")["id"]
+        archived = self.root / "data/execucoes" / identifier / "fontes_dados.csv"
+        archived.write_bytes(b"manifesto arquivado divergente")
+        with self.assertRaisesRegex(RuntimeError, "manifesto Raw arquivado"):
+            self.verify(previous=True)
+
+    def test_manifest_copy_race_cannot_publish(self):
+        copy = pub.shutil.copy2
+
+        def alter_copy(source, target, **kwargs):
+            result = copy(source, target, **kwargs)
+            if Path(target).name == "fontes_dados.csv":
+                with Path(target).open("a") as stream:
+                    stream.write("\n")
+            return result
+
+        with patch.object(pub.shutil, "copy2", side_effect=alter_copy):
+            with self.assertRaisesRegex(RuntimeError, "Cópia do manifesto Raw"):
+                self.execute()
+        self.assertFalse((self.root / "data/gold").exists())
