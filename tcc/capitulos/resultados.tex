@@ -41,7 +41,7 @@ No SAEB, os nove arquivos históricos e o agregado oficial de UF de 2023 foram v
 
 Uma comparação entre o agregado oficial e 108 recomposições de médias escolares ponderadas por presentes não encontrou coincidências a duas casas decimais. Esse resultado fundamenta a preservação do agregado publicado pelo INEP e se distingue da conferência de correspondência entre fonte e camadas.
 
-Os validadores Gold confirmaram a correspondência com a Silver, os esquemas, os domínios, as cardinalidades, a unicidade das dimensões e das fatos históricas, a ausência de chaves órfãs e a coerência município/UF. A classificação PND foi conferida pela regra por \texttt{NT\_GER}. Esses controles demonstram consistência estrutural e correspondência entre camadas no recorte definido.
+Os validadores Gold confirmaram a correspondência com a Silver, os esquemas, os domínios, as cardinalidades, a unicidade das dimensões e das fatos históricas, a ausência de chaves órfãs e a coerência município/UF. A classificação PND foi conferida pela regra compartilhada de \texttt{NT\_GER}. Esses controles demonstram consistência estrutural e correspondência entre camadas no recorte definido.
 
 A suíte de software registrou 71 testes aprovados, incluindo contratos de entrada, dependências de execução e classificação PND. Os testes com dados fictícios exercitam cenários de falha e regressão; os validadores e as reconstruções isoladas fornecem evidência complementar sobre o processamento dos dados reais.
 
@@ -83,7 +83,7 @@ A página utiliza rankings separados para evitar transformar indicadores de esca
 
 A página de aprendizagem e fluxo escolar combina duas formas de leitura. Na parte superior, são exibidas séries históricas de Aprovação, Reprovação, Abandono e TDI. Na parte inferior, cada ponto representa uma UF no ano selecionado, relacionando Taxa de Aprovação com IDEB e com proficiência média do SAEB.
 
-Na Figura~\ref{fig:dashboard-aprendizagem-fluxo}, os gráficos históricos mostram aumento da aprovação ao longo do período e redução de TDI, reprovação e abandono em diferentes intensidades. Os gráficos de dispersão, por sua vez, permitem observar associação descritiva entre níveis mais elevados de aprovação e valores mais altos de IDEB ou proficiência em parte das UFs.
+Na Figura~\ref{fig:dashboard-aprendizagem-fluxo}, os gráficos históricos mostram aumento da aprovação ao longo do período e redução de TDI, reprovação e abandono em diferentes intensidades. A leitura da aprovação em 2020 e 2021 considera as mudanças nos critérios de promoção registradas pelo INEP durante a pandemia.\footnote{Nota Informativa do IDEB 2021. Disponível em \url{https://download.inep.gov.br/educacao_basica/portal_ideb/planilhas_para_download/2021/nota_informativa_ideb_2021.pdf}.} Os gráficos de dispersão, por sua vez, permitem observar associação descritiva entre níveis mais elevados de aprovação e valores mais altos de IDEB ou proficiência em parte das UFs.
 
 O IDEB combina informações de desempenho em avaliações com dados de fluxo escolar em sua composição \cite[p.~1--2]{inep2007notatecnicaideb}, o que torna esperada alguma proximidade entre aprovação e IDEB. \citeonline{dias2026avaliaccao} ressaltam que, embora o IDEB seja um instrumento relevante de diagnóstico e planejamento, sua condição de indicador sintético exige interpretação contextualizada, evitando reduzir a complexidade educacional a uma única medida. A dispersão entre aprovação e proficiência do SAEB, por sua vez, deve ser lida apenas como associação descritiva.
 

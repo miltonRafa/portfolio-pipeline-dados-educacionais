@@ -280,9 +280,9 @@ def process_group(item, destination, scratch, http):
         elif url.lower().endswith(".rar"):
             local = temp / "fonte.rar"
             download(url, local)
-            tar = shutil.which("tar")
+            tar = shutil.which("bsdtar") or shutil.which("tar")
             if not tar:
-                raise RuntimeError("RAR exige tar com suporte libarchive (disponível no Windows) no PATH")
+                raise RuntimeError("RAR exige bsdtar ou tar com suporte libarchive no PATH")
             listing_bytes = subprocess.run([tar, "-tf", str(local)], capture_output=True, check=True).stdout
             try:
                 listing = listing_bytes.decode("utf-8").splitlines()

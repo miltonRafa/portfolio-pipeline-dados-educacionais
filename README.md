@@ -33,7 +33,7 @@ separada da série histórica.
 - aquisição, seleção, extração e nomenclatura da Raw automatizadas;
 - hashes SHA-256 para rastreabilidade dos insumos;
 - camadas Raw, Bronze, Silver e Gold;
-- validações independentes por camada;
+- validações de estrutura e de correspondência entre camadas;
 - modelo dimensional com 5 dimensões e 5 fatos;
 - Power BI Desktop com medidas DAX versionadas;
 - documentação metodológica e validadores por fonte;
@@ -169,8 +169,8 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-O projeto é validado em Python 3.12. Para pacotes RAR, disponibilize `tar`
-com suporte libarchive; o `tar.exe` do Windows utilizado no projeto atende
+O projeto é validado em Python 3.12. Para pacotes RAR, disponibilize
+`bsdtar` ou `tar` com suporte a RAR. O `tar.exe` usado no Windows atende
 a esse requisito.
 
 ### 3. Dados Raw
@@ -204,7 +204,7 @@ preserva a versão atual e mostra o motivo no terminal e no relatório em
 anterior só aceita diretamente os hashes já registrados. Use `--estrito` para
 exigir sempre identidade binária e impedir atualizações automáticas.
 
-Para os pacotes RAR, é necessário `tar` com suporte libarchive.
+Para os pacotes RAR, o download dá preferência a `bsdtar` quando disponível.
 Se o HTTPS do servidor de downloads falhar, use `python scripts/baixar_raw.py --http`.
 Veja [o procedimento de download](docs/automacao_raw.md) para opções e relatórios.
 O manifesto já inclui a revisão oficial de 09/09/2026 do dicionário PND.
@@ -225,8 +225,9 @@ Ele não reescreve `docs/fontes_dados.md`, `docs/fontes_dados.csv` nem
 python src/pipeline.py full
 ```
 
-O comando executa Bronze, Silver, Gold e validações. Em um clone limpo, a
-execução completa exige que os arquivos Raw estejam disponíveis em `data/raw`.
+O comando verifica os arquivos em `data/raw` contra o manifesto antes de
+executar as 35 etapas de transformação e validação das camadas Bronze, Silver
+e Gold. Se a verificação falhar, a execução é interrompida antes da ingestão.
 
 ### 6. Abrir e Configurar o Power BI
 
@@ -235,6 +236,9 @@ o download prepara a Raw, e `python src/pipeline.py full` gera e valida a Gold.
 Clonar o repositório ou baixar somente a Raw não prepara os arquivos lidos pelo
 PBIX. O pipeline Python é executado no terminal; as consultas do relatório leem
 Parquet, sem exigir configuração de Python dentro do Power BI.
+
+Para incorporar ao PBIX publicado as alterações do modelo, abra o projeto
+PBIP no Power BI Desktop e salve um novo PBIX.
 
 Ao final, a estrutura esperada é:
 
@@ -310,8 +314,8 @@ python -m compileall -q src scripts tests
 ```
 
 A integração contínua executa essas verificações e confere a sequência do
-pipeline. A integridade da Raw e a validação dos dados Gold são verificações
-locais adicionais, pois os dados não são versionados.
+pipeline em modo de simulação. A verificação da Raw e a validação dos dados
+Gold ocorrem na execução completa com os insumos locais.
 
 ## Resultado Validado
 

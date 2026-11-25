@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "_MEDIDAS.TDI Média",
-              "nativeQueryRef": "TDI Média"
+              "nativeQueryRef": "TDI Média",
+              "displayName": "TDI média das observações (%)"
             },
             {
               "field": {
@@ -41,7 +42,8 @@
                 }
               },
               "queryRef": "_MEDIDAS.Variação TDI",
-              "nativeQueryRef": "Variação TDI"
+              "nativeQueryRef": "Variação TDI",
+              "displayName": "Variação da TDI (p.p.)"
             }
           ]
         }

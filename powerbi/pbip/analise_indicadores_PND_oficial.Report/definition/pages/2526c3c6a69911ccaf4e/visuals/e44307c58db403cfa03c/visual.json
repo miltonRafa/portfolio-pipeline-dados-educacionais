@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Classificação oficial do nível de Desempenho Docente (INEP), pela nota geral (NT_GER): abaixo de 50 = Abaixo do Básico; de 50 a menos de 70 = Básico; 70 ou mais = Adequado.",
+                    "value": "Níveis do Inep por nota geral (NT_GER). Abaixo de 50: Abaixo do Básico. De 50 a menos de 70: Básico. A partir de 70: Adequado. Percentuais consideram todos os níveis no recorte.",
                     "textStyle": {
                       "fontWeight": "bold",
                       "fontSize": "8pt"

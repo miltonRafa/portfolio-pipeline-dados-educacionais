@@ -17,6 +17,8 @@ class Step:
     script: str
 
 
+RAW_PREFLIGHT = Step("Raw - verificacao de integridade", "scripts/gerar_manifesto_raw.py")
+
 BRONZE_STEPS = [
     Step("Bronze Rendimento - ingestao", "src/bronze/rendimento/ingest_rendimento.py"),
     Step("Bronze Rendimento - validacao", "src/bronze/rendimento/validar_bronze_rendimento.py"),
@@ -73,13 +75,13 @@ COMMANDS = {
 }
 
 
-def run_step(step: Step, dry_run: bool) -> None:
+def run_step(step: Step, dry_run: bool, *args: str) -> None:
     script = ROOT / step.script
 
     if not script.is_file():
         raise FileNotFoundError(f"Script nao encontrado: {step.script}")
 
-    command = [sys.executable, str(script)]
+    command = [sys.executable, str(script), *args]
     print("=" * 100)
     print(step.name)
     print(" ".join(command))
@@ -136,6 +138,9 @@ def main() -> None:
     if not args.command:
         list_commands()
         return
+
+    if args.command == "full":
+        run_step(RAW_PREFLIGHT, args.dry_run, "--check")
 
     steps = COMMANDS[args.command]
 

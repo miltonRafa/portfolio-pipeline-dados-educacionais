@@ -133,7 +133,10 @@ table _MEDIDAS
 			
 			DIVIDE(
 			    [Básico ou Adequado],
-			    [Registros analisados — PND]
+			    CALCULATE(
+			        [Registros analisados — PND],
+			        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+			    )
 			)
 		formatString: 0.00%;-0.00%;0.00%
 		lineageTag: 1f1e9cb8-d79e-41d3-b53f-5261e05e4f54
@@ -142,7 +145,10 @@ table _MEDIDAS
 			
 			DIVIDE(
 			    [Abaixo do Básico],
-			    [Registros analisados — PND]
+			    CALCULATE(
+			        [Registros analisados — PND],
+			        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+			    )
 			)
 		formatString: 0.00%;-0.00%;0.00%
 		lineageTag: 4679a76a-141b-42d7-8fc4-757a044d2b3b
@@ -336,7 +342,10 @@ table _MEDIDAS
 			
 			DIVIDE(
 			    [Básico],
-			    [Registros analisados — PND]
+			    CALCULATE(
+			        [Registros analisados — PND],
+			        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+			    )
 			)
 		formatString: 0.00%;-0.00%;0.00%
 		lineageTag: 74581080-d3bd-4f93-9552-661e022adb0e
@@ -345,7 +354,10 @@ table _MEDIDAS
 			
 			DIVIDE(
 			    [Adequado],
-			    [Registros analisados — PND]
+			    CALCULATE(
+			        [Registros analisados — PND],
+			        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+			    )
 			)
 		formatString: 0.00%;-0.00%;0.00%
 		lineageTag: 266a57a7-0e55-4e83-99ff-023903bfec96

@@ -49,7 +49,7 @@ Rendimento & 2007--2014 & \texttt{Publico} e localização \texttt{Total} & \tex
 Rendimento & 2015--2023 & \texttt{Publica} e localização \texttt{Total} & \texttt{PUBLICA} & Mesmo conceito analítico, com mudança textual da fonte. \\ \hline
 TDI & 2007--2014 & \texttt{Publico} e localização \texttt{Total} & \texttt{PUBLICA} & A categoria \texttt{Total} de dependência não substitui o agregado público. \\ \hline
 TDI & 2015--2023 & \texttt{Publica} e localização \texttt{Total} & \texttt{PUBLICA} & Brasil e regiões são retirados após identificação explícita das UFs. \\ \hline
-IDEB & nove edições & \texttt{Publica (4)} & \texttt{PUBLICA} & Categoria oficial do workbook; o IDEB não é recalculado a partir das redes individuais. \\ \hline
+IDEB & nove edições & \texttt{Publica (4)} & \texttt{PUBLICA} & Categoria oficial do workbook; a nota (4) informa que o IDEB de 2011 foi calculado sem as escolas federais. \\ \hline
 SAEB & 2007 e 2009 & \texttt{Total - Estadual e Municipal}; localização e capital \texttt{Total} & \texttt{PUBLICA} & Exceção histórica: a categoria utilizada não apresenta a rede federal; a grafia original é preservada. \\ \hline
 SAEB & 2011 & \texttt{ID\_TIPO\_REDE=5}; \texttt{ID\_LOCALIZACAO=0}; \texttt{ID\_CAPITAL=0} & \texttt{PUBLICA} & Códigos identificados no dicionário e confirmados pela auditoria. \\ \hline
 SAEB & 2013--2023 & \texttt{Total - Federal, Estadual e Municipal}; localização e capital \texttt{Total} & \texttt{PUBLICA} & Agregado oficial; não há média simples entre as três dependências. \\ \hline
@@ -152,7 +152,7 @@ O campo \texttt{CO\_GRUPO} é convertido para \texttt{AREA\_PROVA} por um dicion
 \legend{Fonte: Dicionário de Variáveis da PND 2025, organizado pelo autor.}
 \end{table}
 
-Não é aplicado filtro \texttt{TP\_SIT\_DISC=555}. Os códigos 333, 335 e 336 possuem nota zero válida e participam do cálculo oficial. A população analítica exige \texttt{TP\_PRES=555}, independentemente do tipo de inscrição, da aplicação ou reaplicação e do caderno, desde que os cinco resultados analíticos estejam completos.
+Não é aplicado filtro \texttt{TP\_SIT\_DISC=555}. O dicionário associa os códigos 333, 335 e 336 à nota zero. O processamento preserva a nota publicada. A população analítica exige \texttt{TP\_PRES=555}, independentemente do tipo de inscrição, da aplicação ou reaplicação e do caderno, desde que os cinco resultados analíticos estejam completos.
 
 \subsection{Padrão de desempenho}
 

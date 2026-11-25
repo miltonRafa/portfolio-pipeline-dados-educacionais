@@ -21,14 +21,16 @@ o SHA-256 de cada arquivo continua sendo calculado e registrado. Um hash
 diferente exige a comparação integral descrita abaixo.
 
 O download é uma etapa de preparação anterior à Bronze, executada
-separadamente do pipeline. A Raw permanece imutável durante as transformações.
+separadamente do pipeline. O comando `full` verifica a Raw contra o
+manifesto antes da Bronze e interrompe a execução diante de uma falha.
+A Raw permanece imutável durante as transformações.
 O download pode atualizar o manifesto somente após comprovar equivalência
 do conteúdo protegido. Os critérios e o período analíticos permanecem iguais.
 
-Para ler pacotes RAR, é necessário `tar` com suporte a RAR/libarchive no PATH.
-O `tar.exe` do Windows usado na validação atende a esse requisito. Em outros
-sistemas, instale uma implementação compatível de `bsdtar`/libarchive e
-disponibilize-a como `tar`. O Python 3.11 ou superior é necessário; o projeto
+Para ler pacotes RAR, o script procura `bsdtar` no PATH e, na sua ausência,
+usa `tar`. O `tar.exe` do Windows usado na validação tem suporte a RAR.
+Em sistemas com GNU tar, instale `bsdtar`/libarchive.
+O Python 3.11 ou superior é necessário; o projeto
 é validado em Python 3.12.
 
 ## Opções

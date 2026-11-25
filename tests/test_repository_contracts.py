@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+import io
 import re
+import subprocess
 import sys
 import unittest
 from collections import Counter
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,6 +71,23 @@ class PipelineContractsTest(unittest.TestCase):
             + pipeline.VALIDATE_GOLD_STEPS
         )
         self.assertEqual(pipeline.COMMANDS["full"], expected)
+
+    def test_full_stops_before_bronze_when_raw_check_fails(self) -> None:
+        pipeline = load_pipeline_module()
+        check_command = [sys.executable, str(ROOT / "scripts/gerar_manifesto_raw.py"), "--check"]
+        failure = subprocess.CalledProcessError(1, check_command)
+
+        with (
+            patch.object(sys, "argv", ["pipeline.py", "full"]),
+            patch.object(pipeline.subprocess, "run", side_effect=failure) as run,
+            redirect_stdout(io.StringIO()),
+            self.assertRaises(subprocess.CalledProcessError),
+        ):
+            pipeline.main()
+
+        run.assert_called_once()
+        self.assertEqual(run.call_args.args[0], check_command)
+        self.assertTrue(run.call_args.kwargs["check"])
 
 
 class ManifestContractsTest(unittest.TestCase):

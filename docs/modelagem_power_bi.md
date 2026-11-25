@@ -382,13 +382,12 @@ Proficiente, Proficiente Básico e Proficiente Adequado; os rótulos do projeto
 seguem a Tabela 2 da Nota 44. A soma Básico ou Adequado é descritiva, sem inferir
 aprovação ou habilitação.
 
-**Estado de implantação:** Gold e atualização manual do Power BI validadas
-nos artefatos e recortes registrados. A nova exportação TMDL corresponde às
-27 medidas versionadas, e a captura real mostra os níveis por nota geral.
-O [projeto PBIP](../powerbi/pbip/analise_indicadores_PND_oficial.pbip)
-disponibiliza as definições do modelo e do relatório. A validação realizada
-abrange os resultados gerais e os filtros de MG e de MG com Pedagogia;
-não certifica todas as interações.
+O PBIX e a captura registram os níveis por nota geral e os resultados dos
+recortes gerais, de Minas Gerais e de Minas Gerais com Pedagogia. O
+[projeto PBIP](../powerbi/pbip/analise_indicadores_PND_oficial.pbip)
+contém a revisão dos quatro percentuais de composição. A auditoria
+reproduziu esses cálculos sobre os dados importados. A verificação interativa
+da revisão no Power BI Desktop permanece pendente.
 
 ```DAX
 Registros analisados — PND =
@@ -430,30 +429,49 @@ Básico ou Adequado =
 % Básico ou Adequado =
 DIVIDE(
     [Básico ou Adequado],
-    [Registros analisados — PND]
+    CALCULATE(
+        [Registros analisados — PND],
+        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+    )
 )
 
 % Abaixo do Básico =
 DIVIDE(
     [Abaixo do Básico],
-    [Registros analisados — PND]
+    CALCULATE(
+        [Registros analisados — PND],
+        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+    )
 )
 
 % Básico =
 DIVIDE(
     [Básico],
-    [Registros analisados — PND]
+    CALCULATE(
+        [Registros analisados — PND],
+        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+    )
 )
 
 % Adequado =
 DIVIDE(
     [Adequado],
-    [Registros analisados — PND]
+    CALCULATE(
+        [Registros analisados — PND],
+        REMOVEFILTERS(FATO_PND[PADRAO_DESEMPENHO])
+    )
 )
 ```
 
-As quatro razões foram conferidas com duas casas decimais em percentual. O total
-deve ter título visual "Registros analíticos PND". Na população atual: 265.915
+Os percentuais mostram a composição do recorte de ano, UF, município e área.
+Cada numerador seleciona o próprio nível e o denominador inclui todos os níveis
+ao remover exclusivamente o filtro de `FATO_PND[PADRAO_DESEMPENHO]`.
+O cartão de registros mantém os filtros ativos na sua contagem. As expressões
+desta revisão estão no arquivo DAX e no PBIP. Para aplicar a revisão ao PBIX
+distribuído, atualize as medidas no Power BI Desktop e salve o arquivo.
+
+Os percentuais são exibidos com duas casas decimais. O cartão de total usa
+“Registros analisados — PND”. A população analisada contém 265.915
 Abaixo do Básico, 309.425 Básicos e 183.800 Adequados, total 759.140; Básico ou
 Adequado soma 493.225 (64,9715467503%). A população é o recorte do projeto,
 não a publicação oficial integral. Os critérios e testes estão documentados na
@@ -682,7 +700,7 @@ PND:
 NT_OBJ / NT_GER → 1 ou 2 casas
 NT_DIS → 1 ou 2 casas
 Média de Acertos → 1 ou 2 casas
-Participantes → número inteiro com separador de milhar
+Registros analisados — PND → número inteiro com separador de milhar
 ```
 
 ---
