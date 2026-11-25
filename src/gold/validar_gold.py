@@ -1702,4 +1702,21 @@ def main():
 if __name__ == "__main__":
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(errors="backslashreplace")
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description="Verificacao da publicacao e estrutura Gold.")
+    parser.add_argument("--structure-only", action="store_true",
+                        help="Somente estrutura; nao certifica publicacao nem atualidade.")
+    parser.add_argument("--last-valid", action="store_true")
+    args = parser.parse_args()
+    if args.structure_only:
+        print("SOMENTE ESTRUTURA: esta execucao nao certifica uma publicacao.")
+        main()
+    else:
+        from src import publicacao
+        from src.pipeline import BRONZE_STEPS, SILVER_STEPS, GOLD_BUILD_STEPS, VALIDATE_GOLD_STEPS
+        required = [s.script for s in BRONZE_STEPS + SILVER_STEPS + GOLD_BUILD_STEPS
+                    + VALIDATE_GOLD_STEPS if "validar_" in s.script]
+        with publicacao.execution_lock(Path.cwd()):
+            publicacao.recover(Path.cwd())
+            publicacao.verify(Path.cwd(), required, args.last_valid)
+            main()

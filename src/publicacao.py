@@ -1,0 +1,196 @@
+"""Estado operacional e publicação de um conjunto Gold integralmente validado."""
+import csv
+import hashlib
+import json
+import os
+import shutil
+import uuid
+from contextlib import contextmanager
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+def now():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def digest(path):
+    with Path(path).open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def inventory(directory):
+    return {p.relative_to(directory).as_posix(): digest(p)
+            for p in sorted(Path(directory).rglob("*")) if p.is_file()}
+
+
+def write_json(path, value):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(".tmp")
+    with temporary.open("w", encoding="utf-8") as stream:
+        json.dump(value, stream, ensure_ascii=False, indent=2)
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(temporary, path)
+
+
+def read_json(path):
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+@contextmanager
+def execution_lock(root):
+    """O bloqueio do SO é liberado inclusive quando o processo termina abruptamente."""
+    directory = Path(root) / "data/execucoes"
+    directory.mkdir(parents=True, exist_ok=True)
+    with (directory / "lock").open("a+b") as stream:
+        stream.seek(0)
+        if os.name == "nt":
+            import msvcrt
+            if os.fstat(stream.fileno()).st_size == 0:
+                stream.write(b"0")
+                stream.flush()
+            stream.seek(0)
+            try:
+                msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+            except OSError as exc:
+                raise RuntimeError("Outra execução ou verificação está em andamento.") from exc
+        else:
+            import fcntl
+            try:
+                fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError as exc:
+                raise RuntimeError("Outra execução ou verificação está em andamento.") from exc
+        try:
+            yield
+        finally:
+            if os.name == "nt":
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(stream, fcntl.LOCK_UN)
+
+
+def recover(root):
+    root = Path(root)
+    latest = root / "data/execucoes/ultima.json"
+    if not latest.exists():
+        return
+    state = read_json(latest)
+    if state["estado"] != "em_andamento":
+        return
+    run = root / "data/execucoes" / state["id"]
+    gold = root / "data/gold"
+    backup = run / "gold_anterior"
+    # O diário é gravado antes da primeira renomeação.
+    if state.get("publicando"):
+        if backup.exists():
+            if gold.exists():
+                os.replace(gold, run / "gold_interrompida")
+            os.replace(backup, gold)
+        elif not state["tinha_gold"] and gold.exists():
+            os.replace(gold, run / "gold_interrompida")
+    state.update(estado="malsucedida", fim=now(), erro="Execução interrompida; recuperação concluída.")
+    write_json(run / "estado.json", state)
+    write_json(latest, state)
+
+
+def verify(root, required, allow_previous=False):
+    root = Path(root)
+    latest = read_json(root / "data/execucoes/ultima.json")
+    manifest = read_json(root / "data/gold/publicacao.json")
+    if manifest.get("estado") != "concluida" or set(manifest.get("controles", [])) != set(required):
+        raise RuntimeError("Manifesto sem aprovação de todos os controles obrigatórios.")
+    if not manifest.get("insumos") or not manifest.get("manifesto_raw") or not manifest.get("fim"):
+        raise RuntimeError("Manifesto sem associação completa aos insumos.")
+    identifier = manifest.get("id", "")
+    if len(identifier) != 32 or any(c not in "0123456789abcdef" for c in identifier):
+        raise RuntimeError("Identificador de publicacao invalido.")
+    archived = read_json(root / "data/execucoes" / identifier / "publicacao.json")
+    if manifest != archived:
+        raise RuntimeError("Manifesto de publicacao diverge do registro da execucao.")
+    actual = inventory(root / "data/gold")
+    actual.pop("publicacao.json", None)
+    if actual != manifest.get("arquivos"):
+        raise RuntimeError("Inventário Gold divergente: arquivo ausente, adicional ou adulterado.")
+    current = latest["estado"] == "concluida" and latest["id"] == manifest["id"]
+    if not current and not allow_previous:
+        raise RuntimeError(f"Última execução {latest['id']}: {latest['estado']}. "
+                           f"Gold pertence à execução anterior {manifest['id']}. "
+                           "Use --last-valid para verificar explicitamente a publicação anterior.")
+    print(f"Publicação {manifest['id']} íntegra. Última execução {latest['id']}: {latest['estado']}.")
+    return manifest
+
+
+def execute(root, command, steps, required, run_step):
+    root = Path(root)
+    with execution_lock(root):
+        recover(root)
+        previous_path = root / "data/execucoes/ultima.json"
+        previous = read_json(previous_path) if previous_path.exists() else {}
+        source_root = root
+        if previous.get("estado") == "concluida" and previous.get("trabalho"):
+            source_root = Path(previous["trabalho"])
+        identifier = uuid.uuid4().hex
+        run = root / "data/execucoes" / identifier
+        work = run / "trabalho"
+        work.mkdir(parents=True)
+        latest = root / "data/execucoes/ultima.json"
+        state = dict(id=identifier, comando=command, estado="em_andamento", inicio=now(), controles=[])
+        def save():
+            write_json(run / "estado.json", state)
+            write_json(latest, state)
+        save()
+        try:
+            run_step(None, root)
+            # Cópias isolam os insumos efetivamente lidos de alterações externas posteriores.
+            shutil.copytree(root / "data/raw", work / "data/raw",
+                            ignore=shutil.ignore_patterns(".download"))
+            raw = inventory(work / "data/raw")
+            manifest_hash = digest(root / "docs/fontes_dados.csv")
+            shutil.copy2(root / "docs/fontes_dados.csv", run / "fontes_dados.csv")
+            with (run / "fontes_dados.csv").open(encoding="utf-8-sig", newline="") as stream:
+                expected = {Path(row["caminho_local"]).relative_to("data/raw").as_posix(): row["sha256"]
+                            for row in csv.DictReader(stream)}
+            if raw != expected:
+                raise RuntimeError("Snapshot Raw diverge do manifesto verificado.")
+            if command != "full":
+                for layer in ("bronze", "silver"):
+                    source = source_root / "data" / layer
+                    if not source.exists():
+                        source = root / "data" / layer
+                    if source.exists():
+                        shutil.copytree(source, work / "data" / layer)
+            for step in steps:
+                run_step(step, work)
+                if step.script in required:
+                    state["controles"].append(step.script)
+                save()
+            if inventory(work / "data/raw") != raw or digest(root / "docs/fontes_dados.csv") != manifest_hash:
+                raise RuntimeError("Insumos ou manifesto Raw alterados durante a execução.")
+            if command in ("full", "gold"):
+                if set(state["controles"]) != set(required):
+                    raise RuntimeError("Controles obrigatórios incompletos.")
+                gold = work / "data/gold"
+                manifest = dict(id=identifier, estado="concluida", fim=now(),
+                                manifesto_raw=manifest_hash, insumos=raw,
+                                controles=state["controles"], arquivos=inventory(gold))
+                write_json(run / "publicacao.json", manifest)
+                write_json(gold / "publicacao.json", manifest)
+                state.update(publicando=True, tinha_gold=(root / "data/gold").exists())
+                save()
+                if state["tinha_gold"]:
+                    os.replace(root / "data/gold", run / "gold_anterior")
+                os.replace(gold, root / "data/gold")
+            state.update(estado="concluida", fim=now(), trabalho=str(work))
+            print(f"Execucao {identifier}; resultados intermediarios em {work}")
+            save()
+        except BaseException as exc:
+            # Usar a mesma recuperação para falhas normais e reinício após interrupção.
+            recover(root)
+            state = read_json(latest)
+            state.update(erro=f"{type(exc).__name__}: {exc}")
+            write_json(run / "estado.json", state)
+            write_json(latest, state)
+            raise

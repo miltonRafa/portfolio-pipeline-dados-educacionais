@@ -392,3 +392,37 @@ licenciamento separado pelo autor.
 O arquivo [LICENSE](LICENSE) define as condições jurídicas de utilização do
 código. O arquivo [CITATION.cff](CITATION.cff) registra os metadados de autoria
 e orienta a citação acadêmica do projeto.
+
+### Publicação validada da Gold
+
+Cada tentativa do pipeline recebe um identificador em data/execucoes, com estado
+em_andamento, concluida ou malsucedida. Os intermediários ficam na pasta trabalho
+da execução, indicada no terminal. Os comandos bronze, silver e gold aproveitam
+os intermediários da última execução concluída quando disponíveis. O comando gold
+também exige aprovação dos validadores Bronze e Silver antes de publicar.
+
+A Gold é preparada em isolamento e passa pelos validadores específicos, dimensionais
+e global. Após aprovação, o diretório completo substitui data/gold.
+O manifesto data/gold/publicacao.json registra a execução, os controles aprovados,
+os insumos Raw e os hashes dos arquivos publicados. As cópias e estados anteriores
+ficam em data/execucoes; considere esse espaço ao executar novamente.
+
+O comando python src/pipeline.py validate-gold verifica integridade e atualidade,
+além da estrutura. Após falha, a opção --last-valid permite verificar explicitamente
+a publicação anterior. Conjuntos legados sem manifesto precisam de uma execução
+validada para receber certificação. Para diagnóstico estritamente estrutural,
+use python src/gold/validar_gold.py --structure-only.
+
+A troca usa renomeações de diretórios no mesmo volume e um diário de recuperação.
+Uma interrupção é recuperada na próxima execução ou verificação, restaurando o
+conjunto anterior quando a publicação ainda não foi confirmada. O bloqueio do
+sistema operacional impede execuções concorrentes pelo orquestrador.
+Os scripts individuais de transformação são ferramentas de diagnóstico e não
+registram publicação; alterações posteriores da Gold invalidam seus hashes.
+
+O caminho consumido pelo Power BI permanece data/gold. Durante a troca há uma
+breve janela em que esse diretório pode estar indisponível. Faça a atualização do
+Power BI depois de validate-gold concluir, sem executar o pipeline simultaneamente.
+Uma atualização já em andamento no Power BI não participa do bloqueio do Python
+e pode ler arquivos em momentos diferentes. Garantir uma leitura transacional no
+Power BI exigiria alterar suas consultas para fixar uma versão, fora desta correção.
