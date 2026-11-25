@@ -139,16 +139,17 @@ def execute(root, command, steps, required, run_step):
     with execution_lock(root):
         recover(root)
         source_root = root
-        completed = []
-        for path in (root / "data/execucoes").glob("*/estado.json"):
-            record = read_json(path)
-            if record.get("estado") == "concluida" and record.get("trabalho"):
-                completed.append(record)
-        if completed:
-            previous = max(completed, key=lambda record: record["fim"])
-            source_root = Path(previous["trabalho"])
-            if not source_root.is_dir():
-                raise RuntimeError("Intermediarios da ultima execucao concluida ausentes.")
+        if command != "full":
+            completed = []
+            for path in (root / "data/execucoes").glob("*/estado.json"):
+                record = read_json(path)
+                if record.get("estado") == "concluida" and record.get("trabalho"):
+                    completed.append(record)
+            if completed:
+                previous = max(completed, key=lambda record: record["fim"])
+                source_root = Path(previous["trabalho"])
+                if not source_root.is_dir():
+                    raise RuntimeError("Intermediarios da ultima execucao concluida ausentes.")
         identifier = uuid.uuid4().hex
         run = root / "data/execucoes" / identifier
         work = run / "trabalho"
