@@ -169,9 +169,10 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-O projeto é validado em Python 3.12. Para pacotes RAR, disponibilize
-`bsdtar` ou `tar` com suporte a RAR. O `tar.exe` usado no Windows atende
-a esse requisito.
+O projeto é validado em Python 3.12. Para pacotes RAR, disponibilize `bsdtar`
+ou `tar` baseado em libarchive. O script verifica a implementação; GNU tar
+sem suporte a RAR é rejeitado. O `tar.exe` usado no Windows foi validado como
+bsdtar/libarchive.
 
 ### 3. Dados Raw
 
