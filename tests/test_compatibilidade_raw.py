@@ -228,7 +228,7 @@ class TransactionTest(unittest.TestCase):
 
                 def interrupt_manifest(path, data):
                     result = original_atomic(path, data)
-                    if Path(path) == root / "docs/fontes_dados.csv":
+                    if Path(path).resolve() == (root / "docs/fontes_dados.csv").resolve():
                         raise KeyboardInterrupt("simulated interruption during manifest promotion")
                     return result
 
