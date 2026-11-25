@@ -57,6 +57,14 @@ class FidelidadePndTest(unittest.TestCase):
     def test_elegiveis_por_cabecalho_zeros_e_theta_negativo(self):
         self.validar(self.legitima)
 
+    def test_precisao_das_notas_publicadas_e_da_proficiencia(self):
+        for campo in ("PROFICIENCIA", "NT_OBJ", "NT_DIS", "NT_GER"):
+            with self.subTest(campo=campo):
+                d = self.legitima.copy()
+                d.loc[0, campo] += 5e-13
+                with self.assertRaisesRegex(RuntimeError, "divergências"):
+                    self.validar(d)
+
     def test_trocas_de_notas(self):
         for a, b in [("NT_OBJ", "NT_GER"), ("NT_DIS", "PROFICIENCIA")]:
             with self.subTest(campos=(a, b)):

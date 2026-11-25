@@ -100,7 +100,7 @@ def carregar_referencia_silver():
         silver[
             "PROFICIENCIA"
         ],
-        errors="coerce",
+        errors="raise",
     ).astype(
         "Float64"
     )
@@ -271,7 +271,7 @@ def comparar_com_silver(
         atual[
             "PROFICIENCIA"
         ],
-        errors="coerce",
+        errors="raise",
     ).to_numpy(
         dtype=float
     )
@@ -280,18 +280,12 @@ def comparar_com_silver(
         referencia[
             "PROFICIENCIA"
         ],
-        errors="coerce",
+        errors="raise",
     ).to_numpy(
         dtype=float
     )
 
-    iguais = np.isclose(
-        a,
-        b,
-        rtol=0.0,
-        atol=1e-12,
-        equal_nan=True,
-    )
+    iguais = a == b
 
     if not bool(
         np.all(

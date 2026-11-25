@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 
@@ -401,14 +402,7 @@ def extrair_esperados_2007_2009(
                     "ETAPA": etapa,
                     "REDE": "PUBLICA",
                     "DISCIPLINA": disciplina,
-                    "PROFICIENCIA_ESPERADA": round(
-                        numero(
-                            linha[
-                                origem_col
-                            ]
-                        ),
-                        2,
-                    ),
+                    "PROFICIENCIA_ESPERADA": numero(linha[origem_col]),
                     "REDE_ORIGEM_ESPERADA": texto(
                         linha[rede_col]
                     ),
@@ -518,14 +512,7 @@ def extrair_esperados_2011(
                         "ETAPA": etapa,
                         "REDE": "PUBLICA",
                         "DISCIPLINA": disciplina,
-                        "PROFICIENCIA_ESPERADA": round(
-                            numero(
-                                linha[
-                                    origem_col
-                                ]
-                            ),
-                            2,
-                        ),
+                        "PROFICIENCIA_ESPERADA": numero(linha[origem_col]),
                         "REDE_ORIGEM_ESPERADA": texto(
                             linha[rede_col]
                         ),
@@ -598,14 +585,7 @@ def extrair_esperados_2013_2015(
                     "ETAPA": etapa,
                     "REDE": "PUBLICA",
                     "DISCIPLINA": disciplina,
-                    "PROFICIENCIA_ESPERADA": (
-                        round(
-                            valor,
-                            2,
-                        )
-                        if valor is not None
-                        else None
-                    ),
+                    "PROFICIENCIA_ESPERADA": valor,
                     "REDE_ORIGEM_ESPERADA": texto(
                         linha[dimensoes["REDE"]]
                     ),
@@ -715,14 +695,7 @@ def extrair_esperados_2013_2023(
                     "ETAPA": etapa,
                     "REDE": "PUBLICA",
                     "DISCIPLINA": disciplina,
-                    "PROFICIENCIA_ESPERADA": (
-                        round(
-                            valor,
-                            2,
-                        )
-                        if valor is not None
-                        else None
-                    ),
+                    "PROFICIENCIA_ESPERADA": valor,
                     "REDE_ORIGEM_ESPERADA": texto(
                         linha[rede_col]
                     ),
@@ -986,19 +959,10 @@ def validar_contra_bronze(
         ]
 
         if atual == "PROFICIENCIA":
-            iguais = (
-                pd.to_numeric(
-                    esquerda,
-                    errors="coerce",
-                )
-                .round(2)
-                .eq(
-                    pd.to_numeric(
-                        direita,
-                        errors="coerce",
-                    ).round(2)
-                )
-            )
+            observado = pd.to_numeric(esquerda, errors="raise").to_numpy(dtype=float)
+            publicado = pd.to_numeric(direita, errors="raise").to_numpy(dtype=float)
+            # As células das planilhas podem diferir do decimal publicado em um ULP.
+            iguais = np.isclose(observado, publicado, rtol=0, atol=np.spacing(publicado))
         else:
             iguais = (
                 esquerda

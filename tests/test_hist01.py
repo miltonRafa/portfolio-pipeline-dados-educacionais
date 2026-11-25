@@ -1,3 +1,4 @@
+import math
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
@@ -5,6 +6,7 @@ from unittest.mock import patch
 
 import pandas as pd
 
+from src.gold.tdi import validar_fato_tdi
 from src.silver.rendimento import validar_silver_rendimento as rendimento
 from src.silver.tdi import validar_silver_tdi as tdi
 
@@ -53,6 +55,42 @@ class RastreabilidadeHistoricaTest(unittest.TestCase):
         )
         dados.to_parquet(pasta / f"{fonte}_2023.parquet")
         return pd.DataFrame(silver), valores, metrica
+
+    def test_precisao_da_taxa_publicada(self):
+        for validador, oficial, alterado in [(tdi, 3.4, 3.41), (rendimento, 78.3, 78.31)]:
+            with self.subTest(fonte=validador.__name__):
+                silver, _, metrica = self.preparar(validador)
+                arquivo = next(validador.BRONZE_DIR.glob("*.parquet"))
+                bronze = pd.read_parquet(arquivo)
+                linha = bronze._linha_origem.eq(silver.at[0, "LINHA_ORIGEM_BRONZE"])
+                coluna = silver.at[0, "COLUNA_ORIGEM"]
+                silver = silver.iloc[:1].copy()
+                validar = validador.validar_rastreabilidade_contra_bronze
+                # Planilha sintética: grafias equivalentes, resíduo binário e limites.
+                residuo = math.nextafter(oficial, math.inf)
+                if validador is rendimento:
+                    residuo = math.nextafter(residuo, math.inf)
+                for texto, valor in [(f"{oficial:.2f}".replace(".", ","), oficial),
+                                     (str(residuo), oficial),
+                                     ("0", 0), ("100", 100)]:
+                    bronze.loc[linha, coluna] = texto
+                    bronze.to_parquet(arquivo)
+                    silver.loc[0, metrica] = valor
+                    self.assertEqual(validar(silver), 1)
+                bronze.loc[linha, coluna] = str(oficial)
+                bronze.to_parquet(arquivo)
+                silver.loc[0, metrica] = alterado
+                with self.assertRaisesRegex(RuntimeError, "Silver="):
+                    validar(silver)
+
+    def test_tdi_adulterada_propagada_para_a_fato(self):
+        silver, _, _ = self.preparar(tdi)
+        silver = silver.iloc[:1].assign(REDE="PUBLICA", TDI=12.01)
+        fato = silver[validar_fato_tdi.COLUNAS].copy()
+        # A cópia é fiel à Silver alterada. A conferência com a Bronze detecta a origem do erro.
+        validar_fato_tdi.comparar_com_silver(fato, silver)
+        with self.assertRaisesRegex(RuntimeError, "Bronze=12.0, Silver=12.01"):
+            tdi.validar_rastreabilidade_contra_bronze(silver)
 
     def verificar_troca(self, validador, trocas, quantidade):
         silver, valores, metrica = self.preparar(validador)

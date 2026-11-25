@@ -440,7 +440,7 @@ def comparar(
                 silver_ord[
                     campo
                 ],
-                errors="coerce",
+                errors="raise",
             ).to_numpy(
                 dtype=float
             )
@@ -449,18 +449,12 @@ def comparar(
                 referencia[
                     campo
                 ],
-                errors="coerce",
+                errors="raise",
             ).to_numpy(
                 dtype=float
             )
 
-            iguais = np.isclose(
-                a,
-                b,
-                rtol=0.0,
-                atol=1e-12,
-                equal_nan=True,
-            )
+            iguais = a == b
         else:
             a = (
                 silver_ord[

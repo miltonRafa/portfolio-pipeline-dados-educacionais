@@ -145,21 +145,12 @@ def preparar_base(
             trabalho[
                 coluna
             ],
-            errors="coerce",
+            errors="raise",
         ).astype(
             "Float64"
         )
 
-    trabalho[
-        "QT_ACERTOS"
-    ] = pd.to_numeric(
-        trabalho[
-            "QT_ACERTOS"
-        ],
-        errors="raise",
-    ).astype(
-        "int64"
-    )
+    trabalho["QT_ACERTOS"] = pd.to_numeric(trabalho["QT_ACERTOS"], errors="raise")
 
     return trabalho.reset_index(
         drop=True
@@ -322,7 +313,7 @@ def comparar_com_silver(
             gold_preparada[
                 coluna
             ],
-            errors="coerce",
+            errors="raise",
         ).to_numpy(
             dtype=float
         )
@@ -331,18 +322,12 @@ def comparar_com_silver(
             silver_preparada[
                 coluna
             ],
-            errors="coerce",
+            errors="raise",
         ).to_numpy(
             dtype=float
         )
 
-        iguais = np.isclose(
-            esquerda,
-            direita,
-            rtol=0.0,
-            atol=1e-12,
-            equal_nan=True,
-        )
+        iguais = esquerda == direita
 
         if not bool(
             np.all(

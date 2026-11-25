@@ -35,6 +35,22 @@ def hierarquica(ano):
 
 
 class SemanticaSaebTest(unittest.TestCase):
+    def test_precisao_da_proficiencia_publicada(self):
+        df = hierarquica(2013)
+        df.loc[3, "col_005"] = "223,80000000000004"
+        silver = pd.DataFrame(produtor.transformar_2013_2015(2013, df))
+        ref = pd.DataFrame(validador.extrair_esperados_2013_2015(2013, df))
+        alvo = silver.COLUNA_ORIGEM.eq("col_005")
+        silver.loc[alvo, "PROFICIENCIA"] = 223.8
+        self.assertEqual(validador.validar_contra_bronze(silver, ref), 4)
+        silver.loc[alvo, "PROFICIENCIA"] = 223.801
+        with self.assertRaisesRegex(RuntimeError, "divergências"):
+            validador.validar_contra_bronze(silver, ref)
+        # A referência também deve preservar eventuais casas adicionais da fonte.
+        df.loc[3, "col_005"] = "223,801"
+        ref = pd.DataFrame(validador.extrair_esperados_2013_2015(2013, df))
+        self.assertEqual(validador.validar_contra_bronze(silver, ref), 4)
+
     def test_layouts_hierarquicos_legitimos(self):
         for ano in (2013, 2015):
             with self.subTest(ano=ano):

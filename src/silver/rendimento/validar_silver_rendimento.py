@@ -187,10 +187,7 @@ def converter_valor_bronze_independente(valor):
             f"Valor Bronze não numérico inesperado: {valor!r}"
         ) from exc
 
-    return round(
-        numero,
-        1,
-    )
+    return numero
 
 
 def validar_esquema(df):
@@ -568,11 +565,6 @@ def validar_rastreabilidade_contra_bronze(df):
 
             if pd.isna(atual):
                 atual = None
-            else:
-                atual = round(
-                    float(atual),
-                    1,
-                )
 
             if esperado is None:
                 if atual is not None:
@@ -591,11 +583,8 @@ def validar_rastreabilidade_contra_bronze(df):
                         f"Bronze={esperado}, Silver ausente."
                     )
 
-                if not math.isclose(
-                    esperado,
-                    atual,
-                    abs_tol=1e-9,
-                ):
+                # Resíduo máximo observado na leitura das planilhas oficiais.
+                if not math.isclose(atual, esperado, rel_tol=0, abs_tol=2 * math.ulp(esperado)):
                     raise RuntimeError(
                         f"{ano}/{linha.UF}/"
                         f"{linha.ETAPA}/"
