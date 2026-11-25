@@ -156,23 +156,34 @@ cd portfolio-pipeline-dados-educacionais
 Windows PowerShell:
 
 ```powershell
-python -m venv .venv
+py -3.12 --version
+py -3.12 -c "import sys; assert sys.version_info[:3] == (3, 12, 10)"
+py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.lock
+python -m pip check
 ```
 
 Linux/macOS:
 
 ```bash
+python3 --version
+python3 -c 'import sys; assert sys.version_info[:3] == (3, 12, 10)'
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.lock
+python -m pip check
 ```
 
-O projeto é validado em Python 3.12. Para pacotes RAR, disponibilize `bsdtar`
-ou `tar` baseado em libarchive. O script verifica a implementação; GNU tar
-sem suporte a RAR é rejeitado. O `tar.exe` usado no Windows foi validado como
-bsdtar/libarchive.
+Instale CPython **3.12.10** (64-bit) pela
+[distribuição oficial](https://www.python.org/downloads/release/python-31210/)
+e confirme essa versao antes de criar o ambiente. `requirements.txt` declara as
+dependencias diretas com versoes exatas;
+`requirements.lock` fixa tambem as dependencias transitivas e e o arquivo usado
+para instalacao e pela integracao continua. Para pacotes RAR, disponibilize
+`bsdtar` ou `tar` baseado em libarchive. O script verifica a implementacao; GNU
+tar sem suporte a RAR e rejeitado. Consulte o [registro do ambiente e das
+limitacoes historicas](docs/reproducibilidade_ambiente.md).
 
 ### 3. Dados Raw
 
@@ -181,13 +192,14 @@ A pasta `data/raw` não é versionada no Git.
 Para preparar a Raw, execute o download automático das fontes oficiais:
 
 ```bash
-python scripts/baixar_raw.py
+python scripts/baixar_raw.py --estrito
 ```
 
 O script baixa, extrai e organiza os 54 arquivos diretamente em `data/raw`,
 valida os hashes do manifesto e remove os pacotes e candidatos temporários.
-Arquivos existentes corretos são reaproveitados. Para consultar novamente as
-fontes e verificar atualizações, execute:
+Arquivos existentes corretos são reaproveitados. `--estrito` impede atualizar
+o manifesto quando uma fonte oficial divergir do hash registrado. Para consultar
+novamente as fontes e verificar atualizações, execute:
 
 ```bash
 python scripts/baixar_raw.py --rebaixar
@@ -206,7 +218,8 @@ anterior só aceita diretamente os hashes já registrados. Use `--estrito` para
 exigir sempre identidade binária e impedir atualizações automáticas.
 
 Para os pacotes RAR, o download dá preferência a `bsdtar` quando disponível.
-Se o HTTPS do servidor de downloads falhar, use `python scripts/baixar_raw.py --http`.
+Se o HTTPS do servidor de downloads falhar, use
+`python scripts/baixar_raw.py --estrito --http`.
 Veja [o procedimento de download](docs/automacao_raw.md) para opções e relatórios.
 O manifesto já inclui a revisão oficial de 09/09/2026 do dicionário PND.
 

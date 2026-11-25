@@ -8,14 +8,14 @@ em `docs/fontes_dados.csv`. O destino padrão é `data/raw`.
 ## Procedimento de reprodução
 
 ```powershell
-python -m pip install -r requirements.txt
-python scripts/baixar_raw.py
+python -m pip install -r requirements.lock
+python scripts/baixar_raw.py --estrito
 python scripts/gerar_manifesto_raw.py --check
 python src/pipeline.py full
 ```
 
 Se o HTTPS do servidor `download.inep.gov.br` falhar neste ambiente, execute
-`python scripts/baixar_raw.py --http`. Essa opção usa HTTP somente no servidor
+`python scripts/baixar_raw.py --estrito --http`. Essa opção usa HTTP somente no servidor
 de downloads; as páginas oficiais continuam sendo consultadas por HTTPS e
 o SHA-256 de cada arquivo continua sendo calculado e registrado. Um hash
 diferente exige a comparação integral descrita abaixo.
@@ -31,8 +31,8 @@ Para ler pacotes RAR, o script procura `bsdtar` antes de `tar` e verifica se
 a versão informa `bsdtar` ou libarchive antes de listar o pacote. Isso também
 permite o `tar.exe` do Windows quando ele usa libarchive. GNU tar sem esse
 suporte é rejeitado; instale `bsdtar`/libarchive e disponibilize-o no PATH.
-O Python 3.11 ou superior é necessário; o projeto
-é validado em Python 3.12.
+Use CPython 3.12.10 e instale as dependencias fixadas por
+`requirements.lock`; a integracao continua testa Windows e Linux nessa versao.
 
 ## Opções
 
@@ -44,7 +44,7 @@ python scripts/baixar_raw.py --planejar
 python scripts/baixar_raw.py --rebaixar --http
 
 # Reproduzir estritamente os hashes registrados, sem atualização automática
-python scripts/baixar_raw.py --rebaixar --estrito --http
+python scripts/baixar_raw.py --estrito --http
 
 # Selecionar indicador e ano (as opções podem ser repetidas)
 python scripts/baixar_raw.py --indicador tdi --ano 2023 --http

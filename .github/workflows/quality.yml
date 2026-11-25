@@ -4,13 +4,18 @@ on:
   push:
     branches:
       - main
+      - correcoes-auditoria-tcc
   pull_request:
     branches:
       - main
 
 jobs:
   repository-contracts:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
 
     steps:
       - name: Checkout
@@ -19,10 +24,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12.10"
 
-      - name: Install test dependencies
-        run: python -m pip install "requests>=2.32" "pandas>=2.2" "pyarrow>=15.0" "openpyxl>=3.1" "xlrd>=2.0" "pyxlsb>=1.0" "python-calamine>=0.2"
+      - name: Install locked dependencies
+        run: python -m pip install -r requirements.lock
+
+      - name: Check installed dependencies
+        run: python -m pip check
 
       - name: Compile Python files
         run: python -m compileall -q src scripts tests
