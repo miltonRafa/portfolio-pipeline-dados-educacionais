@@ -27,9 +27,10 @@ A Raw permanece imutável durante as transformações.
 O download pode atualizar o manifesto somente após comprovar equivalência
 do conteúdo protegido. Os critérios e o período analíticos permanecem iguais.
 
-Para ler pacotes RAR, o script procura `bsdtar` no PATH e, na sua ausência,
-usa `tar`. O `tar.exe` do Windows usado na validação tem suporte a RAR.
-Em sistemas com GNU tar, instale `bsdtar`/libarchive.
+Para ler pacotes RAR, o script procura `bsdtar` antes de `tar` e verifica se
+a versão informa `bsdtar` ou libarchive antes de listar o pacote. Isso também
+permite o `tar.exe` do Windows quando ele usa libarchive. GNU tar sem esse
+suporte é rejeitado; instale `bsdtar`/libarchive e disponibilize-o no PATH.
 O Python 3.11 ou superior é necessário; o projeto
 é validado em Python 3.12.
 

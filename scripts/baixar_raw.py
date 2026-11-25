@@ -243,6 +243,39 @@ def package_directory(scratch):
                 time.sleep(0.2 * (attempt + 1))
 
 
+def list_rar_members(archive):
+    tools = []
+    for name in ("bsdtar", "tar"):
+        tool = shutil.which(name)
+        if tool and tool not in tools:
+            tools.append(tool)
+    if not tools:
+        raise RuntimeError("RAR exige bsdtar ou tar baseado em libarchive no PATH; GNU tar não oferece suporte a RAR.")
+
+    errors = []
+    for tool in tools:
+        try:
+            version = subprocess.run([tool, "--version"], capture_output=True, check=True)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            errors.append(f"{tool}: não foi possível identificar a implementação ({exc})")
+            continue
+        version_text = b" ".join(part for part in (version.stdout, version.stderr) if part)
+        if not re.search(rb"\bbsdtar\b|\blibarchive\b", version_text, re.I):
+            errors.append(f"{tool}: implementação incompatível; é necessário bsdtar/libarchive (GNU tar não suporta RAR)")
+            continue
+        try:
+            listing = subprocess.run([tool, "-tf", str(archive)], capture_output=True, check=True)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            stderr = getattr(exc, "stderr", None)
+            detail = stderr.decode(locale.getpreferredencoding(False), errors="replace").strip() if isinstance(stderr, bytes) else str(stderr or exc)
+            errors.append(f"{tool}: falha ao listar o RAR ({detail})")
+            continue
+        return tool, listing.stdout
+
+    raise RuntimeError("Nenhum extrator RAR compatível conseguiu ler o arquivo. "
+                       "Instale bsdtar/libarchive e confira o pacote. " + "; ".join(errors))
+
+
 def process_group(item, destination, scratch, http):
     official_url, rows = item
     url = official_url.replace("https://", "http://", 1) if http else official_url
@@ -280,10 +313,7 @@ def process_group(item, destination, scratch, http):
         elif url.lower().endswith(".rar"):
             local = temp / "fonte.rar"
             download(url, local)
-            tar = shutil.which("bsdtar") or shutil.which("tar")
-            if not tar:
-                raise RuntimeError("RAR exige bsdtar ou tar com suporte libarchive no PATH")
-            listing_bytes = subprocess.run([tar, "-tf", str(local)], capture_output=True, check=True).stdout
+            tar, listing_bytes = list_rar_members(local)
             try:
                 listing = listing_bytes.decode("utf-8").splitlines()
             except UnicodeDecodeError:
@@ -294,7 +324,13 @@ def process_group(item, destination, scratch, http):
                     row["_membro"] = member
                     candidate = temp / ("candidato" + Path(row["nome_local"]).suffix)
                     with candidate.open("wb") as dst:
-                        subprocess.run([tar, "-xOf", str(local), "--", member], stdout=dst, stderr=subprocess.PIPE, check=True)
+                        try:
+                            subprocess.run([tar, "-xOf", str(local), "--", member],
+                                           stdout=dst, stderr=subprocess.PIPE, check=True)
+                        except (OSError, subprocess.CalledProcessError) as exc:
+                            stderr = getattr(exc, "stderr", None)
+                            detail = stderr.decode(locale.getpreferredencoding(False), errors="replace").strip() if isinstance(stderr, bytes) else str(stderr or exc)
+                            raise RuntimeError(f"Falha ao extrair o membro {member!r} do RAR com {tar}: {detail}") from exc
                     if accept(candidate, row, destination):
                         break
                     attempts.append({"membro": member, "sha256": digest(candidate), "erro": row.get("_rejeicao")})
