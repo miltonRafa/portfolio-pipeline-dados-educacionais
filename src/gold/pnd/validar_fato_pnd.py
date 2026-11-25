@@ -1,7 +1,13 @@
 from pathlib import Path
+import sys
 
 import numpy as np
 import pandas as pd
+
+if not __package__:  # Execução direta pelo pipeline.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.referencias_pnd import validar_dim_area_oficial, validar_intervalos_oficiais
+
 
 if __package__:
     from .classificacao import PADROES_ESPERADOS, classificar_nivel_desempenho
@@ -388,6 +394,7 @@ def validar_padrao_oficial(
         nt_ger
     )
 
+    validar_intervalos_oficiais(gold)
     atual = texto_limpo(
         gold[
             "PADRAO_DESEMPENHO"
@@ -441,6 +448,7 @@ def validar_integridade_dimensional(
         ]
     )
 
+    validar_dim_area_oficial(dim_area)
     dim_municipio = pd.read_parquet(
         DIM_FILES[
             "municipio"

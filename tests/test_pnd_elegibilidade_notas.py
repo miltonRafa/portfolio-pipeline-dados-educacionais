@@ -18,6 +18,7 @@ class FidelidadePndTest(unittest.TestCase):
         self.silver = pasta / "silver.parquet"
         self.enterContext(patch.multiple(
             v, BRONZE_FILE=self.bronze, SILVER_FILE=self.silver, UFS={"AC"},
+            ler_areas_oficiais=lambda: {702: "MATEMÁTICA (LICENCIATURA)"},
             TOTAL_DADOS_ESPERADO=5, TOTAL_555_ESPERADO=3,
             TOTAL_RESULTADOS_COMPLETOS_ESPERADO=3, TOTAL_POPULACAO_ANALITICA_ESPERADO=2,
             TOTAL_555_SEM_RESULTADO_ESPERADO=1, TOTAL_888_COM_RESULTADO_ESPERADO=1,
@@ -40,7 +41,7 @@ class FidelidadePndTest(unittest.TestCase):
                                        _granularidade_origem="REGISTRO_INDIVIDUAL")
         self.fonte.to_parquet(self.bronze, index=False)
         self.legitima = pd.DataFrame({
-            "ANO": [2025, 2025], "CO_GRUPO": 702, "AREA_PROVA": v.AREAS[702],
+            "ANO": [2025, 2025], "CO_GRUPO": 702, "AREA_PROVA": "MATEMÁTICA (LICENCIATURA)",
             "CO_MUNICIPIO_PROVA": 1200401, "UF_PROVA": "AC", "TP_INSCRICAO_PND": 1,
             "IN_REAPLICACAO": 0, "CO_CADERNO": 3, "TP_PRES": 555, "TP_SIT_DISC": [333, 555],
             "PROFICIENCIA": [-1.23456, 0.0], "NT_OBJ": 50.0, "NT_DIS": [0.0, 4.5],

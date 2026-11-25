@@ -1,8 +1,14 @@
 from pathlib import Path
+import sys
 
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
+
+if not __package__:  # Execução direta pelo pipeline.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.referencias_pnd import ler_areas_oficiais
+
 
 
 BRONZE_FILE = Path(
@@ -25,26 +31,6 @@ UFS = {
     "ES", "GO", "MA", "MT", "MS", "MG", "PA",
     "PB", "PR", "PE", "PI", "RJ", "RN", "RS",
     "RO", "RR", "SC", "SP", "SE", "TO",
-}
-
-AREAS = {
-    702: "MATEMÁTICA (LICENCIATURA)",
-    904: "LETRAS - PORTUGUÊS (LICENCIATURA)",
-    905: "LETRAS - PORTUGUÊS E INGLÊS (LICENCIATURA)",
-    906: "LETRAS - PORTUGUÊS E ESPANHOL (LICENCIATURA)",
-    1402: "FÍSICA (LICENCIATURA)",
-    1502: "QUÍMICA (LICENCIATURA)",
-    1602: "CIÊNCIAS BIOLÓGICAS (LICENCIATURA)",
-    2001: "PEDAGOGIA (LICENCIATURA)",
-    2402: "HISTÓRIA (LICENCIATURA)",
-    2501: "ARTES VISUAIS (LICENCIATURA)",
-    3002: "GEOGRAFIA (LICENCIATURA)",
-    3202: "FILOSOFIA (LICENCIATURA)",
-    3502: "EDUCAÇÃO FÍSICA (LICENCIATURA)",
-    4005: "CIÊNCIA DA COMPUTAÇÃO (LICENCIATURA)",
-    4301: "MÚSICA (LICENCIATURA)",
-    5402: "CIÊNCIAS SOCIAIS (LICENCIATURA)",
-    6407: "LETRAS - INGLÊS (LICENCIATURA)",
 }
 
 CAMPOS_RESULTADO = [
@@ -247,10 +233,14 @@ def reconstruir_referencia(dados):
     ] = referencia[
         "CO_GRUPO"
     ].map(
-        AREAS
+        ler_areas_oficiais()
     ).astype(
         "string"
     )
+
+    if referencia["AREA_PROVA"].isna().any():
+        codigos = referencia.loc[referencia["AREA_PROVA"].isna(), "CO_GRUPO"].unique()
+        raise RuntimeError(f"CO_GRUPO ausente no dicionário oficial: {codigos.tolist()}.")
 
     referencia[
         "CO_MUNICIPIO_PROVA"

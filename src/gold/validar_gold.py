@@ -4,6 +4,11 @@ import sys
 import numpy as np
 import pandas as pd
 
+if not __package__:  # Execução direta pelo pipeline.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from src.referencias_pnd import validar_dim_area_oficial, validar_intervalos_oficiais
+
+
 if __package__:
     from .pnd.classificacao import PADROES_ESPERADOS as PADROES_PND, classificar_nivel_desempenho
 else:
@@ -373,6 +378,7 @@ def validar_dimensoes(
         "DIM_AREA_PND"
     ].copy()
 
+    validar_dim_area_oficial(dim_area)
     dim_municipio = tabelas[
         "DIM_MUNICIPIO"
     ].copy()
@@ -1200,6 +1206,7 @@ def validar_fato_pnd(
             f"{nome}: QT_ACERTOS negativo."
         )
 
+    validar_intervalos_oficiais(fato)
     esperado = classificar_nivel_desempenho(
         fato["NT_GER"]
     )
