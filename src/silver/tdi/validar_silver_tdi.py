@@ -343,6 +343,33 @@ def validar_rede_e_localizacao_origem(df):
             )
 
 
+def identificar_colunas_pelo_cabecalho(bronze, ano):
+    """Resolve os agregados pelos rótulos publicados na planilha anual do Inep."""
+    inicio = int(bronze["_indice_cabecalho_origem"].iloc[0]) + 1
+    linhas = bronze.set_index("_linha_origem").filter(regex=r"^col_\d{3}$").sort_index(axis=1)
+    grupos = linhas.loc[inicio].ffill().map(normalizar_texto)
+    fundamental = grupos.str.contains("ensino fundamental", regex=False)
+    rotulos = linhas.loc[inicio + 1].map(normalizar_texto)
+    # Nas primeiras edições o mesmo agregado traz a faixa de séries
+    # e a faixa equivalente de anos em duas linhas consecutivas.
+    if ano <= 2010:
+        rotulos = rotulos + " / " + linhas.loc[inicio + 2].map(normalizar_texto)
+        etapas = {"ANOS_INICIAIS": "1a a 4a serie / 1o ao 5o ano",
+                  "ANOS_FINAIS": "5a a 8a serie / 6o ao 9o ano"}
+    elif ano <= 2014:
+        etapas = {"ANOS_INICIAIS": "1o ao 5o ano", "ANOS_FINAIS": "6o ao 9o ano"}
+    else:
+        etapas = {"ANOS_INICIAIS": "anos iniciais", "ANOS_FINAIS": "anos finais"}
+
+    colunas = {}
+    for etapa, rotulo in etapas.items():
+        candidatas = rotulos.index[fundamental & (rotulos == rotulo)]
+        if len(candidatas) != 1:
+            raise RuntimeError(f"{ano}/TDI/{etapa}: cabeçalho Bronze ausente ou ambíguo.")
+        colunas[etapa] = candidatas[0]
+    return colunas
+
+
 def validar_rastreabilidade_contra_bronze(df):
     total_comparado = 0
 
@@ -366,6 +393,7 @@ def validar_rastreabilidade_contra_bronze(df):
                 f"{ano}: _linha_origem duplicada na Bronze."
             )
 
+        colunas_esperadas = identificar_colunas_pelo_cabecalho(bronze, ano)
         por_linha = bronze.set_index(
             "_linha_origem",
             drop=False,
@@ -428,15 +456,14 @@ def validar_rastreabilidade_contra_bronze(df):
                     f"não pertence ao agregado público."
                 )
 
-            if linha.COLUNA_ORIGEM not in bronze.columns:
+            coluna_esperada = colunas_esperadas[linha.ETAPA]
+            if linha.COLUNA_ORIGEM != coluna_esperada:
                 raise RuntimeError(
-                    f"{ano}/{linha.UF}: coluna Bronze "
-                    f"{linha.COLUNA_ORIGEM!r} não existe."
+                    f"{ano}/{linha.UF}/TDI/{linha.ETAPA}: "
+                    f"COLUNA_ORIGEM={linha.COLUNA_ORIGEM}, cabeçalho indica {coluna_esperada}."
                 )
 
-            esperado = converter_valor_bronze_independente(
-                origem[linha.COLUNA_ORIGEM]
-            )
+            esperado = converter_valor_bronze_independente(origem[coluna_esperada])
 
             atual = linha.TDI
 
