@@ -384,14 +384,13 @@ aprovação ou habilitação.
 
 O PBIX e a captura registram os níveis por nota geral e os resultados dos
 recortes gerais, de Minas Gerais e de Minas Gerais com Pedagogia. O PBIX
-versionado na main é a referência definitiva do painel e contém as
-alterações manuais mais recentes feitas no Power BI Desktop. O arquivo
-[medidas_power_bi.dax](../powerbi/medidas_power_bi.dax) registra as expressões
-revisadas dos quatro percentuais de composição. O
-[projeto PBIP](../powerbi/pbip/analise_indicadores_PND_oficial.pbip) permanece
-como artefato complementar e não foi utilizado nas últimas alterações manuais
-realizadas no Desktop. A auditoria reproduziu os cálculos do DAX sobre os dados
-importados.
+versionado na main é a referência definitiva e o único artefato oficial do
+painel, incluindo as alterações manuais feitas no Power BI Desktop. Abra
+diretamente [o PBIX oficial](../powerbi/pbix/analise_indicadores_PND_oficial.pbix)
+no Desktop. O arquivo [medidas_power_bi.dax](../powerbi/medidas_power_bi.dax)
+registra as expressões revisadas das medidas. As 27 expressões foram
+comparadas com a exportação direta do PBIX e são equivalentes. A auditoria
+reproduziu os cálculos do DAX sobre os dados importados.
 
 ```DAX
 Registros analisados — PND =
@@ -470,14 +469,10 @@ DIVIDE(
 Os percentuais mostram a composição do recorte de ano, UF, município e área.
 Cada numerador seleciona o próprio nível e o denominador inclui todos os níveis
 ao remover exclusivamente o filtro de `FATO_PND[PADRAO_DESEMPENHO]`.
-O cartão de registros mantém os filtros ativos na sua contagem. Na definição
-TMDL do PBIP preservada na main, as quatro fórmulas percentuais acima diferem
-das expressões do arquivo DAX; não foram identificadas outras divergências de
-fórmula nessa comparação. A equivalência integral entre PBIX, PBIP e DAX não
-foi comprovada nesta integração, pois o modelo interno do PBIX não foi
-extraído. Isso não significa que o PBIP esteja desatualizado como um todo, e
-nenhum artefato deve ser atualizado automaticamente para conciliar essas
-diferenças. O PBIX da main permanece a referência definitiva do painel.
+O cartão de registros mantém os filtros ativos na sua contagem. A exportação
+direta do PBIX confirmou a equivalência das 27 expressões DAX e os formatos de
+exibição das medidas. O PBIX versionado na main permanece a referência
+definitiva do painel.
 
 Os percentuais são exibidos com duas casas decimais. O cartão de total usa
 “Registros analisados — PND”. A população analisada contém 265.915

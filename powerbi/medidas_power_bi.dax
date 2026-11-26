@@ -51,7 +51,7 @@ CALCULATE(
 )
 
 // PND 2025 — AUD-04B: NT_GER publicada, Nota 44/2025, item 9.3/Tabela 2.
-// Sincronizar estas definições com o PBIP e atualizar o PBIX no Desktop.
+// Estas definições correspondem às medidas revisadas do PBIX oficial.
 // Registros analisados — PND conta registros analíticos, sem deduplicação de pessoas.
 
 Registros analisados — PND =

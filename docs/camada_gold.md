@@ -1109,10 +1109,11 @@ Transformação, validação específica e global foram executadas. Os testes do
 critérios de classificação estão em
 [`tests/test_pnd_classificacao.py`](../tests/test_pnd_classificacao.py).
 
-O PBIX e o [projeto PBIP](../powerbi/pbip/analise_indicadores_PND_oficial.pbip)
-contêm o modelo atualizado. Foram conferidas as 27 medidas correspondentes ao
-DAX, os vínculos semânticos e os resultados gerais, de MG e de MG com Pedagogia.
-A captura real está disponível e foi conferida; não se presume cobertura de
+O [PBIX oficial](../powerbi/pbix/analise_indicadores_PND_oficial.pbix) é o único
+artefato do painel mantido no repositório e deve ser aberto diretamente no
+Power BI Desktop. Foram conferidas as 27 medidas correspondentes ao DAX, os
+vínculos semânticos e os resultados gerais, de MG e de MG com Pedagogia. A
+captura real está disponível e foi conferida; não se presume cobertura de
 todas as interações.
 
 ---

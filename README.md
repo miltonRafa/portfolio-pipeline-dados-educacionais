@@ -68,7 +68,8 @@ O arquivo Power BI Desktop está em:
 
 [powerbi/pbix/analise_indicadores_PND_oficial.pbix](powerbi/pbix/analise_indicadores_PND_oficial.pbix)
 
-[Projeto Power BI em formato PBIP](powerbi/pbip/analise_indicadores_PND_oficial.pbip)
+Este PBIX é o único artefato oficial do painel. Abra-o diretamente no Power BI
+Desktop; não é necessário reconstruí-lo a partir de um projeto de relatório.
 
 Para atualizar o relatório no seu computador, siga [a configuração do PBIX](#6-abrir-e-configurar-o-power-bi).
 
@@ -251,8 +252,9 @@ Clonar o repositório ou baixar somente a Raw não prepara os arquivos lidos pel
 PBIX. O pipeline Python é executado no terminal; as consultas do relatório leem
 Parquet, sem exigir configuração de Python dentro do Power BI.
 
-Para incorporar ao PBIX publicado as alterações do modelo, abra o projeto
-PBIP no Power BI Desktop e salve um novo PBIX.
+Abra diretamente o PBIX oficial no Power BI Desktop. Para atualizar os dados,
+gere e valide a camada Gold pelo pipeline e configure a origem `Folder.Files`
+conforme as instruções abaixo.
 
 Ao final, a estrutura esperada é:
 
