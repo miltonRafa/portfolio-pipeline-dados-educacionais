@@ -3,11 +3,11 @@
 \setlength{\tabcolsep}{2pt}
 \setlength{\emergencystretch}{3em}
 
-Este apêndice registra as correspondências utilizadas para transformar as estruturas físicas preservadas na Bronze nas estruturas semânticas da Silver. A notação \texttt{col\_NNN} identifica a posição física da coluna na fonte. Ela é deliberadamente neutra: o significado é atribuído somente após a leitura do cabeçalho, do dicionário ou da auditoria correspondente.
+Este apêndice mostra como as colunas preservadas na Bronze são interpretadas na Silver. A notação \texttt{col\_NNN} indica a posição física da coluna no arquivo. Para identificar o que a coluna representa, consulta-se o cabeçalho, o dicionário ou a auditoria da fonte.
 
 \section{Rendimento Escolar}
 
-O Rendimento Escolar possui cinco configurações históricas de layout. Em todas elas, \texttt{col\_001} contém o ano; a seleção mantém \texttt{Localizacao = Total}, o agregado público da edição e as 27 UFs. Cada linha selecionada é convertida em seis observações: duas etapas multiplicadas pelos três indicadores.
+As planilhas de Rendimento Escolar seguem cinco layouts ao longo da série. Em todos, \texttt{col\_001} contém o ano. A seleção mantém \texttt{Localizacao = Total}, o agregado público da edição e as 27 UFs. Cada linha selecionada gera seis observações, uma para cada combinação das duas etapas com os três indicadores.
 
 \begin{landscape}
 \scriptsize
@@ -34,7 +34,7 @@ As métricas são convertidas para \texttt{INDICADOR = APROVACAO}, \texttt{REPRO
 
 \section{Taxa de Distorção Idade-Série}
 
-A TDI também possui cinco configurações. Cada linha pública-total selecionada produz duas observações, uma para cada etapa do Ensino Fundamental.
+As planilhas de TDI também seguem cinco layouts. A partir de cada linha do agregado público com localização total, são geradas duas observações, uma para cada etapa do Ensino Fundamental.
 
 \begin{landscape}
 \scriptsize
@@ -60,7 +60,7 @@ O valor é armazenado em \texttt{TDI}; a origem permanece registrada em \texttt{
 
 \section{IDEB}
 
-O workbook do IDEB é preservado em três Bronzes, correspondentes às abas \texttt{UF e Regioes (AI)}, \texttt{UF e Regioes (AF)} e \texttt{UF e Regioes (EM)}. A primeira coluna física contém a geografia e a segunda a categoria de rede. O Ensino Médio permanece preservado na Bronze, mas não integra o recorte analítico.
+A planilha de divulgação do IDEB tem três abas, que são preservadas em tabelas Bronze separadas: \texttt{UF e Regioes (AI)}, \texttt{UF e Regioes (AF)} e \texttt{UF e Regioes (EM)}. A primeira coluna física identifica a geografia e a segunda, a rede. A aba do Ensino Médio continua disponível na Bronze para consulta, embora fique fora do recorte analítico.
 
 \begin{table}[H]
 \centering
@@ -84,7 +84,7 @@ A busca pelo nome técnico evita utilizar o cabeçalho visual \texttt{20215} (gr
 
 \section{SAEB}
 
-O SAEB exigiu regras distintas por edição. A tabela seguinte registra a identificação da rede, localização, etapa, disciplina e medida efetivamente utilizada.
+O tratamento do SAEB segue regras próprias de cada edição. A tabela a seguir mostra como foram identificadas a rede, a localização, a etapa, a disciplina e a medida usada na análise.
 
 \begin{landscape}
 \scriptsize
@@ -116,7 +116,7 @@ Em todas as edições, a saída utiliza \texttt{ETAPA} igual a \texttt{ANOS\_INI
 
 \section{PND 2025}
 
-O arquivo principal da PND contém 26 campos separados por ponto e vírgula. A Bronze preserva todos como texto, além da linha física do cabeçalho. A Silver lê os campos seguintes pelas posições confirmadas no cabeçalho.
+O arquivo principal da PND contém 26 campos separados por ponto e vírgula. A Bronze mantém todos os campos como texto e preserva a linha do cabeçalho. Na Silver, a leitura segue as posições confirmadas nesse cabeçalho.
 
 \begin{table}[H]
 \centering

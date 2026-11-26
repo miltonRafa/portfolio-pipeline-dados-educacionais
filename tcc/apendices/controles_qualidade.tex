@@ -3,7 +3,7 @@
 \setlength{\tabcolsep}{2pt}
 \setlength{\emergencystretch}{3em}
 
-Os controles do projeto verificam se os arquivos utilizados são identificáveis, se a ingestão preserva a fonte, se as transformações aplicam exatamente as regras declaradas e se o modelo dimensional mantém integridade. Eles não certificam a qualidade substantiva da coleta realizada pelo INEP nem substituem as notas metodológicas oficiais.
+Os controles verificam a identidade dos arquivos, a preservação da fonte na ingestão, a aplicação das regras de transformação e a integridade do modelo dimensional. A qualidade da coleta original continua sujeita à metodologia do INEP, que deve ser consultada nas notas oficiais.
 
 \section{Controles por camada}
 
@@ -73,9 +73,9 @@ Na PND, \texttt{LINHA\_ORIGEM\_BRONZE} é um identificador técnico da posição
 
 \section{Falha explícita}
 
-O pipeline interrompe a execução quando encontra estrutura diferente do contrato auditado. Entre as condições de falha estão: arquivo ou coluna obrigatória ausente; cabeçalho em posição inesperada; categoria de rede desconhecida; UF não reconhecida; quantidade diferente de 27 UFs; duplicidade no grão; ano obrigatório ausente; valor não numérico fora dos marcadores documentados; domínio inválido; cardinalidade divergente; hash diferente; chave órfã; ou dimensão incompatível com as fatos.
+O pipeline interrompe a execução se encontrar arquivos ou valores fora das regras verificadas na auditoria. Isso ocorre quando falta um arquivo, uma coluna ou um ano obrigatório, quando o cabeçalho aparece em posição inesperada, quando a rede ou a UF não é reconhecida ou quando a contagem de UFs difere de 27. Também provocam interrupção as duplicidades no grão, os valores não numéricos sem marcador documentado, os valores fora do domínio, as contagens ou os hashes divergentes, as chaves órfãs e as dimensões incompatíveis com as tabelas fato.
 
-Essa política evita que uma nova edição seja aceita silenciosamente com significado diferente. A incorporação de fonte ou layout novo exige nova auditoria, atualização explícita do mapeamento, execução dos validadores e registro da decisão metodológica.
+A interrupção permite identificar mudanças de estrutura ou significado antes de aceitar uma nova edição. Para incorporar uma nova fonte ou um novo layout, é preciso auditar o arquivo, atualizar o mapeamento, executar os validadores e registrar a decisão metodológica.
 
 \section{Validação independente e limites da garantia}
 
@@ -83,6 +83,6 @@ Os validadores da Bronze confrontam cabeçalhos e valores com os arquivos Raw. O
 
 Cada execução prepara as saídas em diretório isolado. Após as validações, a publicação da Gold registra os hashes dos arquivos e os insumos associados. A última publicação íntegra é preservada em caso de falha e pode ser validada com seu manifesto e suas referências arquivadas. A atualização da Raw usa registro de transação para recuperar um estado consistente após interrupção.
 
-Os testes automatizados verificam o comportamento do software em cenários controlados, inclusive falhas de publicação e recuperação. Os validadores dos dados reais conferem os artefatos produzidos e a correspondência com as fontes. As verificações independentes da integração confrontaram os resultados de execuções isoladas e verificaram a recuperação e a validação da publicação anterior. As três evidências têm alcances complementares.
+Os testes automatizados simulam cenários controlados, como falhas de publicação e recuperação. Os validadores conferem os arquivos produzidos com os dados reais e verificam sua correspondência com as fontes. As verificações independentes da integração compararam execuções isoladas e confirmaram que a publicação anterior pôde ser recuperada e validada. Cada verificação responde a uma pergunta diferente sobre o processamento.
 
 Os controles demonstram consistência interna, completude do recorte declarado, conformidade com as regras implementadas e rastreabilidade até os insumos. Eles não demonstram que toda informação oficial é livre de erro, que categorias históricas são metodologicamente idênticas ou que os dados excluídos seriam desnecessários para qualquer outra pesquisa. A garantia é restrita ao escopo deste trabalho: rede pública, UFs, etapas e períodos declarados, além da população analítica definida para a PND.

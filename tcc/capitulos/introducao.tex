@@ -14,23 +14,23 @@ A análise histórica compreende o período de 2007 a 2023, respeitando a period
 
 \section{Motivação e justificativa}
 
-A motivação deste trabalho está na necessidade de tornar verificável o percurso entre os dados públicos educacionais e as informações apresentadas em um ambiente analítico. Na exploração dos indicadores, a interpretação de um resultado depende de conhecer sua origem, o recorte ao qual se refere e os tratamentos que antecederam sua apresentação. A disponibilidade dessas informações permite examinar a adequação dos procedimentos adotados e compreender o alcance das comparações realizadas.
+Para interpretar um indicador no painel, o leitor precisa saber de onde vieram os dados, quais observações entraram na análise e como elas foram tratadas. Essas informações ajudam a verificar se os procedimentos foram adequados e até onde é possível comparar os resultados.
 
-A transparência desse percurso possui relevância acadêmica porque permite submeter as decisões de preparação dos dados à avaliação de outros pesquisadores. \citeonline{da2025proveniencia} relaciona a proveniência ao registro da origem, do histórico e das transformações dos dados. Sob essa perspectiva, documentar as decisões do processamento oferece elementos para verificar como os resultados foram obtidos e identificar as condições em que podem ser reutilizados.
+Documentar a preparação dos dados permite que outros pesquisadores examinem os procedimentos adotados e verifiquem como os resultados foram obtidos. \citeonline{da2025proveniencia} chama de proveniência o registro da origem, do histórico e das transformações dos dados. Esse registro ajuda a identificar em que condições os dados podem ser reutilizados.
 
-A reprodutibilidade constitui outra razão para a investigação. \citeonline{ferreira2024dados} identifica dificuldades de reprodução associadas à ausência de referências aos dados utilizados, às versões do código-fonte e às dependências de software. No contexto desta pesquisa, essas dificuldades fundamentam a necessidade de documentar e preservar os insumos, o código-fonte, as dependências e as condições de execução, de modo a favorecer a reprodução do processamento e a verificação dos resultados obtidos. 
+\citeonline{ferreira2024dados} identifica dificuldades de reprodução quando faltam referências aos dados usados, às versões do código-fonte ou às dependências de software. Por isso, este trabalho documenta os insumos, o código, as dependências e as condições de execução para que o processamento possa ser repetido e os resultados, conferidos.
 
-Do ponto de vista prático, a pesquisa busca oferecer uma base de consulta cuja utilização possa ser acompanhada da compreensão dos critérios que a constituem. Conforme \citeonline{loh2014bi}, a preparação e a organização dos dados condicionam sua exploração analítica. No contexto deste estudo, essa relação justifica tratar a confiabilidade da preparação como requisito para a leitura dos indicadores, permitindo que as visualizações sejam examinadas em conjunto com suas definições e limitações.
+O painel oferece uma base de consulta acompanhada dos critérios usados para prepará-la. Conforme \citeonline{loh2014bi}, a forma de preparar e organizar os dados condiciona sua análise. Por isso, as visualizações devem ser examinadas em conjunto com as definições e limitações dos indicadores.
 
-Para a área de Sistemas de Informação, o trabalho se justifica pela articulação entre construção de software, gestão de dados e disponibilização de informações para análise. O contexto educacional oferece uma aplicação concreta para avaliar essa articulação em um artefato computacional e discutir decisões técnicas úteis a projetos de integração de fontes públicas.
+Para a área de Sistemas de Informação, o projeto reúne desenvolvimento de software, gestão de dados e apresentação de informações. As bases educacionais oferecem um caso concreto para examinar essa combinação e discutir decisões técnicas que podem ser úteis na integração de outras fontes públicas.
 
 \section{Problema de pesquisa e objetivos}
 
 A pesquisa é orientada pela seguinte questão: \textbf{como uma arquitetura reprodutível de Engenharia de Dados pode integrar bases educacionais heterogêneas do INEP e disponibilizá-las de forma consistente para análise no Power BI?}
 
-Para responder a essa questão, estabelece-se como objetivo geral desenvolver e avaliar uma solução de Engenharia de Dados baseada em um pipeline reprodutível, destinada à integração, validação e disponibilização de dados educacionais do INEP em uma estrutura analítica consumida pelo Power BI, considerando os indicadores históricos de 2007 a 2023 e, separadamente, a PND 2025 como análise complementar.
+O objetivo geral é desenvolver e avaliar um pipeline reprodutível de Engenharia de Dados que integre e valide dados educacionais do INEP e os organize para análise no Power BI. O estudo considera os indicadores históricos de 2007 a 2023 e, separadamente, a PND 2025 como análise complementar.
 
-A avaliação considera a conformidade das saídas com as regras documentadas, a rastreabilidade até os insumos e a reprodução do processamento. A exploração no Power BI permite examinar o consumo dessa estrutura e os resultados descritivos dos indicadores.
+A avaliação verifica se as saídas seguem as regras documentadas, se podem ser rastreadas até os insumos e se o processamento pode ser reproduzido. No Power BI, examina-se como as tabelas são usadas e o que os indicadores mostram nos recortes selecionados.
 
 Para alcançar o objetivo geral, definem-se os seguintes objetivos específicos:\\
 
@@ -48,15 +48,15 @@ f) desenvolver medidas analíticas e dashboards no Power BI e utilizá-los na an
 
 \section{Contribuições propostas}
 
-As contribuições propostas concentram-se em quatro produtos complementares da integração de dados educacionais públicos.
+O trabalho propõe quatro contribuições para a integração de dados educacionais públicos.
 
-A primeira é uma estrutura de integração reproduzível para fontes heterogêneas do INEP, oferecida como referência técnica que possa ser examinada e adaptada a outros contextos de dados públicos.
+A primeira é um pipeline reprodutível para integrar fontes distintas do INEP. Sua estrutura serve de referência para quem pretende examinar ou adaptar o processo a outras fontes públicas.
 
-A segunda é a documentação da proveniência e da linhagem, que permite relacionar os dados tratados aos insumos e às regras que os produziram, segundo a granularidade de cada camada.
+A segunda é a documentação da proveniência e da linhagem dos dados. Ela mostra a quais insumos e regras os dados tratados podem ser associados em cada camada, conforme o nível de detalhe preservado.
 
-A terceira é uma especificação consultável da harmonização histórica: correspondências entre layouts, categorias, nomenclaturas e critérios de inclusão tornam as decisões de padronização explícitas e passíveis de revisão.
+A terceira é o registro das regras de harmonização histórica. O mapeamento de layouts, categorias, nomes e critérios de inclusão permite consultar e revisar as decisões de padronização.
 
-Por fim, o modelo dimensional, as medidas e os dashboards constituem uma estrutura reutilizável para exploração descritiva dos indicadores e de seus contrastes, com a PND 2025 apresentada separadamente da série histórica.
+A quarta é um modelo dimensional com medidas e painéis que podem ser reutilizados para explorar os indicadores e comparar seus resultados. A PND 2025 é apresentada em separado da série histórica.
 
 O código-fonte, a documentação, as regras de transformação, os testes automatizados e o painel do Power BI estão disponíveis publicamente no repositório do projeto no GitHub.\footnote{Repositório do projeto: \url{https://github.com/miltonRafa/portfolio-pipeline-dados-educacionais}.}
 

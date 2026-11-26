@@ -3,7 +3,7 @@
 \setlength{\tabcolsep}{2pt}
 \setlength{\emergencystretch}{3em}
 
-Este apêndice distingue exclusão analítica de exclusão física. A Raw mantém os arquivos oficiais inventariados e a Bronze preserva as estruturas selecionadas para ingestão sem aplicar o recorte final. Os filtros são executados na Silver. Assim, um registro, coluna ou nível de agregação ausente da Gold não foi necessariamente apagado: ele pode permanecer disponível na Raw ou na Bronze para auditoria e para pesquisas futuras com outro objetivo.
+Os filtros do estudo são aplicados na Silver. A Raw mantém os arquivos oficiais do inventário, e a Bronze preserva as estruturas selecionadas para ingestão antes do recorte final. Assim, registros, colunas ou níveis de agregação que ficam fora da Gold podem continuar disponíveis na Raw ou na Bronze para auditoria e para pesquisas com outros objetivos.
 
 \section{Recortes por indicador}
 
@@ -27,7 +27,7 @@ PND 2025 & Registros com \texttt{TP\_PRES=555} e \texttt{PROFICIENCIA}, \texttt{
 \end{longtable}
 \end{landscape}
 
-As conclusões do trabalho são condicionais a esses recortes. Elas não devem ser generalizadas para rede privada, Ensino Médio, escolas, municípios ou todos os inscritos da PND. Esses universos demandariam nova definição de população e novas validações.
+As conclusões se aplicam aos recortes indicados. Estudar a rede privada, o Ensino Médio, escolas, municípios ou todos os inscritos da PND exigiria definir a população e validar os dados para cada novo recorte.
 
 \section{População analítica da PND}
 
@@ -78,7 +78,7 @@ PND & registros individuais que atendem às duas condições da população & 75
 \legend{Fonte: Elaborado pelo autor a partir dos contratos de validação do pipeline (2026).}
 \end{table}
 
-A igualdade entre Silver e Gold demonstra que a Gold projeta o conjunto analítico validado sem remover linhas. Nas quatro séries históricas, cada combinação esperada permanece no grão mesmo quando a medida de origem é ausente; o campo de valor fica nulo e não há exclusão silenciosa da combinação.
+A Gold mantém todas as linhas do conjunto analítico validado na Silver. Nas quatro séries históricas, o pipeline mantém cada combinação esperada do grão, inclusive quando a medida está ausente na fonte. Nesse caso, a linha permanece com valor nulo.
 
 \section{Contagens preservadas na Bronze}
 
@@ -100,10 +100,10 @@ PND & 1.087.360 linhas, incluindo cabeçalho & 1.087.359 registros substantivos 
 \legend{Fonte: Relatórios de validação da camada Bronze do projeto.}
 \end{table}
 
-Esses números não devem ser subtraídos diretamente das cardinalidades Silver para calcular “linhas descartadas”. Rendimento, TDI, IDEB e SAEB passam de estruturas amplas para longas, contêm cabeçalhos preservados e podem reunir vários níveis geográficos ou categorias em uma mesma fonte. A comprovação de completude é feita pela seleção esperada, pela cobertura das combinações do grão e pela correspondência célula a célula, não por uma diferença bruta de contagem.
+A diferença entre as contagens da Bronze e da Silver não indica quantas linhas foram descartadas. Em Rendimento, TDI, IDEB e SAEB, uma linha do formato amplo pode gerar várias observações no formato longo. A Bronze também preserva cabeçalhos, e uma mesma fonte pode reunir vários níveis geográficos ou categorias. Para verificar a completude, comparam-se a seleção esperada, a cobertura das combinações do grão e os valores célula a célula.
 
 \section{Colunas de proveniência e projeção Gold}
 
 Na Silver, a forma original relevante permanece disponível. Rendimento e TDI guardam rede, localização, arquivo, linha e coluna de origem. IDEB acrescenta geografia e aba. SAEB acrescenta capital e granularidade. A PND guarda arquivo, granularidade e linha física do participante.
 
-A Gold mantém somente os atributos necessários ao modelo dimensional e às medidas do Power BI. A retirada dos campos detalhados de proveniência da Gold é uma projeção de consumo e não uma perda no pipeline, porque a Silver permanece como camada auditável entre a Bronze e a Gold.
+A Gold conserva os atributos necessários ao modelo dimensional e às medidas do Power BI. Os campos detalhados de proveniência continuam disponíveis na Silver, onde é possível conferir o percurso entre a Bronze e a Gold.

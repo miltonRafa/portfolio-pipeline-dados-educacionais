@@ -3,11 +3,11 @@
 \setlength{\tabcolsep}{2pt}
 \setlength{\emergencystretch}{3em}
 
-Este apêndice apresenta as categorias e os códigos que recebem interpretação semântica durante a transformação. A harmonização cria valores comuns para análise, mas preserva a representação original em campos de proveniência sempre que ela é necessária para auditoria.
+Este apêndice explica como os códigos e as categorias das fontes são tratados. A harmonização adota valores comuns para análise e mantém os valores originais em campos de proveniência quando eles são necessários para auditoria.
 
 \section{Unidades Federativas}
 
-Siglas oficiais já existentes são preservadas. Nomes completos são convertidos por igualdade explícita após remoção apenas de espaços excedentes, diferenças entre maiúsculas e minúsculas e acentuação usada na comparação. Não é utilizada correspondência aproximada.
+As siglas oficiais são mantidas. Para converter nomes completos em siglas, a comparação ignora apenas espaços excedentes, diferenças entre maiúsculas e minúsculas e acentos. Após essa preparação, o nome precisa corresponder exatamente a uma das formas previstas.
 
 \begin{table}[H]
 \centering
@@ -82,13 +82,13 @@ SAEB & Matemática; \texttt{MEDIA\_MT}; campos \texttt{MEDIA\_4\_MT}, \texttt{ME
 \legend{Fonte: Elaborado pelo autor (2026).}
 \end{table}
 
-A associação entre 4ª/8ª séries e 5º/9º anos respeita a nomenclatura histórica de cada edição da fonte; ambas são consolidadas nas etapas agregadas do Ensino Fundamental utilizadas pelo projeto.
+A correspondência entre 4ª e 8ª séries e 5º e 9º anos segue a nomenclatura de cada edição. O projeto reúne essas categorias nos Anos Iniciais e nos Anos Finais do Ensino Fundamental.
 
 \section{Códigos da PND 2025}
 
 \subsection{Áreas da prova}
 
-O campo \texttt{CO\_GRUPO} é convertido para \texttt{AREA\_PROVA} por um dicionário fechado. Um código não documentado provoca falha na transformação.
+O código \texttt{CO\_GRUPO} identifica a área da prova. O transformador consulta o dicionário para preencher \texttt{AREA\_PROVA} e interrompe o processamento se encontrar um código fora da lista documentada.
 
 \begin{table}[H]
 \centering
@@ -172,7 +172,7 @@ Não é aplicado filtro \texttt{TP\_SIT\_DISC=555}. O dicionário associa os có
 \legend{Fonte: Nota Técnica nº 44/2025 do INEP, item 9.3/Tabela 2, p. 6.}
 \end{table}
 
-A coluna \texttt{PADRAO\_DESEMPENHO} utiliza exclusivamente a nota geral publicada. Ausências ou notas inválidas são rejeitadas pelo classificador compartilhado, sem categoria automática para valores nulos. A nomenclatura segue a Tabela 2 da Nota Técnica nº 44/2025; a Nota Técnica nº 4/2026 apresenta descritores pedagógicos complementares \cite{inep2025notatecnica44,inep2026notatecnica4}.
+A coluna \texttt{PADRAO\_DESEMPENHO} é preenchida apenas com base na nota geral publicada. O classificador rejeita notas ausentes ou inválidas e não atribui um nível a valores nulos. A nomenclatura segue a Tabela 2 da Nota Técnica nº 44/2025. A Nota Técnica nº 4/2026 apresenta descritores pedagógicos complementares \cite{inep2025notatecnica44,inep2026notatecnica4}.
 
 \section{Marcadores de ausência e conversão numérica}
 

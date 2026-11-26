@@ -1,28 +1,28 @@
 \chapter[Conclusão]{Conclusão}
 
-A questão de pesquisa foi respondida pela articulação entre aquisição identificável dos insumos, transformações específicas por fonte, validação entre camadas e disponibilização em um modelo dimensional. A reconstrução isolada demonstrou a reprodução do fluxo até a Gold, e o modelo consumido pelo Power BI permitiu explorar os indicadores nos recortes definidos.
+Para responder à questão de pesquisa, o projeto reuniu a aquisição dos insumos com identificação de origem, as transformações próprias de cada fonte, a validação entre camadas e a organização dos dados em um modelo dimensional. As execuções isoladas reproduziram o processamento até a Gold. No Power BI, o modelo permitiu explorar os indicadores nos recortes definidos.
 
-A integração mostrou que disponibilizar arquivos em um ambiente comum exige preservar seus significados, grãos e periodicidades. As regras documentadas e a proveniência tornam essas escolhas examináveis, constituindo a principal contribuição da Engenharia de Dados ao problema investigado.
+Reunir os arquivos em um mesmo ambiente exigiu respeitar o significado, o grão e a periodicidade de cada fonte. A principal contribuição da Engenharia de Dados foi documentar as regras de integração e registrar a proveniência, de modo que essas escolhas possam ser examinadas.
 
-Na análise educacional, as trajetórias de melhora coexistem com diferenças territoriais e com maior distorção idade-série nos Anos Finais. A PND 2025 oferece um retrato complementar e independente. Esses resultados respondem a uma finalidade descritiva; a generalização permanece condicionada ao recorte e aos critérios de agregação.
+Os resultados mostram tendências de melhora em parte dos indicadores, diferenças entre UFs e maior distorção idade-série nos Anos Finais. A PND 2025 oferece uma análise complementar do desempenho docente. Esses resultados são descritivos e sua interpretação depende dos recortes e de como os valores foram agregados.
 
 \section{Contribuições demonstradas}
 
-As contribuições propostas foram materializadas em uma estrutura de integração executável, especificações de harmonização, registros de proveniência e um modelo analítico reutilizável. As evidências da Seção~\ref{sec:resultados-tecnicos} sustentam sua consistência no recorte estudado: aquisição com integridade dos insumos, cobertura histórica, correspondência entre camadas e integridade referencial.
+O trabalho entregou um pipeline executável, regras de harmonização documentadas, registros de proveniência e um modelo analítico reutilizável. A Seção~\ref{sec:resultados-tecnicos} mostra como esses produtos foram avaliados quanto à integridade dos insumos, à cobertura histórica, à correspondência entre camadas e à integridade referencial no recorte estudado.
 
-Os dashboards disponibilizam os indicadores históricos e os níveis oficiais da PND por nota geral, com medidas coerentes com o modelo exportado e com os recortes conferidos na Gold. Sua contribuição demonstrada é a exploração descritiva; não foi realizada avaliação de usabilidade com usuários ou de impacto em decisões educacionais.
+Os painéis apresentam os indicadores históricos e os níveis oficiais da PND calculados pela nota geral. As medidas correspondem às expressões extraídas do PBIX e aos recortes conferidos na Gold. Os painéis apoiam a análise descritiva. O estudo não avaliou sua usabilidade com usuários nem o impacto sobre decisões educacionais.
 
-Em relação aos objetivos específicos, a caracterização das fontes (a), a harmonização com proveniência (c) e a estruturação dimensional (d) foram demonstradas nos artefatos examinados. A aquisição e o fluxo automatizado (b) foram demonstrados em modo HTTP e até a Gold. A avaliação da consistência e da reprodução (e) foi sustentada pelos controles e pela reconstrução nas condições registradas. O desenvolvimento e uso descritivo de medidas e painéis (f) permanecem parcialmente demonstrados, pois a conferência do modelo e dos recortes selecionados não abrange todas as interações ou a avaliação de uso.
+Os artefatos examinados demonstram a caracterização das fontes (a), a harmonização com proveniência (c) e a modelagem dimensional (d). A aquisição em modo HTTP e a execução até a Gold demonstram o fluxo automatizado (b). Os controles e as execuções isoladas sustentam a avaliação da consistência e da reprodução (e) nas condições registradas. Quanto às medidas e aos painéis (f), a avaliação cobriu o modelo e os recortes selecionados, de modo que a demonstração permanece parcial e deixa em aberto outras interações e a avaliação de uso.
 
 \section{Trabalhos Futuros}
 
-As prioridades técnicas são ampliar a verificação funcional de filtros, interações, marcadores e estados de navegação e resolver a cadeia de certificados para transferência HTTPS. Uma avaliação de usabilidade também permitiria examinar a adequação dos painéis a públicos específicos.
+Entre as prioridades técnicas estão testar mais filtros, interações, marcadores e estados de navegação e corrigir o problema da cadeia de certificados na transferência HTTPS. Uma avaliação com usuários também ajudaria a verificar se os painéis atendem a diferentes públicos.
 
-O modelo pode ser ampliado com dados do Censo Escolar sobre infraestrutura, matrículas, turmas e formação docente. Recortes municipais ou escolares também são possíveis, desde que haja compatibilidade de fonte, grão e metodologia. Cada expansão exige documentação, harmonização e validação próprias.
+O modelo pode incorporar dados do Censo Escolar sobre infraestrutura, matrículas, turmas e formação docente. Também pode abranger municípios ou escolas, desde que a fonte, o grão e a metodologia sejam compatíveis. Cada ampliação exigiria documentação, harmonização e validação próprias.
 
-Indicadores socioeconômicos do IBGE ou do IPEA permitiriam explorar associações com o contexto social. Técnicas de correlação, regressão, agrupamento e séries temporais podem aprofundar essa análise; investigações causais exigiriam hipóteses, controles e desenho de pesquisa específicos.
+Indicadores socioeconômicos do IBGE ou do IPEA permitiriam examinar associações com o contexto social. Correlação, regressão, agrupamento e análise de séries temporais poderiam aprofundar essa investigação. Examinar relações causais exigiria hipóteses, controles e um desenho de pesquisa específico.
 
-Novas edições da PND poderão compor uma série própria. Outra possibilidade é publicar o dashboard em ambiente institucional ou público, com atenção à usabilidade, atualização automatizada e governança dos dados.
+Novas edições da PND poderiam formar uma série própria. O painel também poderia ser publicado em um ambiente institucional ou público, considerando a usabilidade, a atualização automatizada e a governança dos dados.
 
 \section{Perspectivas de produção bibliográfica}
 

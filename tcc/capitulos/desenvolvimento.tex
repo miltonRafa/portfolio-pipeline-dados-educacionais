@@ -10,13 +10,13 @@ A Seção 4.1 apresenta a classificação da pesquisa. A Seção 4.2 descreve as
 
 \section{Classificação da pesquisa}
 
-Este trabalho caracteriza-se como uma pesquisa aplicada, pois teve como finalidade desenvolver uma solução computacional baseada em Engenharia de Dados e Business Intelligence para organizar, integrar e analisar indicadores educacionais brasileiros \cite{prodanov2013}.
+A pesquisa é aplicada porque desenvolve uma solução de Engenharia de Dados e Business Intelligence para organizar, integrar e analisar indicadores educacionais brasileiros \cite{prodanov2013}.
 
-Quanto aos objetivos, a pesquisa classifica-se como descritiva, uma vez que buscou organizar, representar e analisar características relacionadas aos indicadores da Educação Básica brasileira, identificando comportamentos, padrões e variações presentes nos dados ao longo do tempo \cite{gil2002}.
+A pesquisa é descritiva porque organiza e analisa os indicadores da Educação Básica brasileira para identificar padrões e variações ao longo do tempo \cite{gil2002}.
 
-Em relação à abordagem, a pesquisa caracteriza-se como quantitativa, pois utilizou bases de dados estruturadas e indicadores numéricos para realização das análises. As informações foram tratadas por meio de técnicas computacionais, permitindo a criação de métricas, comparações históricas, médias, proporções e representações gráficas \cite{prodanov2013}.
+A abordagem é quantitativa. O estudo usa bases estruturadas e indicadores numéricos para calcular médias e proporções, comparar períodos e representar os resultados em gráficos \cite{prodanov2013}.
 
-Quanto aos procedimentos técnicos, caracteriza-se como pesquisa documental, pois utiliza dados secundários disponibilizados por instituição oficial, sem intervenção direta sobre o ambiente analisado \cite{gil2002}. O desenvolvimento inclui ainda a construção de um artefato computacional, composto pelo pipeline de dados, modelo dimensional, medidas semânticas e dashboards.
+O estudo é documental porque utiliza dados secundários de uma instituição oficial, sem intervir no ambiente analisado \cite{gil2002}. Também desenvolve uma solução computacional que reúne o pipeline, o modelo dimensional, as medidas do modelo e os painéis.
 
 \section{Fontes e coleta dos dados}
 
@@ -26,7 +26,7 @@ A análise histórica compreende o período de 2007 a 2023 para IDEB, SAEB, Rend
 
 Os links oficiais do INEP constituem a referência institucional e a fonte primária dos dados. Os arquivos armazenados localmente na camada Raw correspondem aos materiais obtidos dessas fontes e são identificados em manifesto por caminho local, finalidade e hash SHA-256. O inventário utilizado no projeto contém 54 arquivos e pode ser verificado pelo comando \texttt{python scripts/gerar\_manifesto\_raw.py --check}. A cópia organizada da Raw disponibilizada fora do repositório constitui apenas uma conveniência de reprodução e não substitui as fontes oficiais.
 
-A obtenção e a organização dos insumos são executadas por rotina automatizada, descrita com a arquitetura e o processo de ingestão na seção seguinte.
+Uma rotina automatiza a obtenção e a organização dos arquivos. Seu funcionamento é descrito na seção seguinte, junto com a arquitetura e a ingestão.
 
 \section{Arquitetura e processo de ingestão}
 
@@ -36,7 +36,7 @@ A solução foi organizada em quatro camadas de dados, seguidas pela camada de c
 \texttt{RAW $\rightarrow$ BRONZE $\rightarrow$ SILVER $\rightarrow$ GOLD $\rightarrow$ POWER BI}
 \end{center}
 
-A Figura~\ref{fig:fluxo-aquisicao} apresenta o percurso completo, incluindo a etapa anterior à Raw. Neste trabalho, aquisição designa a obtenção dos arquivos nas fontes oficiais e sua organização na Raw; ingestão designa a leitura e a estruturação desses insumos na Bronze.
+A Figura~\ref{fig:fluxo-aquisicao} mostra o percurso dos arquivos até o painel. A aquisição obtém os arquivos nas fontes oficiais e os organiza na Raw. A ingestão lê esses arquivos e os estrutura na Bronze.
 
 \begin{figure}[htbp]
 \centering
@@ -65,13 +65,13 @@ $\downarrow$\\
 \legend{Fonte: Elaborado pelo autor a partir da implementação do projeto (2026).}
 \end{figure}
 
-A Raw preserva os insumos oficiais organizados localmente. A Bronze realiza a ingestão com padronização técnica mínima e preservação de metadados. A Silver aplica o recorte analítico, harmonização de categorias, seleção das observações e validações de correspondência com a Bronze. A Gold materializa as tabelas fato e dimensão consumidas pelo Power BI.
+A Raw conserva os arquivos oficiais organizados localmente. A Bronze aplica apenas a padronização técnica necessária à leitura e mantém os metadados de origem. A Silver seleciona o recorte, harmoniza as categorias e confere as observações com a Bronze. A Gold produz as tabelas fato e dimensão que alimentam o Power BI.
 
 Os arquivos de origem incluem formatos \texttt{.xls}, \texttt{.xlsx}, \texttt{.xlsb}, \texttt{.csv} e \texttt{.txt}. O orquestrador \texttt{src/pipeline.py} coordena os scripts Python de leitura, processamento e validação das camadas.
 
 Na Bronze SAEB, o contrato de entrada distingue os arquivos históricos do agregado oficial de UF de 2023. Os nomes históricos previstos são obrigatórios, e somente o nome exato do agregado é admitido como arquivo adicional; arquivos inesperados, cópias e nomenclaturas inválidas provocam falha. Na primeira construção, o agregado é produzido e validado após os históricos e antes da Silver. Se já estiver presente em uma reexecução, a ingestão histórica o preserva e o validador também confere seu conteúdo e sua proveniência por meio dos controles específicos dessa fonte.
 
-Na Gold, as dimensões são construídas a partir da Silver e validadas antes das fatos, pois os validadores destas dependem das chaves dimensionais. A validação global é executada ao final. Essa ordenação permite iniciar o processamento sem tabelas derivadas preexistentes e evita que arquivos de uma execução anterior ocultem dependências entre etapas.
+Na Gold, as dimensões são construídas a partir da Silver e validadas primeiro. Os validadores das tabelas fato precisam das chaves dessas dimensões. A validação global ocorre ao fim do processo. Essa ordem permite iniciar com as camadas derivadas vazias e evita que arquivos de execuções anteriores escondam dependências entre etapas.
 
 A aquisição é automatizada pelo script \texttt{scripts/baixar\_raw.py}, que identifica os links nas páginas oficiais, seleciona as edições e os arquivos previstos no manifesto, extrai os membros necessários dos pacotes e aplica os nomes locais em \texttt{data/raw}.
 
@@ -81,21 +81,21 @@ A nomenclatura local da Raw é aplicada automaticamente a partir do manifesto, p
 
 \section{Transformação, linhagem e validação}
 
-As transformações foram implementadas em Python de acordo com as particularidades de cada fonte. Entre os procedimentos aplicados estão identificação de cabeçalhos técnicos, padronização de tipos, normalização de Unidades Federativas, tratamento de valores ausentes, harmonização de categorias, seleção de rede e etapa, transformação entre formatos amplo e longo quando necessária e validação do grão analítico.
+Os scripts Python tratam as particularidades de cada fonte. Eles identificam os cabeçalhos, padronizam os tipos e as UFs, tratam as ausências, harmonizam as categorias e selecionam a rede e as etapas de ensino. Quando necessário, convertem os dados do formato amplo para o longo. Ao final, as verificações conferem o grão, ou seja, o que cada linha representa.
 
-A rastreabilidade é preservada ao longo do pipeline. Na Bronze são mantidos metadados técnicos associados à fonte, ao hash, ao nome do arquivo e à aba de origem, ao ano de referência, à posição das linhas e à granularidade preservada, conforme aplicável. Na Silver, os registros analíticos são validados diretamente contra suas células de origem por arquivo, linha e coluna; no IDEB e no SAEB, também são consideradas aba e granularidade quando pertinentes. Essa estratégia permite relacionar um valor analítico à observação de origem utilizada em sua construção.
+A Bronze registra, conforme a fonte, o hash, o arquivo e a aba de origem, o ano de referência, a posição das linhas e o nível de detalhe dos dados. Na Silver, os validadores conferem os valores com as células de origem, identificadas por arquivo, linha e coluna. No IDEB e no SAEB, consideram também a aba e a granularidade quando se aplicam. Esses registros permitem localizar a observação que deu origem ao valor utilizado.
 
 As informações de rede são selecionadas segundo a semântica de cada fonte, sem calcular indiscriminadamente média entre redes federal, estadual e municipal. Rendimento e TDI utilizam o agregado público oficial; o IDEB seleciona a categoria pública disponibilizada no arquivo; e o SAEB aplica regras específicas por edição. A rede privada é excluída. No SAEB de 2007 e 2009, a categoria histórica disponível corresponde a \texttt{Total - Estadual e Municipal}, particularidade considerada como limitação de comparabilidade da série.
 
-As validações abrangem esquema, domínios, quantidade de registros, unicidade no grão, cobertura temporal e territorial, correspondência entre camadas, chaves órfãs e consistência dos relacionamentos. Na Gold, o validador global verifica também a integridade referencial e a coerência entre município e UF na PND.
+Os validadores conferem a estrutura das tabelas, os valores permitidos, a quantidade de registros, a ausência de duplicidades no grão e a cobertura temporal e territorial. Também comparam as camadas e verificam os relacionamentos e as chaves órfãs, que são chaves sem correspondência na dimensão. Na Gold, o validador global verifica a integridade referencial e, para a PND, se o município pertence à UF indicada.
 
 \subsection{Desafios de harmonização histórica}
 
-Um dos principais desafios de transformação não foi apenas converter formatos de arquivo, mas reconhecer que uma mesma informação passou a ser representada de maneiras diferentes entre indicadores e edições. As fontes variam quanto à posição e ao nome das colunas, quantidade de linhas de cabeçalho, uso de códigos ou categorias textuais, presença de Brasil e regiões junto às UFs, granularidade de publicação e representação de valores ausentes. Por esse motivo, o pipeline não aplica uma regra genérica baseada apenas na aparência do arquivo. Cada configuração foi definida após auditoria da respectiva fonte e foi materializada explicitamente nos transformadores.
+Uma mesma informação pode aparecer de formas diferentes de uma edição para outra. Podem mudar a posição e o nome das colunas, o número de linhas do cabeçalho, os códigos e as categorias, o nível de agregação e a forma de indicar ausências. Algumas fontes também reúnem Brasil, regiões e UFs em uma só tabela. A auditoria de cada fonte orientou as regras registradas nos transformadores, porque a aparência do arquivo, por si só, não indica quais campos devem ser usados.
 
 Na Bronze, colunas de planilhas com cabeçalhos complexos recebem nomes técnicos neutros, como \texttt{col\_001}, \texttt{col\_002} e assim sucessivamente. Esses nomes representam a posição física preservada e não atribuem significado novo ao dado. Na Silver, a posição é associada ao conceito identificado na auditoria. Por exemplo, a taxa de aprovação dos Anos Iniciais do Rendimento encontra-se em \texttt{col\_015} em 2007, em \texttt{col\_014} entre 2008 e 2010 e em \texttt{col\_006} entre 2011 e 2015. A correspondência é registrada em \texttt{COLUNA\_ORIGEM}, permitindo retornar à célula utilizada.
 
-Também foi necessária a passagem do formato amplo para o formato longo. Nas fontes de Rendimento, TDI, IDEB e SAEB, diferentes anos, etapas, indicadores ou disciplinas aparecem distribuídos em colunas. Na Silver, essas dimensões tornam-se valores explícitos em campos canônicos, como \texttt{ANO}, \texttt{ETAPA}, \texttt{INDICADOR} e \texttt{DISCIPLINA}. Por essa razão, a quantidade de linhas da Bronze e da Silver não deve ser interpretada como simples contagem de registros removidos: uma linha de origem pode produzir várias observações analíticas.
+No formato amplo, anos, etapas, indicadores ou disciplinas ocupam colunas diferentes. Isso ocorre nas fontes de Rendimento, TDI, IDEB e SAEB. Ao passar para o formato longo na Silver, essas informações ficam em campos como \texttt{ANO}, \texttt{ETAPA}, \texttt{INDICADOR} e \texttt{DISCIPLINA}. Uma linha de origem pode, assim, produzir várias observações. A diferença entre as contagens da Bronze e da Silver não indica, por si só, quantos registros foram retirados.
 
 A Tabela~\ref{tab:sintese-harmonizacao} resume as diferenças que determinaram as regras de transformação. O mapeamento completo dos campos encontra-se no Apêndice~\ref{ap:layouts}; as categorias e códigos harmonizados, no Apêndice~\ref{ap:harmonizacao}; os critérios de inclusão e exclusão, no Apêndice~\ref{ap:criterios}; e os controles de qualidade e rastreabilidade, no Apêndice~\ref{ap:qualidade}.
 
@@ -141,7 +141,7 @@ A tabela \texttt{FATO\_RENDIMENTO} contém \texttt{ANO}, \texttt{UF}, \texttt{ET
 
 \subsection{Tratamento da base de Distorção Idade-Série}
 
-A TDI também utiliza 17 arquivos anuais, de 2007 a 2023, referentes a Brasil, regiões e UFs. Após a harmonização dos diferentes layouts, a saída analítica é consolidada na \texttt{FATO\_TDI}, com as colunas \texttt{ANO}, \texttt{UF}, \texttt{ETAPA}, \texttt{REDE} e \texttt{TDI}.
+A TDI também parte de 17 arquivos anuais, de 2007 a 2023, referentes a Brasil, regiões e UFs. Depois de harmonizar as diferenças de layout, o pipeline reúne os dados na \texttt{FATO\_TDI}, com as colunas \texttt{ANO}, \texttt{UF}, \texttt{ETAPA}, \texttt{REDE} e \texttt{TDI}.
 
 A TDI permanece na escala de 0 a 100. As medidas temporais calculadas no Power BI não pressupõem que todas as fontes tenham observação em todos os anos; para cada indicador, a variação utiliza o primeiro e o último ano com dado dentro do intervalo selecionado.
 
@@ -149,7 +149,7 @@ A TDI permanece na escala de 0 a 100. As medidas temporais calculadas no Power B
 
 A PND 2025 foi incorporada como análise complementar. A população analítica é selecionada pela condição \texttt{TP\_PRES = 555} e pelo preenchimento simultâneo de \texttt{PROFICIENCIA}, \texttt{NT\_OBJ}, \texttt{NT\_DIS}, \texttt{NT\_GER} e \texttt{QT\_ACERTOS}, sem imputação. Registros presentes sem resultados completos e registros com resultado desconsiderado pelo INEP (\texttt{TP\_PRES = 888}) são excluídos. O diagnóstico quantitativo dessas condições encontra-se no Apêndice~\ref{ap:criterios}; o resultado da seleção é discutido no capítulo seguinte.
 
-Como os microdados não fornecem um identificador individual, a linha de origem preservada na Silver é utilizada exclusivamente como identificador técnico de rastreabilidade do registro e não constitui identificador do participante.
+Os microdados não trazem identificador individual. A Silver usa a linha de origem para localizar o registro no arquivo. Esse número identifica a posição do registro e não permite identificar o participante.
 
 A Gold preserva \texttt{UF\_PROVA} e \texttt{CO\_MUNICIPIO\_PROVA}, que representam o local de aplicação da prova e não a residência do participante. Também preserva o código de área \texttt{CO\_GRUPO}, as notas e resultados analíticos e o campo \texttt{PADRAO\_DESEMPENHO}. O código municipal é relacionado à \texttt{DIM\_MUNICIPIO}; a Gold não incorpora nome de município na fato.
 
@@ -163,20 +163,20 @@ Os níveis de Desempenho Docente são definidos a partir da nota geral publicada
 
 Os rótulos seguem a Tabela 2 da Nota Técnica nº 44/2025. A Nota Técnica nº 1/2026 fundamenta a ancoragem dos cortes e a nº 4/2026 complementa sua interpretação pedagógica com as denominações Não Proficiente, Proficiente Básico e Proficiente Adequado \cite{inep2026notatecnica1,inep2026notatecnica4}. Esses documentos não transformam o nível em aprovação ou habilitação para o magistério.
 
-A coluna \texttt{PADRAO\_DESEMPENHO} materializa os três níveis por nota geral. A validação reconstrói, a partir da Bronze, a população elegível e os campos de origem, confere as áreas com o dicionário oficial e verifica a classificação da Gold por uma referência independente de intervalos. As conferências numéricas preservam a precisão dos dados de origem.
+A coluna \texttt{PADRAO\_DESEMPENHO} registra o nível correspondente à nota geral. O validador reconstrói a população elegível e os campos de origem a partir da Bronze, confere as áreas com o dicionário oficial e compara os níveis da Gold com uma referência independente de intervalos. As comparações numéricas consideram a precisão dos dados de origem.
 
 A nota objetiva \texttt{NT\_OBJ}, obtida da proficiência TRI por transformação específica de cada área, continua preservada. A discursiva \texttt{NT\_DIS} usa escala 0--10, e a nota geral é publicada na escala de 0 a 100. A expressão $0{,}8\,\texttt{NT\_OBJ}+2\,\texttt{NT\_DIS}$ é usada apenas para verificar a consistência da nota geral publicada, com tolerância compatível com a precisão divulgada \cite[p.~5--6]{inep2025notatecnica44}. O corte de 50 pontos não representa 50\% de acertos. A classificação oficial aqui implementada é aplicada à população analítica do projeto, sem pressupor reprodução da distribuição oficial integral.
 
 \section{Modelagem dos dados}
 \label{sec:modelagem-dados}
 
-Após as transformações, a camada Gold materializa cinco tabelas fato e cinco dimensões para consumo analítico. As fatos são \texttt{FATO\_RENDIMENTO}, \texttt{FATO\_TDI}, \texttt{FATO\_IDEB}, \texttt{FATO\_SAEB} e \texttt{FATO\_PND}. As dimensões são \texttt{DIM\_UF}, \texttt{DIM\_TEMPO}, \texttt{DIM\_ETAPA}, \texttt{DIM\_AREA\_PND} e \texttt{DIM\_MUNICIPIO}.
+A Gold organiza os dados tratados em cinco tabelas fato e cinco dimensões. As tabelas fato são \texttt{FATO\_RENDIMENTO}, \texttt{FATO\_TDI}, \texttt{FATO\_IDEB}, \texttt{FATO\_SAEB} e \texttt{FATO\_PND}. As dimensões são \texttt{DIM\_UF}, \texttt{DIM\_TEMPO}, \texttt{DIM\_ETAPA}, \texttt{DIM\_AREA\_PND} e \texttt{DIM\_MUNICIPIO}.
 
 \begin{sloppypar}
 O grão de cada tabela fato foi definido antes de sua materialização. A \texttt{FATO\_RENDIMENTO} representa uma observação por ano, UF, etapa e indicador; a \texttt{FATO\_TDI}, uma observação por ano, UF e etapa; a \texttt{FATO\_IDEB}, uma observação por ano, UF e etapa; a \texttt{FATO\_SAEB}, uma observação por ano, UF, etapa e disciplina; e a \texttt{FATO\_PND} mantém uma linha por registro selecionado, sem pressupor unicidade de pessoa. Nas fatos históricas, a rede \texttt{PUBLICA} também integra as chaves compostas verificadas, embora seja constante no recorte.
 \end{sloppypar}
 
-Os relacionamentos seguem cardinalidade 1:* e filtro unidirecional da dimensão para a fato. \texttt{DIM\_UF} relaciona-se com as cinco fatos; \texttt{DIM\_TEMPO}, também. \texttt{DIM\_ETAPA} relaciona-se apenas com as quatro fatos históricas. Para a PND, os relacionamentos adicionais utilizam \texttt{DIM\_AREA\_PND} e \texttt{DIM\_MUNICIPIO}. Não existe relação física direta entre \texttt{DIM\_UF} e \texttt{DIM\_MUNICIPIO}, evitando um segundo caminho geográfico até a \texttt{FATO\_PND}.
+Os relacionamentos são de um para muitos (1:*). Uma linha da dimensão pode corresponder a várias linhas da tabela fato, e o filtro segue da dimensão para a fato. A \texttt{DIM\_UF} e a \texttt{DIM\_TEMPO} se ligam às cinco tabelas fato. A \texttt{DIM\_ETAPA} se liga às quatro tabelas históricas. A PND usa também a \texttt{DIM\_AREA\_PND} e a \texttt{DIM\_MUNICIPIO}. Para manter um único caminho geográfico de filtro até a \texttt{FATO\_PND}, o modelo mantém a \texttt{DIM\_UF} e a \texttt{DIM\_MUNICIPIO} sem ligação direta.
 
 \begin{landscape}
 \begin{figure}[H]
@@ -214,20 +214,20 @@ Variações & \texttt{Variação Aprovação}; \texttt{Variação IDEB}; \texttt
 \legend{Fonte: Elaborado pelo autor a partir do modelo Power BI do projeto (2026).}
 \end{table}
 
-As taxas de Rendimento e a TDI já são armazenadas na escala de 0 a 100. Os percentuais da PND são razões calculadas dinamicamente e formatadas como percentuais. As medidas de variação representam diferença absoluta entre o último e o primeiro ano com dado no intervalo selecionado. Suas unidades dependem do indicador: pontos de IDEB, pontos percentuais para Aprovação e TDI e pontos de proficiência para SAEB.
+As taxas de Rendimento e a TDI são armazenadas na escala de 0 a 100. Os percentuais da PND são calculados conforme os filtros e exibidos em porcentagem. Para medir a variação, o painel subtrai o valor do primeiro ano com dado do valor do último ano com dado no intervalo selecionado. O resultado é expresso em pontos de IDEB, pontos percentuais para Aprovação e TDI ou pontos de proficiência para o SAEB.
 
 Como exemplos, \texttt{TDI Média} utiliza \texttt{AVERAGE(FATO\_TDI[TDI])}, e a contagem de registros PND utiliza \texttt{COUNTROWS(FATO\_PND)}, considerando as linhas no contexto de filtro, sem deduplicar pessoas. O percentual Básico ou Adequado divide a soma desses dois níveis pela contagem, por meio de \texttt{DIVIDE}, sem atribuir aprovação ou habilitação a essa agregação. Nas variações, \texttt{ALLSELECTED} delimita os anos selecionados, são considerados apenas anos com medida não vazia e o resultado é vazio quando não existem dois extremos distintos. As médias não recebem ponderação por matrículas ou participantes.
 
 \section{Desenvolvimento dos dashboards}
 
-O Power BI consome exclusivamente os arquivos Parquet da Gold. O Power Query é utilizado como camada de conexão com esses arquivos; relacionamentos, medidas DAX e visualizações compõem o modelo semântico e a apresentação analítica.
+O Power BI usa apenas os arquivos Parquet da Gold. O Power Query conecta o painel aos arquivos. Os relacionamentos e as medidas DAX definem como os dados são consultados, e as visualizações apresentam os resultados.
 
-A solução foi organizada em sete páginas com funções complementares: panorama dos indicadores; comparação por Unidade Federativa; aprendizagem e fluxo escolar; variações no intervalo selecionado; distorção idade-série; resultados da PND 2025; e metodologia e arquitetura do projeto. Essa organização separa a exploração histórica e territorial da documentação técnica do modelo. Os valores, rankings, associações descritivas e demais resultados apresentados em cada página são discutidos no Capítulo~\ref{cap:resultados}, evitando duplicar nesta seção a descrição analítica dos painéis.
+O painel tem sete páginas. A primeira dá uma visão geral dos indicadores. As seguintes apresentam a comparação por Unidade Federativa, a relação entre aprendizagem e fluxo escolar, as variações no período selecionado, a distorção idade-série e os resultados da PND 2025. A última documenta a metodologia e a arquitetura. O Capítulo~\ref{cap:resultados} discute os valores, as posições nos rankings e as associações descritivas observadas.
 
 \begin{landscape}
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.95\linewidth]{figs/dashboard-metodologia.png}
+  \includegraphics[width=\linewidth,height=0.83\textheight,keepaspectratio]{figs/dashboard-metodologia.png}
   \caption{Página de metodologia e arquitetura do projeto no Power BI.}
   \label{fig:dashboard-metodologia}
   \legend{Fonte: Elaborado pelo autor a partir do dashboard do projeto (2026).}
@@ -237,19 +237,19 @@ A solução foi organizada em sete páginas com funções complementares: panora
 \section{Notebooks, testes e automação}
 \label{sec:testes-reproducao}
 
-O repositório possui cinco notebooks demonstrativos, um para cada indicador: Rendimento Escolar, TDI, IDEB, SAEB e PND. Eles apresentam o percurso entre a fonte Raw e a tabela fato Gold correspondente e chamam os scripts oficiais do repositório, sem reimplementar as regras de transformação. Assim, os notebooks funcionam como material demonstrativo e executável da metodologia, enquanto a implementação oficial permanece em \texttt{src/}.
+O repositório oferece cinco notebooks demonstrativos, um para cada indicador: Rendimento Escolar, TDI, IDEB, SAEB e PND. Cada notebook mostra o caminho dos arquivos da Raw até a tabela fato da Gold. Para executar as etapas, os notebooks chamam os próprios scripts do projeto em \texttt{src/}, onde estão as regras de transformação.
 
 Antes da execução completa, os hashes SHA-256 dos 54 insumos são conferidos com o manifesto. Os validadores comparam os valores e cabeçalhos da Bronze com as fontes e verificam, por critérios independentes dos transformadores, os campos e as categorias usados nas séries históricas. Na PND, são conferidos a população elegível, os campos de origem, as áreas e os níveis de desempenho. As comparações numéricas consideram a precisão das fontes para detectar diferenças que o arredondamento poderia ocultar.
 
-As execuções usam diretórios isolados. A Gold é publicada após as validações, com registro dos insumos e das saídas. Em caso de falha, a última publicação íntegra permanece disponível e pode ser validada explicitamente. A atualização da Raw também é controlada e mantém os elementos necessários para recuperar o estado consistente após uma interrupção.
+Cada execução trabalha em um diretório próprio. O pipeline só publica a Gold após as validações e registra os insumos e as saídas. Se uma execução falhar, a última publicação íntegra continua disponível para validação. A atualização da Raw mantém as informações necessárias para recuperar um estado consistente após uma interrupção.
 
-Os testes automatizados de software exercitam contratos, regressões e cenários de falha com dados de teste, em complemento às validações dos dados reais. Nas verificações de reprodução, as saídas de execuções isoladas são comparadas por caminho e hash. Os controles e o alcance dessas evidências são detalhados no Apêndice~\ref{ap:qualidade}.
+Os testes automatizados usam dados de teste para conferir as regras do software, detectar regressões e simular falhas. Os validadores complementam esses testes ao conferir os dados reais. Para verificar a reprodução, comparam-se os caminhos e os hashes dos arquivos gerados em execuções isoladas. O Apêndice~\ref{ap:qualidade} descreve os controles e o que cada um permite verificar.
 
 \section{Ferramentas utilizadas}
 
-Foram utilizadas Python e as bibliotecas registradas no arquivo \texttt{requirements.txt}, incluindo Pandas, NumPy, PyArrow e mecanismos de leitura de planilhas em diferentes formatos. Parquet foi adotado nas camadas derivadas para armazenamento tabular. Também foram utilizados Git para versionamento, notebooks Jupyter como material demonstrativo, Power BI Desktop para o modelo semântico e os dashboards, Power Query para conexão à Gold e DAX para as medidas analíticas.
+O processamento usa Python e as bibliotecas de \texttt{requirements.txt}, entre elas Pandas, NumPy, PyArrow e leitores de planilhas em diferentes formatos. As camadas derivadas armazenam as tabelas em Parquet. O Git registra as versões, e os notebooks Jupyter demonstram o processamento. No Power BI Desktop, o Power Query conecta o modelo à Gold, e o DAX define as medidas usadas nos painéis.
 
-Essa separação de responsabilidades mantém o processamento reprodutível fora da ferramenta de visualização: Python executa e valida o pipeline; os Parquets constituem a interface analítica; e o Power BI concentra relacionamentos, medidas dependentes do contexto de filtro e visualizações.
+O processamento pode ser reproduzido fora da ferramenta de visualização. O Python executa e valida o pipeline. Os arquivos Parquet entregam as tabelas ao Power BI, que reúne os relacionamentos, aplica as medidas conforme os filtros e exibe os resultados.
 
 A reprodução de 13 de novembro de 2026 utilizou Python 3.12.10, Pandas 3.0.5, NumPy 2.5.2 e PyArrow 25.0.1, conforme o registro daquela execução. Para as verificações finais de 25 de novembro de 2026, o projeto adotou CPython 3.12.10 de 64 bits e fixou as dependências diretas em \texttt{requirements.txt} e as versões resolvidas em \texttt{requirements.lock}. O mesmo arquivo de lock atende Windows e Linux e condiciona o pacote \texttt{pywinpty} ao Windows.
 
@@ -258,13 +258,13 @@ A referência final registra Pandas 3.1.1, NumPy 2.5.5, PyArrow 26.0.1, openpyxl
 \section{Limitações metodológicas}
 \label{sec:limitacoes-metodologicas}
 
-As diferenças históricas de formato, nomenclatura, agregação e categorias limitam a interpretação das séries como se todas as edições fossem metodologicamente idênticas.
+As edições históricas diferem na forma de organizar, nomear e agregar os dados. Algumas também usam categorias diferentes. Essas mudanças limitam a comparação direta ao longo do tempo.
 
 A harmonização em nível de UF, rede pública e etapa restringe a análise a esses agregados. No SAEB de 2007 e 2009, a categoria disponível agrega as redes estadual e municipal, sem inclusão explícita da rede federal. As demais edições seguem as categorias de rede publicadas em cada fonte. Na planilha do IDEB, a cobertura segue o agregado oficial e as notas de cada edição. Nos registros assinalados na planilha, as médias do SAEB e o IDEB foram calculados sem as escolas privadas em 2009 e sem as escolas federais em 2011. A periodicidade bienal de IDEB e SAEB também limita sua comparação com as séries anuais de Rendimento e TDI.
 
 A transição do Ensino Fundamental de oito para nove anos alterou a organização das séries e dos anos escolares. A correspondência entre 4ª série e 5º ano e entre 8ª série e 9º ano permite organizar as observações nas duas etapas analíticas, mantendo as particularidades históricas de cada edição, conforme o Apêndice~\ref{ap:layouts}. As taxas de aprovação de 2020 e 2021 devem ser lidas à luz das condições excepcionais da pandemia, incluindo ajustes de calendário, currículo e critérios de avaliação registrados pelo INEP.\footnote{INEP, Censo Escolar 2022, apresentação de resultados, seção sobre a trajetória dos estudantes na educação básica. \url{https://download.inep.gov.br/censo_escolar/resultados/2022/apresentacao_coletiva.pdf}} O painel descreve as variações observadas, sem estimar os efeitos dessas condições.
 
-Os cartões de taxas agregam as observações disponíveis por média aritmética. Assim, a média simples das taxas estaduais tem interpretação distinta do indicador nacional calculado com os denominadores da população de referência. A proficiência média do SAEB também é descritiva: quando reúne disciplinas e etapas, combina os valores disponíveis com peso igual por observação, sem ponderação pelo número de participantes.
+Os cartões calculam a média aritmética das observações disponíveis. Ao reunir taxas estaduais, a média simples dá o mesmo peso a cada observação, enquanto o indicador nacional usa os denominadores da população de referência. A medida de proficiência do SAEB também dá o mesmo peso a cada valor quando reúne disciplinas e etapas, sem ponderar pelo número de participantes. Sua leitura é descritiva.
 
 A PND corresponde apenas a 2025 e não constitui série temporal. As variáveis territoriais representam o local de aplicação da prova, não residência. A classificação dos níveis de Desempenho Docente utiliza a nota geral publicada \texttt{NT\_GER}, segundo os critérios oficiais aplicados à população analítica selecionada pelo projeto; ela não equivale a aprovação ou reprovação.
 
