@@ -152,7 +152,7 @@ O campo \texttt{CO\_GRUPO} é convertido para \texttt{AREA\_PROVA} por um dicion
 \legend{Fonte: Dicionário de Variáveis da PND 2025, organizado pelo autor.}
 \end{table}
 
-Não é aplicado filtro \texttt{TP\_SIT\_DISC=555}. Os códigos 333, 335 e 336 possuem nota zero válida e participam do cálculo oficial. A população analítica exige \texttt{TP\_PRES=555}, independentemente do tipo de inscrição, da aplicação ou reaplicação e do caderno, desde que os cinco resultados analíticos estejam completos.
+Não é aplicado filtro \texttt{TP\_SIT\_DISC=555}. O dicionário associa os códigos 333, 335 e 336 a situações previstas de nota zero. A conferência do arquivo oficial identificou uma exceção na linha física 496.762 de \texttt{microdados2025\_pnd\_arq1.txt}: um registro com código 335 apresenta \texttt{NT\_DIS} de 5,75 e \texttt{NT\_GER} de 64,46. O pipeline preserva os valores publicados, sem substituir automaticamente a nota discursiva por zero com base no código de situação. A população analítica exige \texttt{TP\_PRES=555}, independentemente do tipo de inscrição, da aplicação ou reaplicação e do caderno, desde que os cinco resultados analíticos estejam completos.
 
 \subsection{Padrão de desempenho}
 

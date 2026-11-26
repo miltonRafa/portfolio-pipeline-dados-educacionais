@@ -29,27 +29,27 @@ As cinco fontes foram consolidadas em cinco tabelas fato e cinco dimensões, com
 \legend{Fonte: Validação e reprodução da camada Gold, documentadas em 13 nov. 2026.}
 \end{table}
 
-A aquisição em destino inicialmente vazio obteve os 54 insumos do manifesto: um arquivo IDEB, 17 de Rendimento, 17 de TDI, 16 de SAEB e três de PND, incluindo dicionários e arquivos auxiliares. A transferência e a extração foram concluídas em modo HTTP estrito, e os 54 hashes SHA-256 corresponderam ao manifesto. O resultado demonstra a obtenção efetiva dos insumos nas condições de ambiente descritas na Seção~\ref{sec:limitacoes-metodologicas}.
+Na reprodução de 13 de novembro de 2026, a aquisição em destino inicialmente vazio obteve os 54 insumos do manifesto: um arquivo IDEB, 17 de Rendimento, 17 de TDI, 16 de SAEB e três de PND, incluindo dicionários e arquivos auxiliares. A transferência e a extração foram concluídas em modo HTTP estrito, e os 54 hashes SHA-256 corresponderam ao manifesto.
 
-A reconstrução a partir dos insumos recém-adquiridos concluiu as 35 etapas de transformação e validação até a Gold, sem camadas derivadas preexistentes. Uma segunda reconstrução utilizou cópias físicas da Raw local. Cada execução produziu 63 Parquets: 48 Bronze, cinco Silver e dez Gold. A comparação das tabelas históricas reconstruídas com as referências confirmou igualdade binária, de conteúdo, tipos, ordem das linhas e esquema. A classificação da Gold PND por nota geral foi objeto de validação específica, cujos resultados são apresentados na Seção 5.7.
+Nas verificações finais, a execução completa conferiu a integridade dos 54 insumos antes de concluir as 35 etapas de processamento e validação até a Gold. Cada uma das duas execuções isoladas comparadas em Windows produziu 63 Parquets: 48 Bronze, cinco Silver e dez Gold. Os 63 arquivos corresponderam por caminho e SHA-256 entre essas execuções.
 
 A cobertura observada nas fatos históricas corresponde ao recorte completo: 27 UFs e duas etapas nas 17 edições anuais de Rendimento e TDI e nas nove edições bienais de IDEB e SAEB. As três taxas de Rendimento e as duas disciplinas do SAEB explicam suas cardinalidades maiores. Não foram encontrados valores ausentes nas colunas das fatos. A PND permaneceu restrita a 2025, com 759.140 registros, 17 áreas e 750 municípios de aplicação. Essa completude é relativa ao recorte selecionado e não abrange todas as populações das fontes.
 
-Os cinco validadores Silver concluíram a comparação com as respectivas Bronzes: 2.754 observações de Rendimento, 918 de TDI, 486 de IDEB, 972 de SAEB e 759.140 registros da PND. Como exemplo de proveniência observada, a aprovação dos Anos Iniciais do Acre em 2007, de 78,3, está associada ao arquivo \texttt{TX RENDIMENTO UFS 2007.xls}, à linha de origem 36 e à coluna \texttt{col\_015}. Os campos de arquivo, linha e coluna materializam a correspondência especificada nos apêndices. Na PND, a identificação técnica usa a linha de origem; a Gold não conserva esse identificador, de modo que sua conferência depende da Silver e da comparação da projeção analítica, sem estabelecer unicidade de pessoas.
+Os cinco validadores Silver concluíram a comparação com as respectivas Bronzes. Foram verificadas 5.130 observações históricas e 759.140 registros da PND: 2.754 observações de Rendimento, 918 de TDI, 486 de IDEB, 972 de SAEB e 759.140 registros da PND. Como exemplo de proveniência observada, a aprovação dos Anos Iniciais do Acre em 2007, de 78,3, está associada ao arquivo \texttt{TX RENDIMENTO UFS 2007.xls}, à linha de origem 36 e à coluna \texttt{col\_015}. Os campos de arquivo, linha e coluna materializam a correspondência especificada nos apêndices. Na PND, a identificação técnica usa a linha de origem; a Gold não conserva esse identificador, de modo que sua conferência depende da Silver e da comparação da projeção analítica, sem estabelecer unicidade de pessoas.
 
-No SAEB, os nove arquivos históricos e o agregado oficial de UF de 2023 foram validados. A Bronze agregada reproduziu a aba \texttt{Estados}, e o estrato público manteve 27 UFs e quatro campos de proficiência preenchidos. O confronto com o XLSB recém-adquirido confirmou 108/108 correspondências na Silver e na Gold, à precisão harmonizada de duas casas decimais.
+No SAEB, os nove arquivos históricos e o agregado oficial de UF de 2023 foram validados. A Bronze agregada reproduziu a aba \texttt{Estados}, e o estrato público manteve 27 UFs e quatro campos de proficiência preenchidos. Na reprodução de 13 de novembro, o confronto com o XLSB recém-adquirido confirmou 108 de 108 correspondências na Silver e na Gold na comparação então realizada a duas casas decimais. As verificações finais consideraram a precisão da fonte.
 
 Uma comparação entre o agregado oficial e 108 recomposições de médias escolares ponderadas por presentes não encontrou coincidências a duas casas decimais. Esse resultado fundamenta a preservação do agregado publicado pelo INEP e se distingue da conferência de correspondência entre fonte e camadas.
 
 Os validadores Gold confirmaram a correspondência com a Silver, os esquemas, os domínios, as cardinalidades, a unicidade das dimensões e das fatos históricas, a ausência de chaves órfãs e a coerência município/UF. A classificação PND foi conferida pela regra por \texttt{NT\_GER}. Esses controles demonstram consistência estrutural e correspondência entre camadas no recorte definido.
 
-A suíte de software registrou 71 testes aprovados, incluindo contratos de entrada, dependências de execução e classificação PND. Os testes com dados fictícios exercitam cenários de falha e regressão; os validadores e as reconstruções isoladas fornecem evidência complementar sobre o processamento dos dados reais.
+A suíte de software registrou 178 testes aprovados. Esses testes exercitaram cenários de falha e regressão, enquanto os validadores das camadas verificaram o processamento dos dados reais. As verificações independentes da integração confirmaram a preservação das correções e a recuperação da última publicação válida, com nova validação da Gold preservada.
 
-No Power BI, a inspeção do modelo exportado confirmou a equivalência das 27 expressões DAX com o arquivo versionado, os 16 relacionamentos e as sete páginas. A conferência dos valores apresentados e dos recortes de filtro selecionados complementou essa análise de metadados. Os testes de filtros no Desktop foram informados pelo responsável pelo projeto e confrontados com a Gold; não constituem uma avaliação de todas as interações do relatório.
+O PBIX é o artefato definitivo do Power BI e contém 16 relacionamentos, 27 medidas DAX e sete páginas. As 27 expressões foram extraídas diretamente do PBIX por meio do DAX Studio e comparadas com o arquivo DAX versionado, com equivalência integral. O PBIP foi removido do projeto. A conferência dos recortes selecionados complementou a análise do modelo. Os testes de filtros informados pelo responsável pelo projeto foram confrontados com a Gold e abrangeram os recortes documentados.
 
 \section{Panorama geral dos indicadores educacionais}
 
-A Figura~\ref{fig:dashboard-panorama} apresenta a visão geral dos indicadores históricos. Na captura sem filtros adicionais, os cartões exibem IDEB médio de 4,5, proficiência média de 223,2 em Matemática e 215,4 em Língua Portuguesa, Taxa de Aprovação de 87,5, Taxa de Reprovação de 9,5, Taxa de Abandono de 3,0 e TDI média de 24,9.
+A Figura~\ref{fig:dashboard-panorama} apresenta a visão geral dos indicadores históricos. Na captura sem filtros adicionais, os cartões exibem IDEB médio de 4,5, proficiência média de 223,2 em Matemática e 215,4 em Língua Portuguesa, Taxa de Aprovação de 87,5\%, Taxa de Reprovação de 9,5\%, Taxa de Abandono de 3,0\% e TDI média de 24,9\%.
 
 Esses valores devem ser interpretados como médias das linhas presentes no contexto do modelo, e não como médias nacionais ponderadas por matrícula. O principal interesse do painel está na leitura conjunta das trajetórias. O IDEB apresenta trajetória visual predominantemente ascendente entre as edições observadas; as proficiências médias de Matemática e Língua Portuguesa também crescem ao longo de grande parte da série, embora com oscilações nas edições mais recentes. A aprovação cresce no período, enquanto a TDI apresenta redução expressiva ao longo dos anos.
 
@@ -67,7 +67,7 @@ A leitura conjunta indica tendências gerais de melhora em diferentes dimensões
 
 A segunda página compara IDEB, SAEB Matemática, TDI e SAEB Língua Portuguesa entre Unidades Federativas em um ano de avaliação disponível. Na captura da Figura~\ref{fig:dashboard-uf}, o ano selecionado é 2007 e a etapa está em \textit{Todos}.
 
-Nesse recorte, com a etapa configurada como \textit{Todos}, Paraná, Santa Catarina e São Paulo aparecem com valor médio de IDEB de 4,4 entre as barras visíveis. Esse valor corresponde à média das observações presentes no contexto do modelo e não deve ser interpretado como um indicador oficial único publicado para a UF. No SAEB, o Distrito Federal aparece no topo visível tanto em Matemática, com 228,4 pontos, quanto em Língua Portuguesa, com 213,0 pontos. Para TDI, Pará e Alagoas aparecem entre os maiores valores visíveis, com 50,1 e 49,9, respectivamente. Esses exemplos evidenciam que a posição de uma UF depende do indicador analisado e que desempenho, fluxo e atraso escolar não formam uma única dimensão.
+Nesse recorte, com a etapa configurada como \textit{Todos}, Paraná, Santa Catarina e São Paulo aparecem com valor médio de IDEB de 4,4 entre as barras visíveis. Esse valor corresponde à média das observações presentes no contexto do modelo e não deve ser interpretado como um indicador oficial único publicado para a UF. No SAEB, o Distrito Federal aparece no topo visível tanto em Matemática, com 228,4 pontos, quanto em Língua Portuguesa, com 213,0 pontos. Para TDI, Pará e Alagoas aparecem entre os maiores valores visíveis, com 50,1\% e 49,9\%, respectivamente. Esses exemplos evidenciam que a posição de uma UF depende do indicador analisado e que desempenho, fluxo e atraso escolar não formam uma única dimensão.
 
 A página utiliza rankings separados para evitar transformar indicadores de escalas e significados distintos em uma medida única. Diferenças territoriais de desempenho também podem coexistir com condições sociais e educacionais distintas. Em um recorte específico do SAEB 2023 para o 5º ano de escolas públicas do Rio Grande do Norte, \citeonline{de2026desigualdades} identificaram diferenças significativas de proficiência entre escolas urbanas e rurais e ressaltaram sua coexistência com características territoriais e socioeconômicas. Embora se trate de outro recorte analítico, o estudo reforça a necessidade de contextualizar a leitura dos rankings.
 
@@ -83,9 +83,11 @@ A página utiliza rankings separados para evitar transformar indicadores de esca
 
 A página de aprendizagem e fluxo escolar combina duas formas de leitura. Na parte superior, são exibidas séries históricas de Aprovação, Reprovação, Abandono e TDI. Na parte inferior, cada ponto representa uma UF no ano selecionado, relacionando Taxa de Aprovação com IDEB e com proficiência média do SAEB.
 
+A medida de proficiência média calcula a média aritmética das observações disponíveis no contexto dos filtros. Para uma UF e um ano, com ambas as etapas selecionadas, ela pode combinar quatro valores: Língua Portuguesa e Matemática nos Anos Iniciais e nos Anos Finais. Trata-se de uma composição descritiva do painel, sem ponderação pelo número de participantes e sem equivalência com um indicador oficial único do INEP.
+
 Na Figura~\ref{fig:dashboard-aprendizagem-fluxo}, os gráficos históricos mostram aumento da aprovação ao longo do período e redução de TDI, reprovação e abandono em diferentes intensidades. Os gráficos de dispersão, por sua vez, permitem observar associação descritiva entre níveis mais elevados de aprovação e valores mais altos de IDEB ou proficiência em parte das UFs.
 
-O IDEB combina informações de desempenho em avaliações com dados de fluxo escolar em sua composição \cite[p.~1--2]{inep2007notatecnicaideb}, o que torna esperada alguma proximidade entre aprovação e IDEB. \citeonline{dias2026avaliaccao} ressaltam que, embora o IDEB seja um instrumento relevante de diagnóstico e planejamento, sua condição de indicador sintético exige interpretação contextualizada, evitando reduzir a complexidade educacional a uma única medida. A dispersão entre aprovação e proficiência do SAEB, por sua vez, deve ser lida apenas como associação descritiva.
+O IDEB combina informações de desempenho em avaliações com dados de fluxo escolar em sua composição \cite[p.~1--2]{inep2007notatecnicaideb}, o que torna esperada alguma proximidade entre aprovação e IDEB. \citeonline{dias2026avaliaccao} ressaltam que, embora o IDEB seja um instrumento relevante de diagnóstico e planejamento, sua condição de indicador sintético exige interpretação contextualizada, evitando reduzir a complexidade educacional a uma única medida. A dispersão entre aprovação e proficiência do SAEB, por sua vez, deve ser lida como associação descritiva, sem inferência causal.
 
 \begin{figure}[H]
   \centering
@@ -113,29 +115,29 @@ As diferenças territoriais reforçam que a evolução não ocorre de forma unif
 
 \section{Análise da Taxa de Distorção Idade-Série}
 
-A Figura~\ref{fig:dashboard-tdi} apresenta a TDI em quatro perspectivas: evolução anual, média por UF, média por etapa de ensino e variação por UF. No intervalo 2007--2023 mostrado no painel, a TDI média é 24,9 e a Variação TDI é -18,3 pontos percentuais.
+A Figura~\ref{fig:dashboard-tdi} apresenta a evolução anual, as médias por UF e por etapa e a variação por UF para Acre, Alagoas, Amazonas, Amapá, Bahia, Ceará e Distrito Federal. Nesse recorte, a TDI média é 28,0\%. A média passa de 39,5\% em 2007 para 18,5\% em 2023, uma variação de $-21{,}0$ pontos percentuais. Os Anos Iniciais registram 20,8\% e os Anos Finais, 35,2\%.
 
-A evolução temporal passa de 34,4 no início da série exibida para 16,0 em 2023. Por etapa, os Anos Finais apresentam TDI média de 32,3, enquanto os Anos Iniciais apresentam 17,5. No ranking de médias por UF, Sergipe aparece com 37,2 e São Paulo com 8,6 nos extremos visíveis do painel. A variação territorial é negativa para todas as barras exibidas, indicando redução da distorção no intervalo considerado, embora em magnitudes diferentes entre as UFs.
+Entre as sete UFs selecionadas, a Bahia apresenta a maior média, com 35,3\%, e o Ceará, a menor, com 20,2\%. A variação é negativa nas sete UFs, com magnitudes distintas.
 
-A variação utiliza as médias não arredondadas das 54 observações em cada extremo: 34,372222\ldots\ em 2007 e 16,025926\ldots\ em 2023. A diferença de -18,346296\ldots\ pontos percentuais resulta em -18,3 na exibição, embora a subtração dos rótulos arredondados produza -18,4.
+No recorte completo das 27 UFs, a TDI média é 24,9\%, com variação de $-18{,}3$ pontos percentuais entre 2007 e 2023. As médias por etapa são 17,5\% nos Anos Iniciais e 32,3\% nos Anos Finais. As variações são calculadas antes do arredondamento das médias para exibição.
 
 A redução é um resultado favorável sob a interpretação do indicador, pois a TDI expressa a proporção de estudantes em situação de distorção entre idade e série \cite[p.~17]{inep2004dicionario}; portanto, valores menores indicam menor incidência dessa condição no recorte analisado. Contudo, a permanência de médias elevadas em determinadas UFs e a diferença entre etapas mostram que o problema não desaparece de forma homogênea. \citeonline{leal2025distorccao} discute a distorção idade-série como um fenômeno associado a fatores pedagógicos, sociais e estruturais, entre eles repetência e vulnerabilidade socioeconômica, aspectos que não são modelados pelo dashboard.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.98\textwidth]{figs/dashboard-tdi.png}
-  \caption{Distorção idade-série por Unidade Federativa e etapa de ensino.}
+  \caption{Distorção idade-série em sete UFs selecionadas, de 2007 a 2023.}
   \label{fig:dashboard-tdi}
   \legend{Fonte: Elaborado pelo autor a partir do dashboard do projeto (2026).}
 \end{figure}
 
 \section{Resultados da PND 2025}
 
-A população analítica da PND contém 759.140 registros, classificados pela nota geral publicada \texttt{NT\_GER}, segundo a Nota Técnica nº 44/2025 \cite[p.~6, item 9.3 e Tabela 2]{inep2025notatecnica44}. São 265.915 registros Abaixo do Básico, 309.425 Básicos e 183.800 Adequados, correspondentes a 35,03\%, 40,76\% e 24,21\%. Básico ou Adequado reúne 493.225 registros, ou 64,97\%, sem representar aprovação ou habilitação.
+A população analítica da PND contém 759.140 registros, classificados pela nota geral publicada \texttt{NT\_GER}, segundo a Nota Técnica nº 44/2025 \cite[p.~6, item 9.3 e Tabela 2]{inep2025notatecnica44}. São 265.915 registros Abaixo do Básico, 309.425 Básicos e 183.800 Adequados, correspondentes a 35,03\%, 40,76\% e 24,21\%. Básico ou Adequado reúne 493.225 registros, ou 64,97\%, sem representar aprovação em concurso ou habilitação.
 
 O nível Básico concentra a maior parcela dos registros, enquanto o Adequado representa menos de um quarto da população selecionada. A agregação dos dois níveis superiores deve ser lida em conjunto com essa distribuição, pois o percentual de 64,97\% não indica desempenho homogêneo. As médias objetiva e geral são aproximadamente 57,5 e 57,34, respectivamente.
 
-Essas contagens descrevem os registros com presença válida e resultados completos selecionados pelo método, sem equivalência automática com a população integral divulgada pelo INEP ou com pessoas únicas. As distribuições territoriais referem-se ao local de aplicação da prova.
+Essas contagens descrevem os registros com presença válida e resultados completos selecionados pelo método, sem equivalência automática com a população integral divulgada pelo INEP ou com pessoas únicas. As distribuições territoriais referem-se ao local de aplicação da prova. A residência dos participantes não pode ser inferida a partir desse campo.
 
 A Figura~\ref{fig:dashboard-pnd} apresenta a distribuição dos níveis por nota geral e os recortes por UF e área. Nos filtros testados, Minas Gerais apresentou 64.904 registros, e Minas Gerais com Pedagogia, 39.917, em correspondência com a Gold. Esses recortes demonstram o detalhamento da população selecionada, sem atribuir suas diferenças a fatores explicativos externos.
 \begin{figure}[H]
