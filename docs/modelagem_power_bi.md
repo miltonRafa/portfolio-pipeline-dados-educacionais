@@ -383,11 +383,15 @@ seguem a Tabela 2 da Nota 44. A soma Básico ou Adequado é descritiva, sem infe
 aprovação ou habilitação.
 
 O PBIX e a captura registram os níveis por nota geral e os resultados dos
-recortes gerais, de Minas Gerais e de Minas Gerais com Pedagogia. O
-[projeto PBIP](../powerbi/pbip/analise_indicadores_PND_oficial.pbip)
-contém a revisão dos quatro percentuais de composição. A auditoria
-reproduziu esses cálculos sobre os dados importados. A verificação interativa
-da revisão no Power BI Desktop permanece pendente.
+recortes gerais, de Minas Gerais e de Minas Gerais com Pedagogia. O PBIX
+versionado na main é a referência definitiva do painel e contém as
+alterações manuais mais recentes feitas no Power BI Desktop. O arquivo
+[medidas_power_bi.dax](../powerbi/medidas_power_bi.dax) registra as expressões
+revisadas dos quatro percentuais de composição. O
+[projeto PBIP](../powerbi/pbip/analise_indicadores_PND_oficial.pbip) permanece
+como artefato complementar e não foi utilizado nas últimas alterações manuais
+realizadas no Desktop. A auditoria reproduziu os cálculos do DAX sobre os dados
+importados.
 
 ```DAX
 Registros analisados — PND =
@@ -466,9 +470,14 @@ DIVIDE(
 Os percentuais mostram a composição do recorte de ano, UF, município e área.
 Cada numerador seleciona o próprio nível e o denominador inclui todos os níveis
 ao remover exclusivamente o filtro de `FATO_PND[PADRAO_DESEMPENHO]`.
-O cartão de registros mantém os filtros ativos na sua contagem. As expressões
-desta revisão estão no arquivo DAX e no PBIP. Para aplicar a revisão ao PBIX
-distribuído, atualize as medidas no Power BI Desktop e salve o arquivo.
+O cartão de registros mantém os filtros ativos na sua contagem. Na definição
+TMDL do PBIP preservada na main, as quatro fórmulas percentuais acima diferem
+das expressões do arquivo DAX; não foram identificadas outras divergências de
+fórmula nessa comparação. A equivalência integral entre PBIX, PBIP e DAX não
+foi comprovada nesta integração, pois o modelo interno do PBIX não foi
+extraído. Isso não significa que o PBIP esteja desatualizado como um todo, e
+nenhum artefato deve ser atualizado automaticamente para conciliar essas
+diferenças. O PBIX da main permanece a referência definitiva do painel.
 
 Os percentuais são exibidos com duas casas decimais. O cartão de total usa
 “Registros analisados — PND”. A população analisada contém 265.915
