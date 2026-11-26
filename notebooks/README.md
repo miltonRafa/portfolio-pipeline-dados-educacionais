@@ -18,7 +18,7 @@ Prepare e confira os insumos a partir da raiz do repositorio antes de executar
 as etapas dos notebooks:
 
 ```powershell
-python scripts/baixar_raw.py
+python scripts/baixar_raw.py --estrito
 python scripts/gerar_manifesto_raw.py --check
 ```
 
@@ -29,7 +29,7 @@ Os notebooks nao executam a aquisicao nem atualizam o manifesto.
 Execute o Jupyter a partir da raiz do repositorio:
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.lock
 python -m jupyter lab
 ```
 

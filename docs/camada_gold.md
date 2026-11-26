@@ -1,5 +1,10 @@
 # Camada Gold
 
+> **Nota de leitura:** as seções de modelagem registram decisões e evidências
+> acumuladas durante a implementação. A situação atual e o fluxo vigente de
+> publicação estão consolidados nas seções 14 e 14.1; a seção 15 preserva o
+> histórico metodológico, inclusive decisões posteriormente retificadas.
+
 ## 1. Objetivo
 
 A camada Gold organiza os dados ja auditados e padronizados na Silver em um modelo dimensional voltado a analise e ao consumo no Power BI.
@@ -1378,6 +1383,63 @@ A validacao global retornou `MODELO DIMENSIONAL GOLD: OK`. A camada Gold esta pr
 | FATO_PND | ✅ concluida e validada |
 | Validacao referencial global | ✅ implementada e validada |
 | Power BI sobre Gold | AUD-04B validada nos artefatos e recortes documentados |
+
+---
+
+## 14.1 Publicacao, validacao e recuperacao
+
+Os comandos `full` e `gold` executam as etapas em
+`data/execucoes/<id>/trabalho`, usando uma copia isolada da Raw e do manifesto
+de fontes. A publicacao so ocorre depois da aprovacao dos validadores
+obrigatorios e da confirmacao de que os insumos e o manifesto nao mudaram
+durante a execucao.
+
+Cada publicacao concluida registra em `data/gold/publicacao.json` o identificador
+da execucao, o hash do manifesto Raw, os hashes dos insumos, os controles
+aprovados e o inventario SHA-256 dos arquivos Gold. Uma copia do registro e
+mantida junto aos artefatos da execucao. A troca da pasta publicada e
+transacional: a versao anterior e preservada para rollback se a substituicao
+falhar ou for interrompida.
+
+Execucoes e validacoes usam um bloqueio do sistema operacional em
+`data/execucoes/lock`; uma segunda operacao concorrente e rejeitada. Antes de
+uma nova operacao, o pipeline recupera eventuais atualizacoes Raw interrompidas
+e restaura a Gold anterior caso detecte uma publicacao incompleta.
+
+Para validar a publicacao atual, use:
+
+```shell
+python src/pipeline.py validate-gold
+```
+
+Esse comando confere o manifesto da publicacao, a copia arquivada, o manifesto
+Raw arquivado, os hashes de todos os arquivos Gold e a atualidade dos insumos e
+da execucao mais recente. A validacao global da Gold usa o dicionario PND da
+Raw atual.
+
+Quando os insumos atuais ou a tentativa de execucao mais recente ja nao
+correspondem a publicacao que permanece em `data/gold`, valide-a explicitamente:
+
+```shell
+python src/pipeline.py validate-gold --last-valid
+```
+
+`--last-valid` valida a publicacao presente em `data/gold`, mesmo quando ela
+pertence a uma execucao anterior à Raw atual ou à ultima tentativa. A opcao nao
+seleciona outro snapshot arbitrario do historico. Ela nao relaxa a verificacao
+de integridade: os Parquets publicados continuam tendo de corresponder ao
+inventario SHA-256, e os registros e o manifesto Raw arquivados precisam ser
+consistentes. Para validar a dimensao de
+areas PND, o comando recupera o dicionario da Raw isolada daquela execucao e
+confere sua identidade com o hash do manifesto Raw arquivado e com os insumos
+registrados na publicacao. Se o manifesto ou o dicionario arquivado estiver
+ausente ou divergente, a verificacao falha; o dicionario da Raw atual nao e
+usado como fallback.
+
+Ambos os comandos podem restaurar a Gold se identificarem uma publicacao
+interrompida antes da validacao. A validacao de `--last-valid` verifica a
+integridade da publicacao existente; ela nao reconstrói os Parquets nem altera
+os resultados analiticos.
 
 ---
 

@@ -1,163 +1,141 @@
 # Pipeline de Dados Educacionais
 
-Pipeline reproduzível de Engenharia de Dados e Analytics Engineering para dados
-oficiais do Inep. O projeto organiza fontes educacionais em camadas
-`Raw -> Bronze -> Silver -> Gold` e entrega um modelo analítico consumido no
-Power BI.
+Projeto de Engenharia de Dados e Business Intelligence que automatiza a integração, a transformação e a validação de indicadores educacionais oficiais do INEP.
 
-## Visão Geral
+Desenvolvido em Python, o pipeline transforma arquivos historicamente heterogêneos em tabelas analíticas padronizadas, rastreáveis e reprodutíveis, organizadas em uma arquitetura de quatro camadas e utilizadas em painéis interativos no Power BI.
 
-Indicadores históricos:
+## O problema e a solução
 
-- SAEB
-- IDEB
-- Rendimento Escolar
-- Taxa de Distorção Idade-Série (TDI)
+As bases públicas do INEP são publicadas em planilhas, CSV e arquivos de texto
+com estruturas e categorias diferentes. O layout pode mudar entre edições, e
+um mesmo indicador pode estar disponível em granularidades distintas. Sem
+auditar essas diferenças, uma integração automática pode comparar populações
+incompatíveis ou substituir um agregado oficial por uma estimativa própria.
 
-Escopo da série histórica:
+O projeto automatiza a aquisição e o processamento, preserva a origem dos
+dados e valida os resultados entre as camadas. Assim, a análise no Power BI
+fica acompanhada de regras metodológicas e evidências que permitem reconstruir
+o percurso de cada indicador.
 
-| Dimensão | Recorte |
+## Escopo e resultados
+
+A série histórica cobre **2007–2023**, as **27 UFs**, a **rede pública** e os
+**Anos Iniciais e Finais do Ensino Fundamental**. Analisa IDEB, SAEB,
+Rendimento Escolar e Taxa de Distorção Idade-Série (TDI). A PND 2025 é uma
+análise complementar, separada da série histórica.
+
+| Evidência da versão validada | Resultado |
+|---|---:|
+| Insumos Raw oficiais | 54 |
+| Etapas de processamento e validação | 35, além da verificação inicial da Raw |
+| Parquets Bronze / Silver / Gold | 48 / 5 / 10 |
+| Parquets nas três camadas | 63 |
+| Observações nas quatro fatos históricas | 5.130 |
+| Registros analíticos da PND 2025 | 759.140 |
+| Testes automatizados de software aprovados | 178 de 178 |
+| Parquets idênticos por SHA-256 em duas execuções isoladas no Windows | 63 de 63 |
+
+Na Gold, as séries históricas totalizam 5.130 observações: 2.754 de
+Rendimento, 918 de TDI, 486 de IDEB e 972 de SAEB. A PND contém 759.140
+registros analíticos; esses registros não representam necessariamente pessoas
+únicas.
+
+Um controle metodológico importante foi comparar, a duas casas decimais, o
+agregado estadual oficial do SAEB 2023 com médias escolares reconstruídas e
+ponderadas pelos presentes. Elas coincidiram em **0 de 108** comparações; essa
+diferença não foi interpretada como erro nos dados escolares. Para esse recorte,
+a Silver e a Gold preservam o agregado oficial por UF, validado em **108 de 108**
+comparações.
+
+Na PND, os níveis são classificados pela nota geral publicada `NT_GER`.
+`NT_OBJ` e `NT_DIS` representam, respectivamente, as notas objetiva e
+discursiva; os níveis e percentuais abaixo usam `NT_GER`, não essas notas
+isoladamente. No recorte do projeto, 265.915 registros ficaram Abaixo do
+Básico, 309.425 Básicos e 183.800 Adequados; Básico ou Adequado soma 493.225
+registros (64,97%). Essa classificação não representa aprovação em concurso.
+
+## Como os dados são organizados
+
+| Camada | Responsabilidade |
 |---|---|
-| Período | 2007-2023 |
-| Abrangência | 27 UFs |
-| Rede | Pública |
-| Etapas | Anos Iniciais e Anos Finais |
+| **Raw** | Adquirir e preservar os arquivos oficiais; conferir os hashes SHA-256 do manifesto. |
+| **Bronze** | Ler as fontes e convertê-las para Parquet, preservando valores, estrutura e metadados de origem. |
+| **Silver** | Aplicar recortes e harmonizações documentadas, com rastreabilidade e validação independente. |
+| **Gold** | Organizar os resultados em cinco fatos e cinco dimensões, com validação de grão e integridade referencial. |
+| **Power BI** | Consumir os Parquets Gold e apresentar medidas DAX e visualizações. |
 
-A Prova Nacional Docente (PND) 2025 é tratada como análise complementar e
-separada da série histórica.
+## Diferenciais de engenharia
 
-## Destaques Técnicos
+- **Harmonização histórica:** adapta layouts, categorias e granularidades sem
+  apagar as particularidades de cada fonte.
+- **Fidelidade e validação:** compara cabeçalhos e valores integralmente com as
+  fontes e valida as transformações por mecanismos independentes.
+- **Rastreabilidade e precisão:** mantém a origem dos dados e controla a
+  precisão numérica conforme as regras de cada indicador.
+- **Reprodutibilidade:** fixa o ambiente e compara execuções isoladas. A
+  evidência binária acima é restrita às execuções em Windows; não demonstra
+  identidade entre sistemas operacionais ou arquiteturas diferentes.
+- **Publicação controlada:** isola as execuções e permite recuperar a última
+  publicação válida após uma interrupção.
 
-- múltiplos formatos de origem: XLS, XLSX, XLSB, CSV e TXT;
-- 54 arquivos Raw inventariados;
-- aquisição, seleção, extração e nomenclatura da Raw automatizadas;
-- hashes SHA-256 para rastreabilidade dos insumos;
-- camadas Raw, Bronze, Silver e Gold;
-- validações de estrutura e de correspondência entre camadas;
-- modelo dimensional com 5 dimensões e 5 fatos;
-- Power BI Desktop com medidas DAX versionadas;
-- documentação metodológica e validadores por fonte;
-- validação específica do agregado oficial do SAEB 2023;
-- nível oficial de Desempenho Docente PND por `NT_GER`, aplicado ao recorte
-  analítico do projeto, conforme a [documentação da Gold](docs/camada_gold.md);
-- Power BI atualizado, com [medidas e relacionamentos documentados](docs/modelagem_power_bi.md).
+## Tecnologias utilizadas
 
-## Arquitetura
-
-```mermaid
-flowchart LR
-    INEP[Fontes oficiais Inep] --> AQUISICAO[Download e validação]
-    AQUISICAO --> RAW
-    RAW[Raw] --> BRONZE[Bronze]
-    BRONZE --> SILVER[Silver]
-    SILVER --> GOLD[Gold]
-    GOLD --> POWERBI[Power BI]
-```
-
-| Camada | Função |
+| Tecnologia | Finalidade no projeto |
 |---|---|
-| Raw | Arquivos brutos obtidos das fontes oficiais, com convenção de nomenclatura local documentada |
-| Bronze | Ingestão técnica e preservação rastreável dos dados lidos |
-| Silver | Padronização semântica, harmonização e aplicação do recorte analítico |
-| Gold | Modelo dimensional em Parquet para consumo analítico |
-| Power BI | Modelo semântico, medidas DAX e visualizações |
+| Python 3.12 | Implementação e orquestração do pipeline. |
+| Pandas e NumPy | Leitura, transformação, comparação e validação tabular e numérica. |
+| PyArrow e Parquet | Armazenamento colunar e leitura/escrita das camadas analíticas. |
+| OpenPyXL, xlrd, Pyxlsb e Python-Calamine | Leitura e comparação dos formatos de planilha usados pelas fontes. |
+| Jupyter | Demonstração exploratória e didática do fluxo por indicador. |
+| Unittest | Testes automatizados de contratos e regressões do software. |
+| Git e GitHub Actions | Histórico de versões e verificações automatizadas em Windows e Linux. |
+| Power BI, Power Query e DAX | Conexão às tabelas Gold, modelagem semântica, medidas e visualizações. |
 
-## Dashboard Power BI
+Esses controles apoiam a análise e a rastreabilidade, mas não substituem a
+avaliação metodológica nem eliminam toda possibilidade de erro.
 
-O arquivo Power BI Desktop está em:
+O modelo contém **16 relacionamentos** e **27 medidas DAX**. O painel tem sete
+páginas. As 27 expressões extraídas diretamente do PBIX foram comparadas com
+[`powerbi/medidas_power_bi.dax`](powerbi/medidas_power_bi.dax). O PBIX é o único
+artefato oficial do painel; o projeto PBIP foi removido.
 
-[powerbi/pbix/analise_indicadores_PND_oficial.pbix](powerbi/pbix/analise_indicadores_PND_oficial.pbix)
+## Painel Power BI
 
-Este PBIX é o único artefato oficial do painel. Abra-o diretamente no Power BI
-Desktop; não é necessário reconstruí-lo a partir de um projeto de relatório.
-
-Para atualizar o relatório no seu computador, siga [a configuração do PBIX](#6-abrir-e-configurar-o-power-bi).
-
-Medidas e documentação do modelo:
-
-- [powerbi/medidas_power_bi.dax](powerbi/medidas_power_bi.dax)
-- [docs/modelagem_power_bi.md](docs/modelagem_power_bi.md)
-
-Prévia das páginas:
+O arquivo oficial é
+[`powerbi/pbix/analise_indicadores_PND_oficial.pbix`](powerbi/pbix/analise_indicadores_PND_oficial.pbix).
+Abra-o diretamente no Power BI Desktop para Windows. Para atualizar os dados
+em outro computador, gere e valide a Gold e ajuste a origem da consulta para a
+pasta `data/gold` local, conforme o
+[guia de configuração do PBIX](docs/modelagem_power_bi.md).
 
 <p>
   <img src="prints/Panorama%20da%20Educação%20Básica%20Brasileira.png" width="48%" alt="Panorama da Educação Básica Brasileira">
   <img src="prints/Aprendizagem%20x%20Fluxo%20Escolar.png" width="48%" alt="Aprendizagem x Fluxo Escolar">
 </p>
-
 <p>
   <img src="prints/PND%202025.png" width="48%" alt="PND 2025 — níveis por nota geral">
   <img src="prints/Metodologia%20e%20Dados.png" width="48%" alt="Metodologia e Dados">
 </p>
 
-A captura PND acima mostra os níveis por nota geral.
-A validação confirmou o modelo exportado e os resultados gerais,
-de MG e de MG com Pedagogia, sem certificar todas as interações possíveis.
+As capturas documentam páginas e recortes específicos; não certificam todas as
+interações visuais possíveis. A TDI é exibida como percentual, e sua variação
+temporal é expressa em pontos percentuais. A documentação detalha também a
+formatação das medidas PND.
 
-[Ver todas as páginas do dashboard](prints/)
+## Instalação e execução
 
-## Modelo Gold
+Use **CPython 3.12.10 de 64 bits**. `requirements.txt` declara as dependências
+diretas; `requirements.lock` fixa também as versões transitivas e é a
+especificação usada para instalar o ambiente. A configuração é verificada no
+GitHub Actions em Windows e Linux.
 
-Tabelas dimensionais:
+Instale o Python pela
+[distribuição oficial 3.12.10](https://www.python.org/downloads/release/python-31210/)
+e crie um ambiente virtual.
 
-| Tabela | Registros |
-|---|---:|
-| `DIM_UF` | 27 |
-| `DIM_TEMPO` | 18 |
-| `DIM_ETAPA` | 2 |
-| `DIM_AREA_PND` | 17 |
-| `DIM_MUNICIPIO` | 750 |
-
-Tabelas fato:
-
-| Tabela | Registros |
-|---|---:|
-| `FATO_RENDIMENTO` | 2.754 |
-| `FATO_TDI` | 918 |
-| `FATO_IDEB` | 486 |
-| `FATO_SAEB` | 972 |
-| `FATO_PND` | 759.140 |
-
-A validação global confirma grãos, domínios e integridade referencial antes do
-consumo no Power BI.
-
-## Fontes
-
-Os dados são provenientes de bases oficiais do Instituto Nacional de Estudos e
-Pesquisas Educacionais Anísio Teixeira (Inep/MEC).
-
-| Base | Período | Link oficial |
-|---|---:|---|
-| SAEB — Microdados | 2007-2023 | [Inep/MEC — Microdados do SAEB](https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/saeb) |
-| SAEB — Resultados agregados | 2007-2023 | [Inep/MEC — Resultados do SAEB](https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/saeb/resultados) |
-| IDEB — Resultados | 2007-2023 | [Inep/MEC — Resultados do IDEB](https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/ideb/resultados) |
-| Taxas de Rendimento Escolar | 2007-2023 | [Inep/MEC — Taxas de Rendimento Escolar](https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/taxas-de-rendimento-escolar) |
-| Taxas de Distorção Idade-Série (TDI) | 2007-2023 | [Inep/MEC — Taxas de Distorção Idade-Série](https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/taxas-de-distorcao-idade-serie) |
-| Prova Nacional Docente (PND) — Microdados | 2025 | [Inep/MEC — Microdados da PND](https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/pnd) |
-
-O Inep/MEC permanece como fonte primária. A cópia abaixo é apenas uma cópia
-organizada de conveniência da camada Raw:
-
-[Google Drive — Raw organizada](https://drive.google.com/file/d/1Jm2v8Er4m5dgjOLOLLcaNssn_YN1Wsja/view?usp=sharing)
-
-O inventário completo, os hashes SHA-256 e a convenção de nomes locais estão em
-[docs/fontes_dados.md](docs/fontes_dados.md).
-
-## Como Reproduzir
-
-### 1. Clone
-
-```bash
-git clone <url-do-repositorio>
-cd portfolio-pipeline-dados-educacionais
-```
-
-### 2. Ambiente Python
-
-Windows PowerShell:
+**Windows PowerShell**
 
 ```powershell
-py -3.12 --version
 py -3.12 -c "import sys; assert sys.version_info[:3] == (3, 12, 10)"
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -165,288 +143,112 @@ python -m pip install -r requirements.lock
 python -m pip check
 ```
 
-Linux/macOS:
+**Linux / Bash**
 
 ```bash
-python3 --version
-python3 -c 'import sys; assert sys.version_info[:3] == (3, 12, 10)'
-python3 -m venv .venv
+python3.12 -c 'import sys; assert sys.version_info[:3] == (3, 12, 10)'
+python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.lock
 python -m pip check
 ```
 
-Instale CPython **3.12.10** (64-bit) pela
-[distribuição oficial](https://www.python.org/downloads/release/python-31210/)
-e confirme essa versao antes de criar o ambiente. `requirements.txt` declara as
-dependencias diretas com versoes exatas;
-`requirements.lock` fixa tambem as dependencias transitivas e e o arquivo usado
-para instalacao e pela integracao continua. Para pacotes RAR, disponibilize
-`bsdtar` ou `tar` baseado em libarchive. O script verifica a implementacao; GNU
-tar sem suporte a RAR e rejeitado. Consulte o [registro do ambiente e das
-limitacoes historicas](docs/reproducibilidade_ambiente.md).
+Para extrair os pacotes RAR usados pelas fontes, disponibilize `bsdtar` ou um
+`tar` baseado em libarchive no `PATH`. GNU tar sem suporte a RAR não é
+suficiente.
 
-### 3. Dados Raw
-
-A pasta `data/raw` não é versionada no Git.
-
-Para preparar a Raw, execute o download automático das fontes oficiais:
+Com o ambiente ativo, obtenha os insumos e confira sua integridade:
 
 ```bash
 python scripts/baixar_raw.py --estrito
-```
-
-O script baixa, extrai e organiza os 54 arquivos diretamente em `data/raw`,
-valida os hashes do manifesto e remove os pacotes e candidatos temporários.
-Arquivos existentes corretos são reaproveitados. `--estrito` impede atualizar
-o manifesto quando uma fonte oficial divergir do hash registrado. Para consultar
-novamente as fontes e verificar atualizações, execute:
-
-```bash
-python scripts/baixar_raw.py --rebaixar
-```
-
-Se um download tiver hash diferente, o script compara o conteúdo usado pelo
-projeto com a versão anterior validada. No IDEB, preserva o histórico até 2023
-e permite anos posteriores; nos demais arquivos, compara todas as linhas e
-campos das abas usadas, incluindo todo o conteúdo dos arquivos de apoio.
-Se forem iguais, instala a nova versão e atualiza automaticamente o hash no
-manifesto, os checksums e a documentação de fontes, mantendo backup e histórico.
-Se houver mudança histórica, erro de leitura ou falta da referência anterior,
-preserva a versão atual e mostra o motivo no terminal e no relatório em
-`data/raw/.download/relatorio_download.json`. Uma Raw nova sem referência
-anterior só aceita diretamente os hashes já registrados. Use `--estrito` para
-exigir sempre identidade binária e impedir atualizações automáticas.
-
-Para os pacotes RAR, o download dá preferência a `bsdtar` quando disponível.
-Se o HTTPS do servidor de downloads falhar, use
-`python scripts/baixar_raw.py --estrito --http`.
-Veja [o procedimento de download](docs/automacao_raw.md) para opções e relatórios.
-O manifesto já inclui a revisão oficial de 09/09/2026 do dicionário PND.
-
-### 4. Verificar Integridade da Raw
-
-```bash
 python scripts/gerar_manifesto_raw.py --check
 ```
 
-Esse comando apenas verifica os arquivos locais contra o manifesto versionado.
-Ele não reescreve `docs/fontes_dados.md`, `docs/fontes_dados.csv` nem
-`docs/raw_checksums_sha256.txt`.
+O modo estrito exige os hashes registrados e não atualiza o manifesto para
+aceitar arquivos divergentes. Para investigar atualizações das fontes, opções
+e relatórios, consulte [aquisição da Raw](docs/automacao_raw.md).
 
-### 5. Executar o Pipeline Completo
+Execute o pipeline completo:
 
 ```bash
 python src/pipeline.py full
 ```
 
-O comando verifica os arquivos em `data/raw` contra o manifesto antes de
-executar as 35 etapas de transformação e validação das camadas Bronze, Silver
-e Gold. Se a verificação falhar, a execução é interrompida antes da ingestão.
+O comando verifica a Raw antes das 35 etapas e interrompe a execução se os
+insumos não passarem. Para conferir os comandos disponíveis sem processar os
+dados, use `python src/pipeline.py --list` ou
+`python src/pipeline.py full --dry-run`.
 
-### 6. Abrir e Configurar o Power BI
+## Testes e validação
 
-Use o **Power BI Desktop no Windows**. Primeiro conclua as etapas anteriores:
-o download prepara a Raw, e `python src/pipeline.py full` gera e valida a Gold.
-Clonar o repositório ou baixar somente a Raw não prepara os arquivos lidos pelo
-PBIX. O pipeline Python é executado no terminal; as consultas do relatório leem
-Parquet, sem exigir configuração de Python dentro do Power BI.
+Os controles têm objetivos diferentes e complementares:
 
-Abra diretamente o PBIX oficial no Power BI Desktop. Para atualizar os dados,
-gere e valide a camada Gold pelo pipeline e configure a origem `Folder.Files`
-conforme as instruções abaixo.
+- **Testes de software:** os 178 testes automatizados aprovados verificam
+  contratos e comportamentos do código; não substituem a validação dos
+  arquivos reais.
+- **Validadores de dados:** conferem hashes, estruturas, valores, completude,
+  grãos, unicidade, consistência entre camadas e integridade referencial nos
+  dados processados.
+- **Auditorias metodológicas:** fundamentam recortes e escolhas de fonte,
+  como o uso do agregado oficial do SAEB 2023. Nenhum desses controles garante
+  ausência absoluta de erros.
 
-Ao final, a estrutura esperada é:
-
-```text
-data/gold/
-├── dimensoes/
-│   ├── dim_area_pnd.parquet
-│   ├── dim_etapa.parquet
-│   ├── dim_municipio.parquet
-│   ├── dim_tempo.parquet
-│   └── dim_uf.parquet
-└── fatos/
-    ├── fato_ideb.parquet
-    ├── fato_pnd.parquet
-    ├── fato_rendimento.parquet
-    ├── fato_saeb.parquet
-    └── fato_tdi.parquet
-```
-
-Abra `powerbi/pbix/analise_indicadores_PND_oficial.pbix` no Power BI Desktop
-e ajuste a origem para o local em que você clonou o projeto:
-
-1. Em **Página Inicial**, clique em **Transformar dados** para abrir o Editor do Power Query.
-2. Na lista de consultas à esquerda, selecione **`gold`** e a etapa **Fonte**.
-3. Na barra de fórmulas, altere somente o caminho entre aspas de `Folder.Files`. Se a barra não aparecer, habilite **Barra de fórmulas** na guia **Exibição**. Por exemplo, para um clone em `D:\Projetos\portfolio-pipeline-dados-educacionais`:
-
-   ```powerquery
-   = Folder.Files("D:\Projetos\portfolio-pipeline-dados-educacionais\data\gold")
-   ```
-
-   O caminho `C:\portfolio-pipeline-dados-educacionais\data\gold` usado no ambiente de desenvolvimento é apenas uma referência. Informe o caminho absoluto da **sua** pasta `data\gold`.
-
-4. Confirme a fórmula. Na coluna **Name**, confira a presença dos dez nomes `.parquet` listados acima. `Folder.Files` também percorre as subpastas `dimensoes` e `fatos`; mantenha os arquivos nesses diretórios. A listagem pode incluir outros arquivos, como `.gitkeep`.
-5. Selecione **`DIM_UF`** para conferir a leitura. A consulta já usa `= fnParquetGold("dim_uf.parquet")` e deve exibir as 27 UFs. As outras dimensões e fatos usam a mesma função, cada uma com seu arquivo. A tela **Inserir Parâmetro / Invocar** ao selecionar `fnParquetGold` é a interface normal de uma função; não é necessário invocá-la manualmente nem recriar consultas.
-6. Clique em **Fechar e Aplicar**, aguarde a carga terminar e salve o PBIX. Quando os Parquets forem regenerados pelo pipeline, use **Página Inicial → Atualizar** para carregar os novos dados.
-
-A consulta `gold` centraliza o caminho, `fnParquetGold` faz a leitura por nome de
-arquivo e as dez consultas analíticas alimentam o modelo existente. Preserve
-esses nomes e mantenha a carga das auxiliares `gold` e `fnParquetGold`
-desabilitada. Os relacionamentos, as medidas e as páginas já estão no PBIX;
-não é necessário importar e montar as dez tabelas novamente.
-
-| Problema na atualização | O que conferir |
-|---|---|
-| Pasta ou caminho não encontrado | Corrija a etapa Fonte de `gold` para o caminho absoluto local, terminando em `data\gold`. |
-| Arquivo não encontrado ou seleção sem linhas em `fnParquetGold` | Confira os dez nomes esperados na consulta `gold`. Se algum faltar, conclua o pipeline; preserve os nomes gerados e evite cópias com o mesmo nome em subpastas da Gold. |
-| Acesso negado | Verifique se o usuário do Windows pode ler a pasta. Se houver solicitação de acesso à fonte, confira **Configurações da fonte de dados** para a pasta local. |
-| O relatório continua com os dados anteriores | Termine o pipeline e depois atualize o PBIX. Atualizar o Power BI não baixa a Raw nem executa o pipeline Python. |
-
-Detalhes do modelo em [docs/modelagem_power_bi.md](docs/modelagem_power_bi.md).
-A leitura recursiva da pasta segue a documentação de
-[Folder.Files da Microsoft](https://learn.microsoft.com/en-us/powerquery-m/folder-files).
-
-### 7. Outras Opções
-
-```bash
-python src/pipeline.py bronze
-python src/pipeline.py silver
-python src/pipeline.py gold
-python src/pipeline.py validate-gold
-python src/pipeline.py --list
-python src/pipeline.py full --dry-run
-```
-
-`full --dry-run` lista a sequência completa e valida a existência dos scripts
-referenciados, sem executar transformações analíticas.
-
-Para verificar o código e os contratos do repositório sem baixar os dados:
+Comandos de verificação:
 
 ```bash
 python -m unittest discover -s tests -v
 python -m compileall -q src scripts tests
+python src/pipeline.py validate-gold
+python src/pipeline.py validate-gold --last-valid
 ```
 
-A integração contínua executa essas verificações e confere a sequência do
-pipeline em modo de simulação. A verificação da Raw e a validação dos dados
-Gold ocorrem na execução completa com os insumos locais.
+`validate-gold` verifica a publicação atual em relação à Raw e à execução mais
+recente. `--last-valid` valida a Gold que permanece publicada mesmo quando ela
+vem de uma execução anterior; não seleciona outro snapshot arbitrário do
+histórico. A opção usa o dicionário PND arquivado correspondente, conferido
+contra o manifesto daquela execução, sem fallback silencioso para a Raw atual.
+Veja os detalhes dos validadores e da recuperação de publicação em
+[Gold](docs/camada_gold.md).
 
-## Resultado Validado
+O workflow de qualidade executa instalação pelo lock, `pip check`,
+`compileall`, os testes, a listagem de comandos e o `dry-run` em
+`ubuntu-24.04` e `windows-latest`. Ele não baixa a Raw nem executa o pipeline
+completo.
 
-A validação global da Gold retorna:
+## Recortes e limitações
 
-```text
-MODELO DIMENSIONAL GOLD: OK
-```
+- Os resultados históricos são agregados por UF e restritos à rede pública e
+  às duas etapas do Ensino Fundamental indicadas. As fontes têm coberturas e
+  particularidades metodológicas próprias; SAEB 2007/2009 tem ressalvas de
+  composição de rede.
+- O exemplo de TDI com sete UFs é ilustrativo, não uma taxa nacional ponderada.
+  Médias simples não são automaticamente ponderadas pelo número de estudantes.
+- Na PND, a contagem se refere a registros, não a pessoas únicas; o município
+  representa o local de aplicação da prova, não necessariamente a residência.
+- As comparações são descritivas. O painel não identifica relações causais.
+- O lock controla as versões das dependências; não comprova identidade binária
+  dos Parquets entre sistemas operacionais ou arquiteturas diferentes.
 
-Cardinalidades confirmadas:
+## Documentação do projeto
 
-```text
-DIM_UF: 27
-DIM_TEMPO: 18
-DIM_ETAPA: 2
-DIM_AREA_PND: 17
-DIM_MUNICIPIO: 750
-FATO_RENDIMENTO: 2.754
-FATO_TDI: 918
-FATO_IDEB: 486
-FATO_SAEB: 972
-FATO_PND: 759.140
-```
+- [Fontes oficiais, inventário e hashes](docs/fontes_dados.md)
+- [Aquisição e atualização da Raw](docs/automacao_raw.md)
+- [Reprodutibilidade do ambiente Python](docs/reproducibilidade_ambiente.md)
+- [Camada Bronze](docs/camada_bronze.md)
+- [Camada Silver](docs/camada_silver.md)
+- [Camada Gold e publicação](docs/camada_gold.md)
+- [Definição metodológica de rede pública](docs/definicao_rede_publica.md)
+- [Modelagem e medidas Power BI](docs/modelagem_power_bi.md)
+- [Notebooks demonstrativos](notebooks/README.md)
+- [Fontes LaTeX do TCC](tcc/README.md)
+- [Apresentação e roteiro da defesa](tcc/apresentacao/README.md)
+- [Referências acadêmicas](referencias/README.md)
+- [Notas históricas das versões](docs/release_v1.2.0.md)
 
-## Documentação
+## Licença e citação
 
-- [docs/fontes_dados.md](docs/fontes_dados.md)
-- [docs/automacao_raw.md](docs/automacao_raw.md)
-- [docs/camada_bronze.md](docs/camada_bronze.md)
-- [docs/camada_silver.md](docs/camada_silver.md)
-- [docs/camada_gold.md](docs/camada_gold.md)
-- [docs/definicao_rede_publica.md](docs/definicao_rede_publica.md)
-- [docs/modelagem_power_bi.md](docs/modelagem_power_bi.md)
-- [Fonte LaTeX do TCC](tcc/README.md)
-- [PDF do TCC](output/pdf/Template_TCC_UEMG_revisado.pdf)
-- [Slides, roteiro e imagens de apoio da defesa](tcc/apresentacao/README.md)
-- [Orientações sobre as referências acadêmicas](referencias/README.md)
-
-## Escopo Temporal
-
-A versão atual das séries históricas permanece em 2007-2023 para manter
-coerência entre SAEB, IDEB, Rendimento Escolar e TDI.
-
-O fato de páginas oficiais atualmente possuírem edições de 2025 não altera
-automaticamente o escopo desta versão. A PND 2025 permanece como análise
-complementar.
-
-## Observações
-
-A versão `v1.2.0` inclui a aquisição automatizada da Raw, atualizações por
-equivalência do conteúdo histórico e os materiais revisados do TCC e da defesa.
-Veja as [notas da versão](docs/release_v1.2.0.md).
-
-As notas em `docs/release_v*.md` descrevem as respectivas versões publicadas.
-As contagens e procedimentos atuais estão neste README e nos documentos de
-fontes, automação e revisão do TCC; notas de releases anteriores são registros
-históricos.
-
-Os arquivos de dados são ignorados por padrão no Git por tamanho e por serem
-fontes locais ou artefatos reproduzíveis. O arquivo `.pbix` foi mantido como
-entrega visual do portfólio; em repositórios maiores, recomenda-se avaliar Git
-LFS.
-
-## Licença e Citação
-
-Este projeto é disponibilizado sob a
-[PolyForm Noncommercial License 1.0.0](LICENSE).
-
-Usos não comerciais, incluindo estudo, pesquisa, uso acadêmico, modificação e
-redistribuição não comercial, são permitidos nos termos da licença. Uso
-comercial não é autorizado por esta licença e depende de autorização ou
-licenciamento separado pelo autor.
-
-O arquivo [LICENSE](LICENSE) define as condições jurídicas de utilização do
-código. O arquivo [CITATION.cff](CITATION.cff) registra os metadados de autoria
-e orienta a citação acadêmica do projeto.
-
-### Publicação validada da Gold
-
-Cada tentativa do pipeline recebe um identificador em data/execucoes, com estado
-em_andamento, concluida ou malsucedida. Os intermediários ficam na pasta trabalho
-da execução, indicada no terminal. Os comandos bronze, silver e gold aproveitam
-os intermediários da última execução concluída quando disponíveis. O comando gold
-também exige aprovação dos validadores Bronze e Silver antes de publicar.
-
-A Gold é preparada em isolamento e passa pelos validadores específicos, dimensionais
-e global. Após aprovação, o diretório completo substitui data/gold.
-O manifesto data/gold/publicacao.json registra a execução, os controles aprovados,
-os insumos Raw e os hashes dos arquivos publicados. As cópias e estados anteriores
-ficam em data/execucoes; considere esse espaço ao executar novamente.
-
-O comando python src/pipeline.py validate-gold verifica separadamente a integridade
-da publicação, sua atualidade em relação à Raw e o estado da última tentativa.
-Uma execução bem-sucedida de bronze ou silver não substitui nem invalida uma Gold
-atual. Após falha ou mudança dos insumos, a opção --last-valid permite verificar
-explicitamente a publicação anterior, identificando-a como desatualizada quando
-aplicável. Nessa modalidade, os validadores PND usam o dicionário do snapshot Raw
-arquivado daquela publicação, após conferir sua identidade com o manifesto Raw
-arquivado e o inventário publicado. Se o arquivo estiver ausente ou divergente,
-a verificação falha; não há fallback para o dicionário Raw atual. Sem
---last-valid, a validação continua usando a Raw atual. Conjuntos legados sem
-manifesto precisam de uma execução validada para receber certificação. Para
-diagnóstico estritamente estrutural, use
-python src/gold/validar_gold.py --structure-only.
-
-A troca usa renomeações de diretórios no mesmo volume e um diário de recuperação.
-Uma interrupção é recuperada na próxima execução ou verificação, restaurando o
-conjunto anterior quando a publicação ainda não foi confirmada. O bloqueio do
-sistema operacional impede execuções concorrentes pelo orquestrador.
-Os scripts individuais de transformação são ferramentas de diagnóstico e não
-registram publicação; alterações posteriores da Gold invalidam seus hashes.
-
-O caminho consumido pelo Power BI permanece data/gold. Durante a troca há uma
-breve janela em que esse diretório pode estar indisponível. Faça a atualização do
-Power BI depois de validate-gold concluir, sem executar o pipeline simultaneamente.
-Uma atualização já em andamento no Power BI não participa do bloqueio do Python
-e pode ler arquivos em momentos diferentes. Garantir uma leitura transacional no
-Power BI exigiria alterar suas consultas para fixar uma versão, fora desta correção.
+O projeto é disponibilizado sob a
+[PolyForm Noncommercial License 1.0.0](LICENSE). Usos não comerciais são
+permitidos nos termos da licença; uso comercial depende de autorização ou
+licenciamento separado. Os metadados para citação estão em
+[`CITATION.cff`](CITATION.cff).

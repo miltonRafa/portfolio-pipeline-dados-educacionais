@@ -21,7 +21,7 @@ tcc/
 - `bib/`: base bibliografica utilizada pelo BibTeX;
 - `capitulos/`: conteudo textual do trabalho;
 - `elementos/`: materiais auxiliares do modelo;
-- [apresentacao/](apresentacao/README.md): slides, roteiro impresso e imagens de apoio para a defesa;
+- [apresentacao/](apresentacao/README.md): apresentação final de 12 slides e roteiro impresso da defesa;
 - `figs/`: imagens incorporadas ao documento.
 
 ## Compilacao local

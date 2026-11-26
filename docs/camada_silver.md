@@ -1,5 +1,10 @@
 # Camada Silver — Pipeline de Dados Educacionais
 
+> **Nota de leitura:** as seções iniciais registram contratos e decisões
+> metodológicas, inclusive as formuladas antes da implementação. A situação
+> atual das cinco fontes está consolidada nas seções 18 e 18.1; os resultados
+> e o histórico datado foram mantidos como evidência, não como etapas pendentes.
+
 ## 1. Objetivo
 
 A camada Silver e responsavel por transformar as representacoes tecnicas e rastreaveis da Bronze em tabelas analiticas semanticamente harmonizadas.

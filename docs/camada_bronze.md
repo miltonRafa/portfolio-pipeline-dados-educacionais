@@ -1,5 +1,11 @@
 # Camada Bronze — Ingestao dos Dados Educacionais
 
+> **Nota de leitura:** este documento combina contratos definidos antes da
+> implementação com registros das execuções concluídas. Os trechos iniciais em
+> tempo futuro descrevem o desenho da camada, não tarefas pendentes. O estado
+> final das fontes está resumido nas seções 20 e 22; os registros datados
+> preservam as evidências de cada etapa.
+
 ## 1. Objetivo
 
 A camada Bronze e a primeira camada de dados processados do projeto.

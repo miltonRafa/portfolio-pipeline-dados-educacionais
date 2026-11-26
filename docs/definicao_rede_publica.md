@@ -1,5 +1,11 @@
 # Definicao Metodologica — Rede Publica
 
+> **Nota de leitura:** este registro documenta a decisão metodológica inicial
+> de 18/08/2026. A linguagem prospectiva descreve o plano da época, não uma
+> implementação pendente. O estado atual das regras está nas documentações de
+> [Bronze](camada_bronze.md), [Silver](camada_silver.md) e
+> [Gold](camada_gold.md).
+
 ## 1. Objetivo
 
 Este documento registra a definicao metodologica adotada para a dimensao de rede de ensino no projeto de pipeline de dados educacionais.
@@ -557,14 +563,9 @@ Os nomes tecnicos definitivos dessas colunas serao definidos durante a implement
 
 Esta decisao nao substitui os documentos de auditoria individuais.
 
-Os documentos:
-
-auditoria_saeb.md
-auditoria_ideb.md
-auditoria_rendimento.md
-auditoria_tdi.md
-
-registram as caracteristicas e problemas especificos de cada base.
+As análises por fonte e o estado implementado estão registrados nas
+documentações de [Bronze](camada_bronze.md) e [Silver](camada_silver.md).
+As regras de consumo dimensional estão em [Gold](camada_gold.md).
 
 Este documento registra a decisao transversal utilizada para integrar essas bases em um mesmo modelo analitico.
 

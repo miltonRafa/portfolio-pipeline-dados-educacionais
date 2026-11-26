@@ -66,7 +66,8 @@ futura do diretório-base do projeto.
 
 ### 2.1 Configurar o PBIX em outro computador
 
-O procedimento completo está em [Abrir e Configurar o Power BI](../README.md#6-abrir-e-configurar-o-power-bi).
+O procedimento de abertura e configuração está em
+[Painel Power BI](../README.md#painel-power-bi).
 Depois de gerar a Gold pelo pipeline, abra o PBIX no Power BI Desktop e acesse
 **Transformar dados → gold → Fonte**. Na configuração mostrada nesta versão,
 o caminho está diretamente na consulta `gold`, e não em um parâmetro separado
@@ -674,20 +675,32 @@ RETURN
 
 ## 7. Formatação recomendada
 
-Medidas percentuais armazenadas na escala 0-100:
+As taxas de Rendimento são armazenadas na escala 0–100 e exibidas como número
+decimal, sem o símbolo `%`:
 
 ```text
 Taxa de Aprovação
 Taxa de Reprovação
 Taxa de Abandono
-TDI Média
 ```
 
-devem ser exibidas como número decimal com uma ou duas casas, e não como
-percentual do Power BI.
+`TDI Média` também recebe valores na escala 0–100, mas o PBIX usa o formato
+personalizado `0.0"%"`: o símbolo de porcentagem é literal e não multiplica o
+valor por 100. Assim, um valor `28.0` é exibido como `28.0%`. Não substitua
+esse formato por um formato percentual padrão, que alteraria a escala exibida.
+
+`Variação TDI` é a diferença absoluta entre o último e o primeiro valor
+disponíveis no intervalo selecionado. Seu formato personalizado
+`0.0" p.p."` identifica pontos percentuais, não uma variação percentual
+relativa.
+
+Esses formatos correspondem à exportação direta mais recente das medidas do
+PBIX em [`medidas_pbix_atual.csv`](../powerbi/medidas_pbix_atual.csv). As
+expressões dessa exportação foram conferidas com
+[`medidas_power_bi.dax`](../powerbi/medidas_power_bi.dax).
 
 As medidas abaixo são razões entre 0 e 1 e devem ser formatadas no Power BI como
-percentual:
+percentual padrão:
 
 ```text
 % Básico ou Adequado
